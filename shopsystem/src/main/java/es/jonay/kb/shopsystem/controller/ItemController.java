@@ -100,4 +100,20 @@ public class ItemController {
                         ascending ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending()))
                 .map(ItemMapper.INSTANCE::toItemDto);
     }
+
+    public Page<ItemDto> findByCategoryId(String name, int page, int size, String sortBy, boolean ascending,
+            Long categoryId) {
+        if (sortBy == null || sortBy.isEmpty()) {
+            sortBy = "name";
+        }
+        Pageable pageable = PageRequest.of(page, size, ascending ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending());
+        if (categoryId == null) {
+            return itemRepository.findByNameContainingIgnoreCase(name, pageable)
+                    .map(ItemMapper.INSTANCE::toItemDto);
+        } else {
+            return itemRepository.findByCategoryIdAndNameContainingIgnoreCase(categoryId, name, pageable)
+                    .map(ItemMapper.INSTANCE::toItemDto);
+        }
+    }
 }

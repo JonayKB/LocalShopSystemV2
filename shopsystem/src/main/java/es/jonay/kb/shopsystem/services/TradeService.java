@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -54,19 +55,26 @@ public class TradeService {
     public TradeDto saveList(@RequestBody List<ItemDto> items) {
         return tradeController.saveList(items);
     }
-@GetMapping("/range")
+
+    @GetMapping("/range")
     public List<TradeDto> getTradesInRange(
             @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
-                return tradeController.findTradesInRange(startDate, endDate);
-            }
+        return tradeController.findTradesInRange(startDate, endDate);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteById(@PathVariable(name = "id") final Long id) {
         try {
             tradeController.deleteById(id);
-            return ResponseEntity.noContent().build(); 
+            return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
-}
+    }
+
+    @GetMapping("/{page}/{size}")
+    public Page<TradeDto> getPage(@PathVariable("page") int page, @PathVariable("size") int size) {
+        return tradeController.getPage(page, size);
+    }
 }

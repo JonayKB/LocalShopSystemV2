@@ -81,4 +81,14 @@ public class ItemService {
             boolean ascending) {
         return iItemController.findByNameContainingIgnoreCase(name, page, size, sortBy, ascending);
     }
+
+    @GetMapping("{categoryId}/{page}/{size}")
+    public Page<ItemDto> findByCategoryId(@PathVariable(name = "categoryId") Long categoryId,
+            @PathVariable(name = "page") int page,
+            @PathVariable(name = "size") int size,
+            String sortBy,
+            boolean ascending,
+            String name) {
+        return iItemController.findByCategoryId(name, page, size, sortBy, ascending, categoryId);
+    }
 }

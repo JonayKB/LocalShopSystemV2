@@ -1,21 +1,21 @@
 import React, { Dispatch, ReactNode, SetStateAction, useState, createContext } from 'react'
+import Category from '../models/Category';
 
 type Props = {
     children: ReactNode
 }
 
 interface MainContextType {
-    token: string;
-    setToken: Dispatch<SetStateAction<string>>;
+    categories?: Category[];
 }
 export const MainContext = createContext<MainContextType>({} as MainContextType);
 
 const MainContextProvider = (props: Props) => {
-    const [token, setToken] = useState<string>(localStorage.getItem('token') ?? '');
+    const [categories, setCategories] = useState<Category[]>([]);
 
     const contextValues = {
-        token,
-        setToken
+        categories,
+        setCategories: setCategories as Dispatch<SetStateAction<Category[]>>,
     }
 
     return (

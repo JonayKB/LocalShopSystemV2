@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 
 import es.jonay.kb.shopsystem.api.dto.ItemDto;
@@ -32,54 +34,56 @@ public class TradeController {
     public ICategoryRepository getICategoryRepository() {
         return this.categoryRepository;
     }
+
     public ITradeRepository getITradeRepository() {
         return this.tradeRepository;
     }
+
     @Autowired
     public void setITradeRepository(ITradeRepository tradeRepository) {
         this.tradeRepository = tradeRepository;
     }
 
-    public List<TradeDto> findAll(){
+    public List<TradeDto> findAll() {
         List<Trade> trades = tradeRepository.findAll();
         List<TradeDto> result = new ArrayList<TradeDto>();
-        for(Trade trade : trades){
+        for (Trade trade : trades) {
             result.add(TradeMapper.INSTANCE.toTradeDto(trade));
         }
         return result;
     }
 
-    public Optional<TradeDto> findById(Long id){
+    public Optional<TradeDto> findById(Long id) {
         Optional<Trade> trade = tradeRepository.findById(id);
         return trade.map(TradeMapper.INSTANCE::toTradeDto);
     }
 
-    public TradeDto save(TradeDto tradeDto){
+    public TradeDto save(TradeDto tradeDto) {
         Trade trade = TradeMapper.INSTANCE.toTrade(tradeDto);
         return TradeMapper.INSTANCE.toTradeDto(tradeRepository.save(trade));
     }
 
-    public TradeDto saveList(List<ItemDto> items){
-        
+    public TradeDto saveList(List<ItemDto> items) {
+
         List<Item> itemList = new ArrayList<Item>();
-        for(ItemDto itemDto : items){
+        for (ItemDto itemDto : items) {
             Item item = ItemMapper.INSTANCE.toItem(itemDto);
             item.setCategory(categoryRepository.findById(itemDto.getCategoryId()).get());
             itemList.add(item);
         }
-        Trade trade = new Trade() ;
+        Trade trade = new Trade();
         trade.setDate(new Date());
         trade.setItems(itemList);
         return TradeMapper.INSTANCE.toTradeDto(tradeRepository.save(trade));
     }
 
-     public List<TradeDto> findTradesInRange(LocalDateTime startDate,LocalDateTime endDate) {
-        
+    public List<TradeDto> findTradesInRange(LocalDateTime startDate, LocalDateTime endDate) {
+
         // Ensure that the time range is correctly defined
         if (startDate == null) {
             startDate = LocalDateTime.of(LocalDateTime.now().toLocalDate(), LocalTime.MIDNIGHT);
         }
-        
+
         if (endDate == null) {
             endDate = LocalDateTime.of(LocalDateTime.now().toLocalDate(), LocalTime.MAX);
         }
@@ -89,7 +93,14 @@ public class TradeController {
         }
         return tradesDtoList;
     }
-    public void deleteById(Long id){
+
+    public void deleteById(Long id) {
         tradeRepository.deleteById(id);
     }
+
+    public Page<TradeDto> getPage(int page, int size) {
+        Page<Trade> trades = tradeRepository.findAll(PageRequest.of(page, size));
+        return trades.map(TradeMapper.INSTANCE::toTradeDto);
+    }
+
 }
