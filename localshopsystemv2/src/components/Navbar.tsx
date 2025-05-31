@@ -8,6 +8,7 @@ const Navbar: React.FC = () => {
     setOpen(prev => !prev);
   };
 
+
   return (
     <>
       {/* Botón hamburguesa */}
@@ -16,7 +17,8 @@ const Navbar: React.FC = () => {
         style={{
           position: 'fixed',
           top: 20,
-          left: 20,
+          left: open ? -300 : 20,
+          transition: 'left 0.3s ease-in-out',
           zIndex: 1001,
           background: 'transparent',
           border: 'none',
@@ -61,6 +63,21 @@ const Navbar: React.FC = () => {
         }}
       >
         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+          <button
+            onClick={toggleSidebar}
+            style={{
+              position: 'absolute',
+              top: 20,
+              right: 20,
+              background: 'transparent',
+              border: 'none',
+              fontSize: '28px',
+              color: 'white',
+              cursor: 'pointer',
+            }}
+          >
+            ✖
+          </button>
           <li style={{ margin: '20px 0' }}>
             <Link
               to="/"
