@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useContext } from 'react';
 
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import Navbar from './components/Navbar';
-import MainContextProvider from './components/MainContextProvider';
+import MainContextProvider, { MainContext } from './components/MainContextProvider';
 import BarcodeListener from './components/BarcodeListener';
 import './styles/App.css';
 import HomeScreen from './screens/HomeScreen';
@@ -10,10 +10,22 @@ import LoginScreen from './screens/LoginScreen';
 import ItemsScreen from './screens/ItemsScreen';
 import TradesScreen from './screens/TradesScreen';
 import Basket from './components/Basket';
+import ItemRepository from './repositories/ItemRepository';
 
 function App() {
-  const handleBarcodeScan = (code: string) => {
-    console.log('Código escaneado:', code);
+  const { updateBasket, setOpenBasket, token } = useContext(MainContext);
+  const itemRepository = new ItemRepository();
+  const handleBarcodeScan = async (code: string) => {
+    const item = await itemRepository.getItemById(code, token);
+    if (item) {
+      updateBasket(item, 1);
+      setOpenBasket(true);
+      console.log('Item added to basket:', item);
+    } else {
+      console.error('Item not found for code:', code);
+    }
+
+
   };
 
   return (

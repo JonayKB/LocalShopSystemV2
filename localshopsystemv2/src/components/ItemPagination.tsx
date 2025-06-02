@@ -1,4 +1,4 @@
-import React, { Dispatch, useEffect, useState } from 'react';
+import React, {  useEffect, useState } from 'react';
 import ItemComponent from './ItemComponent';
 import Item from '../models/Item';
 import Page from '../models/Page';
@@ -9,7 +9,10 @@ type Props = {
     categoryId?: number;
     token: string | null,
     onItemClick?: (item: Item) => void;
-    
+    text?: string;
+    sortBy?: string;
+    ascending?: boolean;
+
 }
 
 const ItemPagination = (props: Props) => {
@@ -28,9 +31,9 @@ const ItemPagination = (props: Props) => {
             }
             const res = await axios.get(BaseInfoRepository.BASE_URL + url, {
                 params: {
-                    sortBy: 'name',
-                    ascending: true,
-                    name: '',
+                    sortBy: props.sortBy ?? 'name',
+                    ascending: props.ascending ?? true,
+                    name: props.text ?? '',
                 },
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -41,11 +44,11 @@ const ItemPagination = (props: Props) => {
             setLoading(false);
         };
         fetchItems();
-    }, [page, categoryId, token]);
+    }, [page, categoryId, token, props.text, props.sortBy, props.ascending]);
 
     return (
         <div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', padding: '20px', backgroundColor: '#1e1e2f', color: 'white', borderRadius: 8, height: '65vh', overflowY: 'scroll' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(15%, 1fr))', gap: '20px', padding: '20px', backgroundColor: '#1e1e2f', color: 'white', borderRadius: 8, height: '65vh', overflowY: 'scroll' }}>
                 {(() => {
                     if (loading) {
                         return <div style={{ color: 'white', fontSize: 18 }}>Cargando...</div>;

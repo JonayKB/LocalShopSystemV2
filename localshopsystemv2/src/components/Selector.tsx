@@ -97,7 +97,7 @@ const Selector = (props: Props) => {
                                 fontSize: '1rem',
                                 marginLeft: 'auto',
                                 marginRight: 'auto',
-                                display: 'block'
+                                position:'absolute'
                             }}
                             onClick={() => setSelectedCategory(null)}
                             onMouseEnter={(e) => {
@@ -114,7 +114,7 @@ const Selector = (props: Props) => {
                         >
                             Back to Categories
                         </button>
-                        <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>
+                        <h2 style={{ textAlign: 'center',textTransform: 'capitalize', marginBottom: '20px' }}>
                             Items in Category: {props.categories.find(cat => cat.id === selectedCategory)?.name}
                         </h2>
                         <ItemPagination categoryId={selectedCategory} token={props.token} onItemClick={onItemClick} />

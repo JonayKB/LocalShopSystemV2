@@ -35,5 +35,24 @@ class ItemRepository {
       throw error; // Re-throw the error to be handled by the caller
     }
   }
+
+  async getItemById(itemId: string, token: string | null): Promise<Item> {
+    try {
+      const response = await axios.get<Item>(
+        `${BaseInfoRepository.BASE_URL}items/${itemId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "*/*",
+          },
+        }
+      );
+      console.log(`Response received for item ${itemId}:`, response.data);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching item with ID ${itemId}:`, error);
+      throw error; // Re-throw the error to be handled by the caller
+    }
+  }
 }
 export default ItemRepository;

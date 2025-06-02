@@ -28,15 +28,15 @@ const ItemComponent = (props: Props) => {
     }
         , [props.item.image, imageRepository]);
     return (
-        <div style={{ width: '20%', textAlign: 'center', color: 'white', background: '#3a3d4a', padding: '10px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)', height: '35vh', cursor: props.onClick ? 'pointer' : 'default' }}
+        <div style={{ textAlign: 'center', color: 'white', background: '#3a3d4a', padding: '10px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)', height: '35vh', cursor: props.onClick ? 'pointer' : 'default' }}
             onClick={props.onClick ? () => props.onClick!(props.item) : undefined}
         >
             <img
                 src={imageUrl}
                 alt={props.item.name}
-                style={{ width: '100%', height: 'auto', borderRadius: '8px' }}
+                style={{ width: '100%', height: 'auto', borderRadius: '8px',maxWidth:'20rem' }}
             />
-            <h3 style={{textTransform:'capitalize'}}>{props.item.name}</h3>
+            <h3 style={{ textTransform: 'capitalize' }}>{props.item.name}</h3>
             <p>{props.item.price.toFixed(2)} €</p>
         </div>
     )

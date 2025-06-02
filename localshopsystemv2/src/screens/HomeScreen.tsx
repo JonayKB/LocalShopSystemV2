@@ -3,6 +3,7 @@ import { MainContext } from '../components/MainContextProvider';
 import { useNavigate } from 'react-router-dom';
 import CategoryRepository from '../repositories/CategoryRepository';
 import Selector from '../components/Selector';
+import ItemSearcher from '../components/ItemSearcher';
 
 type Props = {}
 
@@ -36,8 +37,10 @@ const HomeScreen = (props: Props) => {
         color: 'white',
         padding: '20px',
         fontSize: '20px',
+        overflowY: 'hidden',
       }}
     >
+      <ItemSearcher />
       <Selector categories={categories} token={token} />
     </div>
   );
