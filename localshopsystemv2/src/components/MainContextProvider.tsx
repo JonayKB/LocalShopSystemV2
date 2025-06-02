@@ -11,23 +11,41 @@ interface MainContextType {
     setCategories: Dispatch<SetStateAction<Category[]>>;
     token: string | null;
     setToken: Dispatch<SetStateAction<string | null>>;
-    basketItems: Item[];
-    setBasketItems: Dispatch<SetStateAction<Item[]>>;
+    basketItems: Map<Item, number>;
+    setBasketItems: Dispatch<SetStateAction<Map<Item, number>>>;
+    openBasket: boolean;
+    setOpenBasket: Dispatch<SetStateAction<boolean>>;
+    updateBasket: (item: Item, quantity: number) => void;
 }
 export const MainContext = createContext<MainContextType>({} as MainContextType);
 
 const MainContextProvider = (props: Props) => {
     const [categories, setCategories] = useState<Category[]>([]);
     const [token, setToken] = useState<string | null>(null);
-    const [basketItems, setBasketItems] = useState<Item[]>([]);
+    const [basketItems, setBasketItems] = useState<Map<Item, number>>(new Map<Item, number>());
+    const [openBasket, setOpenBasket] = useState(true);
+    const updateBasket = (item: Item, quantity: number) => {
+        setBasketItems(prev => {
+            const updated = new Map(prev);
+            if (quantity <= 0) {
+                updated.delete(item);
+            } else {
+                updated.set(item, quantity);
+            }
+            return updated;
+        });
+    };
 
     const contextValues = {
         categories,
-        setCategories: setCategories as Dispatch<SetStateAction<Category[]>>,
+        setCategories: setCategories,
         token,
-        setToken: setToken as Dispatch<SetStateAction<string | null>>,
+        setToken: setToken,
         basketItems,
-        setBasketItems: setBasketItems as Dispatch<SetStateAction<Item[]>>,
+        setBasketItems: setBasketItems,
+        openBasket,
+        setOpenBasket: setOpenBasket,
+        updateBasket: updateBasket,
     }
 
     return (

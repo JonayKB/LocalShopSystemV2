@@ -9,11 +9,12 @@ class ImageRespository {
         headers: {
           Authorization: `Bearer ${token}`,
         },
+        responseType: "blob",
       }
     );
 
-    const data = response.data;
-    return data;
+    const blob = response.data;
+    return URL.createObjectURL(blob);
   }
 }
 export default ImageRespository;

@@ -4,7 +4,9 @@ import ImageRespository from '../repositories/ImageRepository'
 
 type Props = {
     item: Item,
-    token: string | null
+    token: string | null,
+    onClick?: (item: Item) => void
+
 }
 
 const ItemComponent = (props: Props) => {
@@ -18,7 +20,7 @@ const ItemComponent = (props: Props) => {
                 console.log(`Image for item ${props.item.id} fetched successfully.`);
             } catch (error) {
                 console.error(`Error fetching image for item ${props.item.id}:`, error);
-                setImageUrl('https://static.vecteezy.com/system/resources/previews/008/695/917/non_2x/no-image-available-icon-simple-two-colors-template-for-no-image-or-picture-coming-soon-and-placeholder-illustration-isolated-on-white-background-vector.jpg'); // Fallback image
+                setImageUrl('https://static.vecteezy.com/system/resources/previews/008/695/917/non_2x/no-image-available-icon-simple-two-colors-template-for-no-image-or-picture-coming-soon-and-placeholder-illustration-isolated-on-white-background-vector.jpg');
             }
         };
 
@@ -26,13 +28,15 @@ const ItemComponent = (props: Props) => {
     }
         , [props.item.image, imageRepository]);
     return (
-        <div style={{ width: '20%', textAlign: 'center', color: 'white' , background: '#3a3d4a', padding: '10px', borderRadius: '8px' , boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',height:'35vh'}}>
+        <div style={{ width: '20%', textAlign: 'center', color: 'white', background: '#3a3d4a', padding: '10px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)', height: '35vh', cursor: props.onClick ? 'pointer' : 'default' }}
+            onClick={props.onClick ? () => props.onClick!(props.item) : undefined}
+        >
             <img
                 src={imageUrl}
                 alt={props.item.name}
                 style={{ width: '100%', height: 'auto', borderRadius: '8px' }}
             />
-            <h3>{props.item.name}</h3>
+            <h3 style={{textTransform:'capitalize'}}>{props.item.name}</h3>
             <p>{props.item.price.toFixed(2)} €</p>
         </div>
     )

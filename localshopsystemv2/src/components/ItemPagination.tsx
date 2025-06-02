@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { Dispatch, useEffect, useState } from 'react';
 import ItemComponent from './ItemComponent';
 import Item from '../models/Item';
 import Page from '../models/Page';
@@ -7,7 +7,9 @@ import BaseInfoRepository from '../utils/BaseInfoRepository';
 
 type Props = {
     categoryId?: number;
-    token: string | null
+    token: string | null,
+    onItemClick?: (item: Item) => void;
+    
 }
 
 const ItemPagination = (props: Props) => {
@@ -43,7 +45,7 @@ const ItemPagination = (props: Props) => {
 
     return (
         <div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', padding: '20px', backgroundColor: '#1e1e2f', color: 'white', borderRadius: 8,height: '65vh', overflowY: 'scroll' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', padding: '20px', backgroundColor: '#1e1e2f', color: 'white', borderRadius: 8, height: '65vh', overflowY: 'scroll' }}>
                 {(() => {
                     if (loading) {
                         return <div style={{ color: 'white', fontSize: 18 }}>Cargando...</div>;
@@ -51,7 +53,7 @@ const ItemPagination = (props: Props) => {
                         return <div style={{ color: 'white', fontSize: 18 }}>No hay productos.</div>;
                     } else {
                         return pageData.content.map(item => (
-                            <ItemComponent key={item.id} item={item} token={token} />
+                            <ItemComponent key={item.id} item={item} token={token} onClick={props.onItemClick} />
                         ));
                     }
                 })()}

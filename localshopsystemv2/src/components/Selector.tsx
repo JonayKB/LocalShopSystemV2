@@ -1,20 +1,19 @@
 
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import Category from '../models/Category'
 import ImageRespository from '../repositories/ImageRepository'
 import Item from '../models/Item'
-import Page from '../models/Page'
-import ItemRepository from '../repositories/ItemRepository'
-import ItemComponent from './ItemComponent'
 import ItemPagination from './ItemPagination'
+import { MainContext } from './MainContextProvider'
 
 type Props = {
     categories: Category[],
-    token: string | null
+    token: string | null,
 }
 
 const Selector = (props: Props) => {
     const imageRepository = new ImageRespository();
+    const { basketItems, setOpenBasket, updateBasket } = useContext(MainContext);
 
 
     function handleCategoryClick(categoryId: number) {
@@ -23,6 +22,21 @@ const Selector = (props: Props) => {
 
     const [imageUrls, setImageUrls] = useState<{ [key: string]: string }>({});
     const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+
+    function onItemClick(item: Item) {
+        console.log(`Item clicked: ${item}`);
+        console.log(basketItems.has(item));
+        if (basketItems.has(item)) {
+            const currentQuantity = basketItems.get(item) ?? 0;
+            updateBasket(item, currentQuantity + 1);
+        } else {
+            updateBasket(item, 1);
+
+        }
+        setOpenBasket(true);
+        console.log(`Item ${item.name} added to basket. Current quantity: ${basketItems.get(item)}`);
+
+    }
 
 
     useEffect(() => {
@@ -33,6 +47,7 @@ const Selector = (props: Props) => {
                     try {
                         urls[category.id] = await imageRepository.getImageById(category.image, props.token);
                         console.log(`Image for category ${category.id} fetched successfully.`);
+                        console.log(`Image URL: ${urls[category.id]}`);
                     } catch (error) {
                         console.error(`Error fetching image for category ${category.id}:`, error);
                         urls[category.id] = 'https://static.vecteezy.com/system/resources/previews/008/695/917/non_2x/no-image-available-icon-simple-two-colors-template-for-no-image-or-picture-coming-soon-and-placeholder-illustration-isolated-on-white-background-vector.jpg'; // Fallback image
@@ -45,8 +60,6 @@ const Selector = (props: Props) => {
     }, [props.categories, props.token]);
 
     return (
-        <div
-        >
             <div
                 style={{
                     width: '100%',
@@ -61,7 +74,8 @@ const Selector = (props: Props) => {
                     color: 'white',
                     fontFamily: `'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif`,
                     overflowY: 'auto',
-                    marginTop:25
+                    marginTop: 25,
+                    overflowX: 'hidden',
                 }}
             >
                 {selectedCategory !== null && selectedCategory >= 0 ? (
@@ -69,22 +83,29 @@ const Selector = (props: Props) => {
                         <button
                             style={{
                                 textAlign: 'center',
-                                width: '100%',
-                                background: 'none',
-                                border: 'none',
-                                padding: 20,
+                                width: 'fit-content',
+                                background: '#23263a',
+                                border: '1px solid #444',
+                                padding: '12px 28px',
                                 cursor: 'pointer',
-                                backgroundColor: '#2a2d3a',
-                                color: 'white',
-                                borderRadius: '8px',
-                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                transition: 'transform 0.2s ease-in-out',
+                                color: '#fff',
+                                borderRadius: '6px',
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+                                transition: 'background 0.2s, transform 0.2s',
+                                marginBottom: '24px',
+                                fontWeight: 500,
+                                fontSize: '1rem',
+                                marginLeft: 'auto',
+                                marginRight: 'auto',
+                                display: 'block'
                             }}
                             onClick={() => setSelectedCategory(null)}
                             onMouseEnter={(e) => {
-                                e.currentTarget.style.transform = 'scale(1.05)';
+                                e.currentTarget.style.background = '#35385a';
+                                e.currentTarget.style.transform = 'scale(1.06)';
                             }}
                             onMouseLeave={(e) => {
+                                e.currentTarget.style.background = '#23263a';
                                 e.currentTarget.style.transform = 'scale(1)';
                             }}
                             tabIndex={0}
@@ -96,7 +117,7 @@ const Selector = (props: Props) => {
                         <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>
                             Items in Category: {props.categories.find(cat => cat.id === selectedCategory)?.name}
                         </h2>
-                        <ItemPagination categoryId={selectedCategory} token={props.token} />
+                        <ItemPagination categoryId={selectedCategory} token={props.token} onItemClick={onItemClick} />
 
                     </div>
                 ) : props.categories.map((category) => (
@@ -145,7 +166,6 @@ const Selector = (props: Props) => {
                     </button>
                 ))}
             </div>
-        </div>
     )
 }
 
