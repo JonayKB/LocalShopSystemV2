@@ -1,26 +1,50 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MainContext } from '../components/MainContextProvider';
+import AuthRepository from '../repositories/AuthRepository';
 
 type Props = {}
 
 const LoginScreen = (props: Props) => {
-    const { token } = useContext(MainContext);
+    const { token, setToken } = useContext(MainContext);
     const navigate = useNavigate();
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const authRepository = new AuthRepository();
     useEffect(() => {
         const tokenStorage = localStorage.getItem('token');
-        if (token || tokenStorage) {
-            navigate('/home');
+        if (tokenStorage) {
+            setToken(tokenStorage);
+        }
+        if (token) {
+            navigate('/');
         }
     }, [token, navigate]);
 
-    function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
         const formData = new FormData(event.currentTarget);
         const username = formData.get('username') as string;
         const password = formData.get('password') as string;
-        console.log('Username:', username);
-        console.log('Password:', password);
+
+        try {
+            const token = await authRepository.login(username, password);
+            if (token) {
+                localStorage.setItem('token', token);
+                if (setToken) {
+                    setToken(token);
+                    navigate('/');
+
+                }
+            }
+        } catch (error) {
+            if (error && typeof error === 'object' && 'response' in error && error.response && typeof error.response === 'object' && 'data' in error.response) {
+                setErrorMessage((error as any).response.data);
+            } else {
+                setErrorMessage('Ocurrió un error inesperado');
+            }
+        }
+
+
     }
 
     return (
@@ -111,6 +135,20 @@ const LoginScreen = (props: Props) => {
                             }}
                         />
                     </div>
+                    {errorMessage && (
+                        <div
+                            style={{
+                                backgroundColor: '#f44336',
+                                color: 'white',
+                                padding: '10px',
+                                borderRadius: '6px',
+                                marginBottom: '20px',
+                                textAlign: 'center',
+                            }}
+                        >
+                            {errorMessage}
+                        </div>
+                    )}
                     <button
                         type="submit"
                         style={{
@@ -127,6 +165,7 @@ const LoginScreen = (props: Props) => {
                         onMouseOver={e => (e.currentTarget.style.backgroundColor = '#3b4bc1')}
                         onMouseOut={e => (e.currentTarget.style.backgroundColor = '#4c5cdb')}
                     >
+
                         Entrar
                     </button>
                 </form>

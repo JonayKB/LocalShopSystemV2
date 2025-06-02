@@ -7,12 +7,12 @@ type Props = {
 }
 
 interface MainContextType {
-    categories?: Category[];
-    setCategories?: Dispatch<SetStateAction<Category[]>>;
-    token?: string | null;
-    setToken?: Dispatch<SetStateAction<string | null>>;
-    basketItems?: Item[];
-    setBasketItems?: Dispatch<SetStateAction<Item[]>>;
+    categories: Category[];
+    setCategories: Dispatch<SetStateAction<Category[]>>;
+    token: string | null;
+    setToken: Dispatch<SetStateAction<string | null>>;
+    basketItems: Item[];
+    setBasketItems: Dispatch<SetStateAction<Item[]>>;
 }
 export const MainContext = createContext<MainContextType>({} as MainContextType);
 

@@ -8,9 +8,6 @@ import org.springframework.stereotype.Service;
 import es.jonay.kb.shopsystem.api.security.JwtService;
 import es.jonay.kb.shopsystem.model.entities.User;
 
-
-
-
 @Service
 public class AuthController {
 
@@ -26,16 +23,13 @@ public class AuthController {
 
     public String login(String mail, String password) {
         User user = userService.findByEmail(mail);
-        System.out.println(passwordEncoder.encode(password));
 
         if (user != null && passwordEncoder.matches(password, user.getPassword())) {
-            
-                return jwtService.generateToken(user.getEmail(), "ROLE_ADMIN");
+
+            return jwtService.generateToken(user.getEmail(), "ROLE_ADMIN");
 
         }
         throw new RuntimeException("User not found or Invalid Credentials");
     }
-
-    
 
 }

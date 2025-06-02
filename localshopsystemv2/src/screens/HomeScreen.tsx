@@ -1,16 +1,30 @@
 import React, { useContext, useEffect } from 'react';
 import { MainContext } from '../components/MainContextProvider';
 import { useNavigate } from 'react-router-dom';
+import CategoryRepository from '../repositories/CategoryRepository';
+import Selector from '../components/Selector';
 
 type Props = {}
 
 const HomeScreen = (props: Props) => {
-  const {token} = useContext(MainContext);
-    const navigate = useNavigate();
+  const { token, categories, setCategories } = useContext(MainContext);
+  const navigate = useNavigate();
+  const categoryRepository = new CategoryRepository();
 
   useEffect(() => {
+    async function fetchCategories() {
+      const categoriesLocal = await categoryRepository.getCategories(token)
+      if (categoriesLocal) {
+        setCategories(categoriesLocal);
+        console.log('Categorías cargadas:', categoriesLocal);
+      } else {
+        console.error('No se pudieron cargar las categorías');
+      }
+    }
     if (!token) {
       navigate('/login');
+    } else {
+      fetchCategories();
     }
   }, [token, navigate]);
   return (
@@ -24,7 +38,7 @@ const HomeScreen = (props: Props) => {
         fontSize: '20px',
       }}
     >
-      Home
+      <Selector categories={categories} token={token} />
     </div>
   );
 };

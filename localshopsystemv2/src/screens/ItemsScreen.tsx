@@ -1,17 +1,25 @@
 import React, { useContext, useEffect } from 'react';
 import { MainContext } from '../components/MainContextProvider';
 import { useNavigate } from 'react-router-dom';
+import CategoryRepository from '../repositories/CategoryRepository';
 
 type Props = {}
 
 const ItemsScreen = (props: Props) => {
-  const {token} = useContext(MainContext);
-    const navigate = useNavigate();
+  const { token } = useContext(MainContext);
+  const navigate = useNavigate();
+  
 
   useEffect(() => {
+    
+
+
     if (!token) {
-        navigate('/login'); 
-    }
+      navigate('/login');
+    } 
+
+
+
   }, [token, navigate]);
   return (
     <div
@@ -24,7 +32,7 @@ const ItemsScreen = (props: Props) => {
         fontSize: '20px',
       }}
     >
-      Items
+      
     </div>
   );
 };
