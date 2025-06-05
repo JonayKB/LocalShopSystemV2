@@ -80,7 +80,6 @@ const Basket: React.FC = () => {
                                 <button
                                     onClick={() => {
                                         updateBasket(item, quantity - 1);
-                                        console.log(`Remove ${item.name}`);
 
                                     }}
                                     style={{
@@ -100,7 +99,6 @@ const Basket: React.FC = () => {
                                     value={quantity}
                                     onChange={e => {
                                         updateBasket(item, parseInt(e.target.value));
-                                        console.log(`Update ${item.name} quantity to ${e.target.value}`);
                                     }}
                                     style={{
                                         width: '60px',
@@ -119,7 +117,6 @@ const Basket: React.FC = () => {
                                 <button
                                     onClick={() => {
                                         updateBasket(item, quantity + 1);
-                                        console.log(`Add ${item.name}`);
 
                                     }}
                                     style={{
@@ -144,7 +141,6 @@ const Basket: React.FC = () => {
                 </div>
                 <button
                     onClick={async () => {
-                        console.log('Checkout clicked');
                         try {
                             await tradeRepository.createTrade(basketItems, token);
                             playSound('success_sound.mp3');

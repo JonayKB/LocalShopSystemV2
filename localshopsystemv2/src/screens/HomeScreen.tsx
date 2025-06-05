@@ -17,10 +17,7 @@ const HomeScreen = (props: Props) => {
       const categoriesLocal = await categoryRepository.getCategories(token)
       if (categoriesLocal) {
         setCategories(categoriesLocal);
-        console.log('Categorías cargadas:', categoriesLocal);
-      } else {
-        console.error('No se pudieron cargar las categorías');
-      }
+      } 
     }
     if (!token) {
       navigate('/login');

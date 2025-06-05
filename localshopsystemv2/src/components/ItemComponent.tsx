@@ -17,9 +17,7 @@ const ItemComponent = (props: Props) => {
             try {
                 const url = await imageRepository.getImageById(props.item.image, props.token);
                 setImageUrl(url);
-                console.log(`Image for item ${props.item.id} fetched successfully.`);
             } catch (error) {
-                console.error(`Error fetching image for item ${props.item.id}:`, error);
                 setImageUrl('https://static.vecteezy.com/system/resources/previews/008/695/917/non_2x/no-image-available-icon-simple-two-colors-template-for-no-image-or-picture-coming-soon-and-placeholder-illustration-isolated-on-white-background-vector.jpg');
             }
         };

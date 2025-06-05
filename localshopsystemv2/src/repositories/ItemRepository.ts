@@ -13,46 +13,34 @@ class ItemRepository {
     name: string,
     token: string | null
   ) {
-    try {
-      const response = await axios.get<Page<Item>>(
-        `${BaseInfoRepository.BASE_URL}items/${categoryId}/${page}/${size}`,
-        {
-          params: {
-            sortBy,
-            ascending,
-            name,
-          },
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: "*/*",
-          },
-        }
-      );
-      console.log(`Response received:`, response.data);
-      return response.data;
-    } catch (error) {
-      console.error(`Error fetching items for category ${categoryId}:`, error);
-      throw error; // Re-throw the error to be handled by the caller
-    }
+    const response = await axios.get<Page<Item>>(
+      `${BaseInfoRepository.BASE_URL}items/${categoryId}/${page}/${size}`,
+      {
+        params: {
+          sortBy,
+          ascending,
+          name,
+        },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "*/*",
+        },
+      }
+    );
+    return response.data;
   }
 
   async getItemById(itemId: string, token: string | null): Promise<Item> {
-    try {
-      const response = await axios.get<Item>(
-        `${BaseInfoRepository.BASE_URL}items/${itemId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: "*/*",
-          },
-        }
-      );
-      console.log(`Response received for item ${itemId}:`, response.data);
-      return response.data;
-    } catch (error) {
-      console.error(`Error fetching item with ID ${itemId}:`, error);
-      throw error; // Re-throw the error to be handled by the caller
-    }
+    const response = await axios.get<Item>(
+      `${BaseInfoRepository.BASE_URL}items/${itemId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "*/*",
+        },
+      }
+    );
+    return response.data;
   }
 }
 export default ItemRepository;

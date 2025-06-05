@@ -12,12 +12,10 @@ const BarcodeListener: React.FC<BarcodeListenerProps> = ({ onScan }) => {
 
     useEffect(() => {
         if (!token) {
-            console.warn('No token available, barcode scanning is disabled.');
             return;
         }
 
         const handleKeyPress = (e: KeyboardEvent) => {
-            console.log('Key pressed:', e.key);
             if (timer.current) clearTimeout(timer.current);
 
             if (e.key === 'Enter') {

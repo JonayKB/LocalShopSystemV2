@@ -21,10 +21,7 @@ function App() {
     if (item) {
       updateBasket(item, 1);
       setOpenBasket(true);
-      console.log('Item added to basket:', item);
-    } else {
-      console.error('Item not found for code:', code);
-    }
+    } 
 
 
   };

@@ -23,7 +23,6 @@ const ItemSearcher = (props: Props) => {
         }
         setText('');
         setOpenBasket(true);
-        console.log(`Item ${item.name} added to basket. Current quantity: ${basketItems.get(item)}`);
 
     }
 

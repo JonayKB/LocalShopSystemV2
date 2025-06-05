@@ -43,12 +43,10 @@ const ExportScreen = (props: Props) => {
                             link.click();
                             document.body.removeChild(link);
                             URL.revokeObjectURL(url);
-                            console.log('Exportación exitosa');
                         } else {
                             throw new Error('El archivo no fue generado');
                         }
                     } catch (error) {
-                        console.error('Error al exportar datos:', error);
                         alert('Error al exportar datos');
                     }
                 }}

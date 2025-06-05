@@ -6,11 +6,9 @@ class TradeRepository {
   async createTrade(itemMap: Map<Item, number>, token: string | null) {
     let items: Item[] = [];
     if (!token) {
-      console.error("Token is required to create a trade.");
       return;
     }
     if (itemMap.size <= 0) {
-      console.error("Item map is empty. Cannot create trade.");
       return;
     }
     items = [];

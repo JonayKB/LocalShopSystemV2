@@ -24,8 +24,6 @@ const Selector = (props: Props) => {
     const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
 
     function onItemClick(item: Item) {
-        console.log(`Item clicked: ${item}`);
-        console.log(basketItems.has(item));
         if (basketItems.has(item)) {
             const currentQuantity = basketItems.get(item) ?? 0;
             updateBasket(item, currentQuantity + 1);
@@ -34,7 +32,6 @@ const Selector = (props: Props) => {
 
         }
         setOpenBasket(true);
-        console.log(`Item ${item.name} added to basket. Current quantity: ${basketItems.get(item)}`);
 
     }
 
@@ -46,10 +43,7 @@ const Selector = (props: Props) => {
                 props.categories.map(async (category) => {
                     try {
                         urls[category.id] = await imageRepository.getImageById(category.image, props.token);
-                        console.log(`Image for category ${category.id} fetched successfully.`);
-                        console.log(`Image URL: ${urls[category.id]}`);
                     } catch (error) {
-                        console.error(`Error fetching image for category ${category.id}:`, error);
                         urls[category.id] = 'https://static.vecteezy.com/system/resources/previews/008/695/917/non_2x/no-image-available-icon-simple-two-colors-template-for-no-image-or-picture-coming-soon-and-placeholder-illustration-isolated-on-white-background-vector.jpg'; // Fallback image
                     }
                 })

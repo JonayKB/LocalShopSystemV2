@@ -10,6 +10,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 
 import es.jonay.kb.shopsystem.api.dto.ItemDto;
@@ -99,7 +100,7 @@ public class TradeController {
     }
 
     public Page<TradeDto> getPage(int page, int size) {
-        Page<Trade> trades = tradeRepository.findAll(PageRequest.of(page, size));
+        Page<Trade> trades = tradeRepository.findAll(PageRequest.of(page, size).withSort(Sort.by("date").descending()));
         return trades.map(TradeMapper.INSTANCE::toTradeDto);
     }
 
