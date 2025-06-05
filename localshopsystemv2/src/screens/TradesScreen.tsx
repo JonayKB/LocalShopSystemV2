@@ -1,15 +1,16 @@
 import React, { useContext, useEffect } from 'react';
 import { MainContext } from '../components/MainContextProvider';
 import { useNavigate } from 'react-router-dom';
+import TradePagination from '../components/TradePagination';
 
 type Props = {}
 
 const TradesScreen = (props: Props) => {
-  const {token} = useContext(MainContext);
+  const { token } = useContext(MainContext);
   const navitigation = useNavigate();
   useEffect(() => {
     if (!token) {
-        navitigation('/login');
+      navitigation('/login');
     }
   }, [token, navitigation]);
   return (
@@ -23,7 +24,7 @@ const TradesScreen = (props: Props) => {
         fontSize: '20px',
       }}
     >
-      Trades
+      <TradePagination token={token} />
     </div>
   );
 };

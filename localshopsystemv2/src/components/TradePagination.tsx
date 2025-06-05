@@ -1,22 +1,16 @@
-import React, {  useEffect, useState } from 'react';
-import ItemComponent from './ItemComponent';
-import Item from '../models/Item';
+import React, { useEffect, useState } from 'react'
 import Page from '../models/Page';
+import Trade from '../models/Trade';
 import axios from 'axios';
 import BaseInfoRepository from '../utils/BaseInfoRepository';
+import TradeComponnet from './TradeComponnet';
 
 type Props = {
-    categoryId?: number;
     token: string | null,
-    onItemClick?: (item: Item) => void;
-    text?: string;
-    sortBy?: string;
-    ascending?: boolean;
 }
 
-const ItemPagination = (props: Props) => {
-    const { categoryId, token } = props;
-    const [pageData, setPageData] = useState<Page<Item> | null>(null);
+const TradePagination = (props: Props) => {
+    const [pageData, setPageData] = useState<Page<Trade> | null>(null);
     const [page, setPage] = useState(0);
     const pageSize = 12;
     const [loading, setLoading] = useState(false);
@@ -24,18 +18,10 @@ const ItemPagination = (props: Props) => {
     useEffect(() => {
         const fetchItems = async () => {
             setLoading(true);
-            let url = `items/${categoryId}/${page}/${pageSize}`;
-            if (categoryId === undefined) {
-                url = `items/${page}/${pageSize}`;
-            }
+            let url = `trade/${page}/${pageSize}`;
             const res = await axios.get(BaseInfoRepository.BASE_URL + url, {
-                params: {
-                    sortBy: props.sortBy ?? 'name',
-                    ascending: props.ascending ?? true,
-                    name: props.text ?? '',
-                },
                 headers: {
-                    Authorization: `Bearer ${token}`,
+                    Authorization: `Bearer ${props.token}`,
                 },
             });
             setPageData(res.data);
@@ -43,11 +29,11 @@ const ItemPagination = (props: Props) => {
             setLoading(false);
         };
         fetchItems();
-    }, [page, categoryId, token, props.text, props.sortBy, props.ascending]);
+    }, [page, props.token]);
 
     return (
         <div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(15%, 1fr))', gap: '20px', padding: '20px', backgroundColor: '#1e1e2f', color: 'white', borderRadius: 8, height: '65vh', overflowY: 'scroll' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100%, 1fr))', gap: '20px', padding: '20px', backgroundColor: '#1e1e2f', color: 'white', borderRadius: 8, height: '65vh', overflowY: 'scroll' }}>
                 {(() => {
                     if (loading) {
                         return <div style={{ color: 'white', fontSize: 18 }}>Cargando...</div>;
@@ -55,7 +41,7 @@ const ItemPagination = (props: Props) => {
                         return <div style={{ color: 'white', fontSize: 18 }}>No hay productos.</div>;
                     } else {
                         return pageData.content.map(item => (
-                            <ItemComponent key={item.id} item={item} token={token} onClick={props.onItemClick} />
+                            <TradeComponnet key={item.id} trade={item} />
                         ));
                     }
                 })()}
@@ -101,4 +87,4 @@ const ItemPagination = (props: Props) => {
     );
 }
 
-export default ItemPagination
+export default TradePagination

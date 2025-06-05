@@ -11,6 +11,7 @@ import ItemsScreen from './screens/ItemsScreen';
 import TradesScreen from './screens/TradesScreen';
 import Basket from './components/Basket';
 import ItemRepository from './repositories/ItemRepository';
+import ExportScreen from './screens/ExportScreen';
 
 function App() {
   const { updateBasket, setOpenBasket, token } = useContext(MainContext);
@@ -41,6 +42,7 @@ function App() {
               <Route path='/login' element={<LoginScreen />} />
               <Route path="/items" element={<ItemsScreen />} />
               <Route path="/trades" element={<TradesScreen />} />
+              <Route path="/export" element={<ExportScreen />} />
             </Routes>
           </div>
         </div>
