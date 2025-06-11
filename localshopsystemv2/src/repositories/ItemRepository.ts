@@ -42,5 +42,19 @@ class ItemRepository {
     );
     return response.data;
   }
+
+  async addItem(item: Item, token: string | null): Promise<Item> {
+    const response = await axios.post<Item>(
+      `${BaseInfoRepository.BASE_URL}items/`,
+      item,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "*/*",
+        },
+      }
+    );
+    return response.data;
+  }
 }
 export default ItemRepository;

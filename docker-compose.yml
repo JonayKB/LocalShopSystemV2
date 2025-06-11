@@ -10,6 +10,7 @@ services:
       MYSQL_USER: shopuser
       MYSQL_PASSWORD: shoppass
     volumes:
+      - db_data:/var/lib/mysql
       - ./database.sql:/docker-entrypoint-initdb.d/database.sql
     ports:
       - "3306:3306"
@@ -31,6 +32,8 @@ services:
       - "8080:8080"
     networks:
       - shopnet
+    volumes:
+      - ./uploads:/uploads
 
   web:
     image: jonaykb/shop-web
@@ -46,3 +49,5 @@ services:
 
 networks:
   shopnet:
+volumes:
+  db_data:

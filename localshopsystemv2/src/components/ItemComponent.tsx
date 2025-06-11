@@ -5,7 +5,8 @@ import ImageRespository from '../repositories/ImageRepository'
 type Props = {
     item: Item,
     token: string | null,
-    onClick?: (item: Item) => void
+    onClick?: (item: Item) => void,
+    onContextMenu?: (item: Item) => void,
 
 }
 
@@ -24,15 +25,22 @@ const ItemComponent = (props: Props) => {
 
         fetchImage();
     }
-        , [props.item.image, imageRepository]);
+        , []);
     return (
         <div style={{ textAlign: 'center', color: 'white', background: '#3a3d4a', padding: '10px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)', height: '35vh', cursor: props.onClick ? 'pointer' : 'default' }}
             onClick={props.onClick ? () => props.onClick!(props.item) : undefined}
+            onContextMenu={(e) => {
+                e.preventDefault();
+                if (props.onContextMenu) {
+                    props.onContextMenu(props.item);
+                }
+            }
+            }
         >
             <img
                 src={imageUrl}
                 alt={props.item.name}
-                style={{ width: '100%', height: 'auto', borderRadius: '8px',maxWidth:'20rem' }}
+                style={{ width: '100%', height: 'auto', borderRadius: '8px', maxWidth: '20rem' }}
             />
             <h3 style={{ textTransform: 'capitalize' }}>{props.item.name}</h3>
             <p>{props.item.price.toFixed(2)} €</p>

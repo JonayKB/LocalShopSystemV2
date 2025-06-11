@@ -7,7 +7,7 @@ type Props = {}
 
 const ItemSearcher = (props: Props) => {
     const [text, setText] = useState<string>();
-    const { basketItems, setOpenBasket, updateBasket, token } = useContext(MainContext);
+    const { basketItems, setOpenBasket, updateBasket, token, setOpenAddItemModal } = useContext(MainContext);
     const [selectedSortBy, setSelectedSortBy] = useState<string>('name')
     const [ascending, setAscending] = useState<boolean>(true);
 
@@ -118,7 +118,7 @@ const ItemSearcher = (props: Props) => {
                         </button>
                     </div>
                     <div style={{ flex: 13 }}>
-                        <ItemPagination token={token} onItemClick={onItemClick} text={text} sortBy={selectedSortBy} ascending={ascending} />
+                        <ItemPagination token={token} onItemClick={onItemClick} text={text} sortBy={selectedSortBy} ascending={ascending} onItemMenu={(item) => setOpenAddItemModal(item)} />
                     </div>
                 </div>
             )}

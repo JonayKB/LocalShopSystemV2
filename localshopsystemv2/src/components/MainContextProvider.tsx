@@ -16,6 +16,8 @@ interface MainContextType {
     openBasket: boolean;
     setOpenBasket: Dispatch<SetStateAction<boolean>>;
     updateBasket: (item: Item, quantity: number) => void;
+    openAddItemModal: Item | null;
+    setOpenAddItemModal: Dispatch<SetStateAction<Item | null>>;
 }
 export const MainContext = createContext<MainContextType>({} as MainContextType);
 
@@ -24,6 +26,7 @@ const MainContextProvider = (props: Props) => {
     const [token, setToken] = useState<string | null>(null);
     const [basketItems, setBasketItems] = useState<Map<Item, number>>(new Map<Item, number>());
     const [openBasket, setOpenBasket] = useState(true);
+    const [openAddItemModal, setOpenAddItemModal] = useState<Item | null>(null);
     const updateBasket = (item: Item, quantity: number) => {
         setBasketItems(prev => {
             const updated = new Map(prev);
@@ -46,6 +49,8 @@ const MainContextProvider = (props: Props) => {
         openBasket,
         setOpenBasket: setOpenBasket,
         updateBasket: updateBasket,
+        openAddItemModal,
+        setOpenAddItemModal: setOpenAddItemModal,
     }
 
     return (

@@ -12,6 +12,7 @@ type Props = {
     text?: string;
     sortBy?: string;
     ascending?: boolean;
+    onItemMenu?: (item: Item) => void;
 }
 
 const ItemPagination = (props: Props) => {
@@ -55,7 +56,7 @@ const ItemPagination = (props: Props) => {
                         return <div style={{ color: 'white', fontSize: 18 }}>No hay productos.</div>;
                     } else {
                         return pageData.content.map(item => (
-                            <ItemComponent key={item.id} item={item} token={token} onClick={props.onItemClick} />
+                            <ItemComponent key={item.id} item={item} token={token} onClick={props.onItemClick} onContextMenu={props.onItemMenu}/>
                         ));
                     }
                 })()}
