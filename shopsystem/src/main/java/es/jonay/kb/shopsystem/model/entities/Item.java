@@ -2,6 +2,7 @@ package es.jonay.kb.shopsystem.model.entities;
 import java.util.List;
 import java.util.Objects;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
@@ -13,11 +14,21 @@ public class Item {
     @Id
     private Long id;
     private String name;
-    private double price;
+    private Double price;
     @ManyToOne
     private Category category;
 
     private String image;
+
+    @Column(name = "stock", columnDefinition = "Integer default 0")
+    private Integer stock = 0;
+
+    @Column(name = "bareMinimun", columnDefinition = "Integer default 0")
+    private Integer bareMinimun = 0;
+
+    @Column(name = "net", columnDefinition = "Decimal(10,2) default 0")
+    private Double net = 0.0;
+
 
     @ManyToMany(mappedBy = "items")
     private List<Trade> trades;
@@ -25,11 +36,13 @@ public class Item {
     }
 
 
-    public Item(Long id, String name, double price, Category category) {
+    public Item(Long id, String name, Double price, Category category,Integer stock,Integer bareMinimun, Double net) {
         this.id = id;
         this.name = name;
         this.price = price;
         this.category = category;
+        this.stock = stock;
+        this.bareMinimun = bareMinimun;
     }
     
 
@@ -70,6 +83,13 @@ public class Item {
     public void setImage(String image) {
         this.image = image;
     }
+    public Integer getStock(){
+        return this.stock;
+    }
+    public void setStock(Integer stock){
+        this.stock = stock;
+    }
+    
 
     @Override
     public boolean equals(Object o) {
@@ -93,6 +113,7 @@ public class Item {
             " id='" + getId() + "'" +
             ", name='" + getName() + "'" +
             ", price='" + getPrice() + "'" +
+            ", stock='" + getStock() + "'" +
             "}";
     }
     

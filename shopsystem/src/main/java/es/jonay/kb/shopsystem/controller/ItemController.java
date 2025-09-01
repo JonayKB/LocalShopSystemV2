@@ -101,6 +101,52 @@ public class ItemController {
                 .map(ItemMapper.INSTANCE::toItemDto);
     }
 
+    public Item removeStock(Long id,Integer amount) {
+        Optional<Item> itemOptional = itemRepository.findById(id);
+        if (itemOptional.isPresent()) {
+            Item item = itemOptional.get();
+            item.setStock(item.getStock() - amount);
+            item = itemRepository.save(item);
+            if (item != null) {
+                return item;
+            }
+            return item;
+        }
+        return null;
+    }
+
+    public List<Item> removeStock(List<Item> items,Integer amount){
+        List<Item> result = new ArrayList<>();
+        for (Item item : items) {
+            result.add(removeStock(item.getId(),amount));
+            
+        }
+        return result;
+    }
+
+    public Item addStock(Long id,Integer amount){
+         Optional<Item> itemOptional = itemRepository.findById(id);
+        if (itemOptional.isPresent()) {
+            Item item = itemOptional.get();
+            item.setStock(item.getStock() + amount);
+            item = itemRepository.save(item);
+            if (item != null) {
+                return item;
+            }
+            return item;
+        }
+        return null;
+    }
+
+    public List<Item> addStock(List<Item> items,Integer amount){
+        List<Item> result = new ArrayList<>();
+        for (Item item : items) {
+            result.add(addStock(item.getId(),amount));
+            
+        }
+        return result;
+    }
+
     public Page<ItemDto> findByCategoryId(String name, int page, int size, String sortBy, boolean ascending,
             Long categoryId) {
         if (sortBy == null || sortBy.isEmpty()) {

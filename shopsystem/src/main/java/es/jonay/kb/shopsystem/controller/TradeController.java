@@ -26,6 +26,7 @@ import es.jonay.kb.shopsystem.model.repository.ITradeRepository;
 public class TradeController {
     private ITradeRepository tradeRepository;
     private ICategoryRepository categoryRepository;
+    private ItemController itemController;
 
     @Autowired
     public void setIICategoryRepository(ICategoryRepository categoryRepository) {
@@ -45,6 +46,11 @@ public class TradeController {
         this.tradeRepository = tradeRepository;
     }
 
+    @Autowired
+    public void setItemController(ItemController itemController) {
+        this.itemController = itemController;
+    }
+
     public List<TradeDto> findAll() {
         List<Trade> trades = tradeRepository.findAll();
         List<TradeDto> result = new ArrayList<TradeDto>();
@@ -61,7 +67,16 @@ public class TradeController {
 
     public TradeDto save(TradeDto tradeDto) {
         Trade trade = TradeMapper.INSTANCE.toTrade(tradeDto);
-        return TradeMapper.INSTANCE.toTradeDto(tradeRepository.save(trade));
+
+        tradeDto = TradeMapper.INSTANCE.toTradeDto(tradeRepository.save(trade));
+        if (tradeDto != null) {
+            // REMOVE STOCK
+            itemController.removeStock(trade.getItems(),1);
+            
+            return tradeDto;
+        }
+        return null;
+
     }
 
     public TradeDto saveList(List<ItemDto> items) {

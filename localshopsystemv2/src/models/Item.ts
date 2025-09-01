@@ -4,5 +4,6 @@ type Item = {
   price: number;
   categoryId: number;
   image: string;
+  stock:number;
 };
 export default Item;

@@ -9,16 +9,18 @@ public class ItemDto {
     private double price;
     private Long categoryId;
     private String image;
+    private Integer stock;
 
 
     public ItemDto() {
     }
 
-    public ItemDto(Long id, String name, double price, Long categoryId) {
+    public ItemDto(Long id, String name, double price, Long categoryId,Integer stock) {
         this.id = id;
         this.name = name;
         this.price = price;
         this.categoryId = categoryId;
+        this.stock = stock;
     }
     
 
@@ -59,6 +61,12 @@ public class ItemDto {
     public void setImage(String image) {
         this.image = image;
     }
+    public Integer getStock(){
+        return this.stock;
+    }
+    public void setStock(Integer stock){
+        this.stock = stock;
+    }
 
 
     @Override
@@ -84,6 +92,7 @@ public class ItemDto {
             ", name='" + getName() + "'" +
             ", price='" + getPrice() + "'" +
             ", categoryId='" + getCategoryId() + "'" +
+            ", stock='" + getStock() + "'" +
             "}";
     }
     
