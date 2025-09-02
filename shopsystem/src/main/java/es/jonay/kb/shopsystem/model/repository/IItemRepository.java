@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.util.Streamable;
 import org.springframework.stereotype.Repository;
 
@@ -29,4 +30,10 @@ public interface IItemRepository extends JpaRepository<Item, Long> {
     Page<Item> findByNameContainingIgnoreCase(String name, Pageable pageable);
 
     Page<Item> findByCategoryIdAndNameContainingIgnoreCase(Long categoryId, String name, Pageable pageable);
+
+    @Query("SELECT i FROM Item i WHERE i.ignoreStock = false AND i.stock <= 0")
+    List<Item> getOutOfStock();
+
+    @Query("SELECT i FROM Item i WHERE i.ignoreStock = false AND i.stock < i.bareMinimun")
+    List<Item> getUnderBareMinimun();
 }

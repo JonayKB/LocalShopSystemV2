@@ -162,4 +162,9 @@ public class ItemController {
                     .map(ItemMapper.INSTANCE::toItemDto);
         }
     }
+
+    public List<Item> getOutOfStockItems() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'GetOutOfStockItems'");
+    }
 }
