@@ -1,8 +1,12 @@
 package es.jonay.kb.shopsystem.controller;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -73,15 +77,31 @@ public class ItemController {
     public ItemDto save(ItemDto itemDto) {
         Item item = ItemMapper.INSTANCE.toItem(itemDto);
         item.setCategory(categoryRepository.findById(itemDto.getCategoryId()).orElse(null));
+        SortedMap<LocalDateTime, Double> priceHistory = new TreeMap<>();
+
+        priceHistory.put(LocalDateTime.now(), itemDto.getPrice());
+
+        item.setPriceHistory(priceHistory);
+
         return ItemMapper.INSTANCE.toItemDto(itemRepository.save(item));
     }
 
     public ItemDto update(ItemDto itemDto) {
-        if (itemRepository.findById(itemDto.getId()) == null) {
+        if (!itemRepository.existsById(itemDto.getId())) {
             return itemDto;
         }
-        Item item = ItemMapper.INSTANCE.toItem(itemDto);
+        Item item = itemRepository.findById(itemDto.getId()).get();
         item.setCategory(categoryRepository.findById(itemDto.getCategoryId()).orElse(null));
+        item.setBareMinimun(itemDto.getBareMinimun());
+        item.setIgnoreStock(itemDto.getIgnoreStock());
+        item.setImage(itemDto.getImage());
+        item.setName(itemDto.getName());
+        item.setStock(itemDto.getStock());
+        if (item.getPriceHistory().isEmpty()
+                || item.getPriceHistory().get(item.getPriceHistory().lastKey()) != itemDto.getPrice()) {
+            item.getPriceHistory().put(LocalDateTime.now(), itemDto.getPrice());
+
+        }
         return ItemMapper.INSTANCE.toItemDto(itemRepository.save(item));
     }
 
@@ -101,7 +121,7 @@ public class ItemController {
                 .map(ItemMapper.INSTANCE::toItemDto);
     }
 
-    public Item removeStock(Long id,Integer amount) {
+    public Item removeStock(Long id, Integer amount) {
         Optional<Item> itemOptional = itemRepository.findById(id);
         if (itemOptional.isPresent()) {
             Item item = itemOptional.get();
@@ -115,17 +135,17 @@ public class ItemController {
         return null;
     }
 
-    public List<Item> removeStock(List<Item> items,Integer amount){
+    public List<Item> removeStock(List<Item> items, Integer amount) {
         List<Item> result = new ArrayList<>();
         for (Item item : items) {
-            result.add(removeStock(item.getId(),amount));
-            
+            result.add(removeStock(item.getId(), amount));
+
         }
         return result;
     }
 
-    public Item addStock(Long id,Integer amount){
-         Optional<Item> itemOptional = itemRepository.findById(id);
+    public Item addStock(Long id, Integer amount) {
+        Optional<Item> itemOptional = itemRepository.findById(id);
         if (itemOptional.isPresent()) {
             Item item = itemOptional.get();
             item.setStock(item.getStock() + amount);
@@ -138,11 +158,11 @@ public class ItemController {
         return null;
     }
 
-    public List<Item> addStock(List<Item> items,Integer amount){
+    public List<Item> addStock(List<Item> items, Integer amount) {
         List<Item> result = new ArrayList<>();
         for (Item item : items) {
-            result.add(addStock(item.getId(),amount));
-            
+            result.add(addStock(item.getId(), amount));
+
         }
         return result;
     }

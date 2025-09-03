@@ -17,7 +17,7 @@ import java.util.logging.Logger;
 @Component
 public class StockTasks {
     private final Logger logger = Logger.getLogger(StockTasks.class.getName());
-    private static final  Integer WAIT_TO_EXECUTE_SECONDS = 10;
+    private static final  Integer WAIT_TO_EXECUTE_SECONDS = 1800;
     private final IItemRepository itemRepository;
     private final MailService mailService;
 

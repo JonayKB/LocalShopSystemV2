@@ -71,8 +71,7 @@ public class TradeController {
         tradeDto = TradeMapper.INSTANCE.toTradeDto(tradeRepository.save(trade));
         if (tradeDto != null) {
             // REMOVE STOCK
-            itemController.removeStock(trade.getItems(),1);
-            
+            itemController.removeStock(trade.getItems(), 1);
             return tradeDto;
         }
         return null;
@@ -81,11 +80,12 @@ public class TradeController {
 
     public TradeDto saveList(List<ItemDto> items) {
 
-        List<Item> itemList = new ArrayList<Item>();
+        List<Item> itemList = new ArrayList<>();
         for (ItemDto itemDto : items) {
             Item item = ItemMapper.INSTANCE.toItem(itemDto);
             item.setCategory(categoryRepository.findById(itemDto.getCategoryId()).get());
             itemList.add(item);
+            itemController.removeStock(item.getId(), 1);
         }
         Trade trade = new Trade();
         trade.setDate(new Date());

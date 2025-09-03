@@ -120,9 +120,10 @@ public class HTMLTemplates {
     }
 
     public static String lowBareMinimunAlert(List<Item> underBareMinimunItems) {
-      StringBuilder productListHtml = new StringBuilder("<ul style='text-align:left;'>");
+        StringBuilder productListHtml = new StringBuilder("<ul style='text-align:left;'>");
         for (Item item : underBareMinimunItems) {
-            productListHtml.append("<li>").append(item.getName()+": "+item.getStock()+" unidad/es de "+item.getBareMinimum()+" necesarias").append("</li>");
+            productListHtml.append("<li>").append(item.getName()).append(": ").append(item.getStock())
+                    .append(" unidad/es de ").append(item.getBareMinimun()).append(" necesarias").append("</li>");
         }
         productListHtml.append("</ul>");
 

@@ -57,6 +57,7 @@ public class Item {
         this.category = category;
         this.stock = stock;
         this.bareMinimun = bareMinimun;
+        this.net = net;
         this.ignoreStock = ignoreStock;
     }
 
@@ -100,8 +101,36 @@ public class Item {
         this.stock = stock;
     }
 
-    public Integer getBareMinimum() {
+    public Integer getBareMinimun() {
         return this.bareMinimun;
+    }
+
+    public void setBareMinimun(Integer bareMinimun) {
+        this.bareMinimun = bareMinimun;
+    }
+
+    public Boolean getIgnoreStock() {
+        return this.ignoreStock;
+    }
+
+    public void setIgnoreStock(Boolean ignoreStock) {
+        this.ignoreStock = ignoreStock;
+    }
+
+    public double getNet() {
+        return this.net;
+    }
+
+    public void setNet(double net) {
+        this.net = net;
+    }
+
+    public SortedMap<LocalDateTime, Double> getPriceHistory() {
+        return this.priceHistory;
+    }
+
+    public void setPriceHistory(SortedMap<LocalDateTime, Double> priceHistory) {
+        this.priceHistory = priceHistory;
     }
 
     @Override

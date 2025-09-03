@@ -1,6 +1,5 @@
 package es.jonay.kb.shopsystem.api.dto;
 
-
 import java.util.Objects;
 
 public class ItemDto {
@@ -11,14 +10,14 @@ public class ItemDto {
     private String image;
     private Integer stock;
     private Integer bareMinimun;
+    private Double net;
     private Boolean ignoreStock;
-
-
 
     public ItemDto() {
     }
 
-    public ItemDto(Long id, String name, double price, Long categoryId,Integer stock,Integer bareMinimun,Boolean ignoreStock) {
+    public ItemDto(Long id, String name, double price, Long categoryId, Integer stock, Integer bareMinimun,
+            Boolean ignoreStock, Double net) {
         this.id = id;
         this.name = name;
         this.price = price;
@@ -26,8 +25,8 @@ public class ItemDto {
         this.stock = stock;
         this.bareMinimun = bareMinimun;
         this.ignoreStock = ignoreStock;
+        this.net = net;
     }
-    
 
     public Long getId() {
         return this.id;
@@ -60,19 +59,48 @@ public class ItemDto {
     public void setCategoryId(Long categoryId) {
         this.categoryId = categoryId;
     }
+
     public String getImage() {
         return this.image;
     }
+
     public void setImage(String image) {
         this.image = image;
     }
-    public Integer getStock(){
+
+    public Integer getStock() {
         return this.stock;
     }
-    public void setStock(Integer stock){
+
+    public void setStock(Integer stock) {
         this.stock = stock;
     }
 
+    public Integer getBareMinimun() {
+        return this.bareMinimun;
+    }
+
+    public void setBareMinimun(Integer bareMinimun) {
+        this.bareMinimun = bareMinimun;
+    }
+
+    public Boolean getIgnoreStock() {
+        return this.ignoreStock;
+    }
+
+    public void setIgnoreStock(Boolean ignoreStock) {
+        this.ignoreStock = ignoreStock;
+
+    }
+
+    public double getNet() {
+        return this.net;
+    }
+
+
+    public void setNet(double net) {
+        this.net = net;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -82,7 +110,7 @@ public class ItemDto {
             return false;
         }
         ItemDto itemDto = (ItemDto) o;
-        return Objects.equals(id, itemDto.id) ;
+        return Objects.equals(id, itemDto.id);
     }
 
     @Override
@@ -93,12 +121,12 @@ public class ItemDto {
     @Override
     public String toString() {
         return "{" +
-            " id='" + getId() + "'" +
-            ", name='" + getName() + "'" +
-            ", price='" + getPrice() + "'" +
-            ", categoryId='" + getCategoryId() + "'" +
-            ", stock='" + getStock() + "'" +
-            "}";
+                " id='" + getId() + "'" +
+                ", name='" + getName() + "'" +
+                ", price='" + getPrice() + "'" +
+                ", categoryId='" + getCategoryId() + "'" +
+                ", stock='" + getStock() + "'" +
+                "}";
     }
-    
+
 }
