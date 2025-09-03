@@ -15,11 +15,11 @@ import org.springframework.stereotype.Controller;
 
 import es.jonay.kb.shopsystem.api.dto.ItemDto;
 import es.jonay.kb.shopsystem.api.dto.TradeDto;
-import es.jonay.kb.shopsystem.api.mappers.ItemMapper;
 import es.jonay.kb.shopsystem.api.mappers.TradeMapper;
 import es.jonay.kb.shopsystem.model.entities.Item;
 import es.jonay.kb.shopsystem.model.entities.Trade;
 import es.jonay.kb.shopsystem.model.repository.ICategoryRepository;
+import es.jonay.kb.shopsystem.model.repository.IItemRepository;
 import es.jonay.kb.shopsystem.model.repository.ITradeRepository;
 
 @Controller
@@ -27,6 +27,7 @@ public class TradeController {
     private ITradeRepository tradeRepository;
     private ICategoryRepository categoryRepository;
     private ItemController itemController;
+    private IItemRepository itemRepository;
 
     @Autowired
     public void setIICategoryRepository(ICategoryRepository categoryRepository) {
@@ -51,9 +52,14 @@ public class TradeController {
         this.itemController = itemController;
     }
 
+    @Autowired
+    public void setIItemRepository(IItemRepository iItemRepository) {
+        this.itemRepository = iItemRepository;
+    }
+
     public List<TradeDto> findAll() {
         List<Trade> trades = tradeRepository.findAll();
-        List<TradeDto> result = new ArrayList<TradeDto>();
+        List<TradeDto> result = new ArrayList<>();
         for (Trade trade : trades) {
             result.add(TradeMapper.INSTANCE.toTradeDto(trade));
         }
@@ -82,9 +88,9 @@ public class TradeController {
 
         List<Item> itemList = new ArrayList<>();
         for (ItemDto itemDto : items) {
-            Item item = ItemMapper.INSTANCE.toItem(itemDto);
-            item.setCategory(categoryRepository.findById(itemDto.getCategoryId()).get());
+            Item item = itemRepository.findById(itemDto.getId()).get();
             itemList.add(item);
+            // REMOVE STOCK
             itemController.removeStock(item.getId(), 1);
         }
         Trade trade = new Trade();
@@ -103,7 +109,7 @@ public class TradeController {
         if (endDate == null) {
             endDate = LocalDateTime.of(LocalDateTime.now().toLocalDate(), LocalTime.MAX);
         }
-        List<TradeDto> tradesDtoList = new ArrayList<TradeDto>();
+        List<TradeDto> tradesDtoList = new ArrayList<>();
         for (Trade trade : tradeRepository.findAllTradesInRange(startDate, endDate)) {
             tradesDtoList.add(TradeMapper.INSTANCE.toTradeDto(trade));
         }

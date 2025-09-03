@@ -97,6 +97,7 @@ public class ItemController {
         item.setImage(itemDto.getImage());
         item.setName(itemDto.getName());
         item.setStock(itemDto.getStock());
+        item.setNet(itemDto.getNet());
         if (item.getPriceHistory().isEmpty()
                 || item.getPriceHistory().get(item.getPriceHistory().lastKey()) != itemDto.getPrice()) {
             item.getPriceHistory().put(LocalDateTime.now(), itemDto.getPrice());

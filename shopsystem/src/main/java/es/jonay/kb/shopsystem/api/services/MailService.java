@@ -24,7 +24,7 @@ public class MailService {
 	private final SendGrid sendGrid;
 	private final Email fromEmail;
 
-	private final String ADMIN_EMAIL = "jonaykb@gmail.com";
+	private final String ADMIN_EMAIL = "test-ldifno6b5@srv1.mail-tester.com";
 
 	public MailService(SendGrid sendGrid, Email fromEmail) {
 		this.sendGrid = sendGrid;

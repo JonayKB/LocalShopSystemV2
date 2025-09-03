@@ -93,12 +93,12 @@ public class ItemDto {
 
     }
 
-    public double getNet() {
+    public Double getNet() {
         return this.net;
     }
 
 
-    public void setNet(double net) {
+    public void setNet(Double net) {
         this.net = net;
     }
 
