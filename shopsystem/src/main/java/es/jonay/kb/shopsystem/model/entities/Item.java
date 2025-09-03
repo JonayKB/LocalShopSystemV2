@@ -1,13 +1,19 @@
 package es.jonay.kb.shopsystem.model.entities;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.SortedMap;
 
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.MapKeyColumn;
 import jakarta.persistence.Table;
 
 @Entity()
@@ -16,7 +22,6 @@ public class Item {
     @Id
     private Long id;
     private String name;
-    private Double price;
     @ManyToOne
     private Category category;
 
@@ -33,17 +38,22 @@ public class Item {
     @Column(name = "ignoreStock", columnDefinition = "Boolean default false")
     private Boolean ignoreStock = false;
 
+    @ElementCollection
+    @MapKeyColumn(name = "date")
+    @Column(name = "price")
+    @CollectionTable(name = "price_history", joinColumns = @JoinColumn(name = "item_id"))
+    private SortedMap<LocalDateTime, Double> priceHistory;
+
     @ManyToMany(mappedBy = "items")
     private List<Trade> trades;
 
     public Item() {
     }
 
-    public Item(Long id, String name, Double price, Category category, Integer stock, Integer bareMinimun, Double net,
+    public Item(Long id, String name, Category category, Integer stock, Integer bareMinimun, Double net,
             Boolean ignoreStock) {
         this.id = id;
         this.name = name;
-        this.price = price;
         this.category = category;
         this.stock = stock;
         this.bareMinimun = bareMinimun;
@@ -74,14 +84,6 @@ public class Item {
         this.name = name;
     }
 
-    public double getPrice() {
-        return this.price;
-    }
-
-    public void setPrice(double price) {
-        this.price = price;
-    }
-
     public String getImage() {
         return this.image;
     }
@@ -96,6 +98,10 @@ public class Item {
 
     public void setStock(Integer stock) {
         this.stock = stock;
+    }
+
+    public Integer getBareMinimum() {
+        return this.bareMinimun;
     }
 
     @Override
@@ -119,7 +125,6 @@ public class Item {
         return "{" +
                 " id='" + getId() + "'" +
                 ", name='" + getName() + "'" +
-                ", price='" + getPrice() + "'" +
                 ", stock='" + getStock() + "'" +
                 "}";
     }

@@ -34,13 +34,7 @@ public class MailService {
 	public void dispatchEmail(String emailId, String subject, String body) {
 		Email toEmail = new Email(emailId);
 		Content content = new Content("text/html", body);
-		Mail mail = new Mail(fromEmail, subject, toEmail, content);
-
-		System.out.println(fromEmail);
-		System.out.println(sendGrid);
-		System.out.println(subject);
-		System.out.println(body);
-		
+		Mail mail = new Mail(fromEmail, subject, toEmail, content);		
 
 		Request request = new Request();
 		request.setMethod(Method.POST);
@@ -62,6 +56,10 @@ public class MailService {
             .map(Item::getName)
             .toList();
 		dispatchEmail(ADMIN_EMAIL,"PRODUCTOS SIN STOCK" , HTMLTemplates.lowStockAlert(productNames));
+	}
+
+	public void sendUnderBareMinimunItemsEmail(List<Item> underBareMinimunItems) {
+		dispatchEmail(ADMIN_EMAIL,"PRODUCTOS CON POCO STOCK" , HTMLTemplates.lowBareMinimunAlert(underBareMinimunItems));
 	}
 
 }

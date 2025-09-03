@@ -10,17 +10,22 @@ public class ItemDto {
     private Long categoryId;
     private String image;
     private Integer stock;
+    private Integer bareMinimun;
+    private Boolean ignoreStock;
+
 
 
     public ItemDto() {
     }
 
-    public ItemDto(Long id, String name, double price, Long categoryId,Integer stock) {
+    public ItemDto(Long id, String name, double price, Long categoryId,Integer stock,Integer bareMinimun,Boolean ignoreStock) {
         this.id = id;
         this.name = name;
         this.price = price;
         this.categoryId = categoryId;
         this.stock = stock;
+        this.bareMinimun = bareMinimun;
+        this.ignoreStock = ignoreStock;
     }
     
 

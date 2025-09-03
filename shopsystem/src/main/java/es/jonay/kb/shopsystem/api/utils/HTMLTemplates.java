@@ -2,6 +2,8 @@ package es.jonay.kb.shopsystem.api.utils;
 
 import java.util.List;
 
+import es.jonay.kb.shopsystem.model.entities.Item;
+
 public class HTMLTemplates {
     private HTMLTemplates() {
     }
@@ -106,6 +108,34 @@ public class HTMLTemplates {
                         </div>
                         <div class='content'>
                             <p>Los siguientes productos están sin stock:</p>
+                            %s
+                        </div>
+                        <div class='footer'>
+                            Este es un mensaje automático del sistema de stock.
+                        </div>
+                    </div>
+                </body>
+                </html>
+                """.formatted(COMMON_STYLES, productListHtml.toString());
+    }
+
+    public static String lowBareMinimunAlert(List<Item> underBareMinimunItems) {
+      StringBuilder productListHtml = new StringBuilder("<ul style='text-align:left;'>");
+        for (Item item : underBareMinimunItems) {
+            productListHtml.append("<li>").append(item.getName()+": "+item.getStock()+" unidad/es de "+item.getBareMinimum()+" necesarias").append("</li>");
+        }
+        productListHtml.append("</ul>");
+
+        return """
+                <html>
+                <head><title>Alerta de Stock</title>%s</head>
+                <body>
+                    <div class='container'>
+                        <div class='header'>
+                            <h1>Productos con poco stock</h1>
+                        </div>
+                        <div class='content'>
+                            <p>Los siguientes productos están con poco stock:</p>
                             %s
                         </div>
                         <div class='footer'>
