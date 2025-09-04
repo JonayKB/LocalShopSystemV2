@@ -2,5 +2,21 @@
     "conventionalCommits.scopes": [
         "V2.1"
     ],
-    "java.compile.nullAnalysis.mode": "automatic"
+    "java.compile.nullAnalysis.mode": "automatic",
+    "sqltools.connections": [
+        {
+            "mysqlOptions": {
+                "authProtocol": "default",
+                "enableSsl": "Disabled"
+            },
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 3306,
+            "driver": "MariaDB",
+            "name": "DockerShop",
+            "database": "shopdb",
+            "username": "shopuser"
+        }
+    ]
 }
