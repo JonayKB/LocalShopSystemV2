@@ -1,7 +1,5 @@
 package es.jonay.kb.shopsystem.controller;
 
-import java.time.LocalDateTime;
-import java.util.UUID;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 

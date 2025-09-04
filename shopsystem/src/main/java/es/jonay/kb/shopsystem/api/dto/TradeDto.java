@@ -17,7 +17,8 @@ public class TradeDto {
         this.items = items;
         this.date = date;
     }
-    public TradeDto(List<ItemDto> items,Date date) {
+
+    public TradeDto(List<ItemDto> items, Date date) {
         this.items = items;
         this.date = date;
     }
@@ -46,7 +47,6 @@ public class TradeDto {
         this.date = date;
     }
 
-
     @Override
     public boolean equals(Object o) {
         if (o == this)
@@ -66,10 +66,10 @@ public class TradeDto {
     @Override
     public String toString() {
         return "{" +
-            " id='" + getId() + "'" +
-            ", items='" + getItems() + "'" +
-            ", items='" + getDate() + "'" +
-            "}";
+                " id='" + getId() + "'" +
+                ", items='" + getItems() + "'" +
+                ", items='" + getDate() + "'" +
+                "}";
     }
-    
+
 }

@@ -3,7 +3,6 @@ package es.jonay.kb.shopsystem.controller;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -46,7 +45,7 @@ public class ItemController {
 
     public List<ItemDto> findAll() {
         List<Item> items = itemRepository.findAll();
-        List<ItemDto> result = new ArrayList<ItemDto>();
+        List<ItemDto> result = new ArrayList<>();
         for (Item item : items) {
             result.add(ItemMapper.INSTANCE.toItemDto(item));
         }
@@ -182,10 +181,5 @@ public class ItemController {
             return itemRepository.findByCategoryIdAndNameContainingIgnoreCase(categoryId, name, pageable)
                     .map(ItemMapper.INSTANCE::toItemDto);
         }
-    }
-
-    public List<Item> getOutOfStockItems() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'GetOutOfStockItems'");
     }
 }

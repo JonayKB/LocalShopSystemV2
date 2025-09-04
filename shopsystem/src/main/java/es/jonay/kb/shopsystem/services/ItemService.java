@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 import es.jonay.kb.shopsystem.api.dto.ItemDto;
 import es.jonay.kb.shopsystem.api.mappers.ItemMapper;
 import es.jonay.kb.shopsystem.controller.ItemController;
-import es.jonay.kb.shopsystem.model.entities.Item;
 
 @RestController
 @RequestMapping("items")
@@ -78,14 +77,12 @@ public class ItemService {
 
     @PostMapping("/{id}/stock")
     public ItemDto addStock(@PathVariable(name = "id") final Long id,@RequestBody Integer amount) {
-        ItemDto itemDto = ItemMapper.INSTANCE.toItemDto(iItemController.addStock(id, amount));
-        return itemDto;
+        return ItemMapper.INSTANCE.toItemDto(iItemController.addStock(id, amount));
     }
 
     @DeleteMapping("/{id}/stock")
     public ItemDto removeStock(@PathVariable(name = "id") final Long id,@RequestBody Integer amount) {
-        ItemDto itemDto = ItemMapper.INSTANCE.toItemDto(iItemController.removeStock(id, amount));
-        return itemDto;
+        return ItemMapper.INSTANCE.toItemDto(iItemController.removeStock(id, amount));
     }
     
 
