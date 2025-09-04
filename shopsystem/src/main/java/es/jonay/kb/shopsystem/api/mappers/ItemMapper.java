@@ -16,15 +16,22 @@ public interface ItemMapper {
 
     @Mapping(source = "category.id", target = "categoryId")
     @Mapping(source = "item.priceHistory", target = "price", qualifiedByName = "getLatestPrice")
+    @Mapping(source = "item.netHistory", target = "net", qualifiedByName = "getLatestNet")
     public ItemDto toItemDto(Item item);
 
     public Item toItem(ItemDto itemDto);
 
     @Named("getLatestPrice")
     public default Double getLatestPrice(SortedMap<LocalDateTime, Double> priceHistory) {
-        if (priceHistory != null)
+        if (priceHistory != null && !priceHistory.isEmpty())
             return priceHistory.get(priceHistory.lastKey());
-        return null;
+        return 0.0;
+    }
 
+    @Named("getLatestNet")
+    public default Double getLatestNet(SortedMap<LocalDateTime, Double> netHistory) {
+        if (netHistory != null && !netHistory.isEmpty())
+            return netHistory.get(netHistory.lastKey());
+        return 0.0;
     }
 }

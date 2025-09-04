@@ -43,11 +43,19 @@ public interface TradeMapper {
                 dtoItem.setPrice(history.get(history.firstKey()));
             }
 
+            SortedMap<LocalDateTime, Double> netHistory = item.getNetHistory();
+            SortedMap<LocalDateTime, Double> netHead = netHistory.headMap(date);
+            if (!netHead.isEmpty()) {
+                dtoItem.setNet(netHead.get(netHead.lastKey()));
+            } else {
+                dtoItem.setNet(netHistory.get(netHistory.firstKey()));
+            }
+
             dtoItem.setCategoryId(item.getCategory().getId());
             dtoItem.setImage(item.getImage());
             dtoItem.setStock(item.getStock());
             dtoItem.setBareMinimun(item.getBareMinimun());
-            dtoItem.setNet(item.getNet());
+
             dtoItem.setIgnoreStock(item.getIgnoreStock());
 
             itemDtos.add(dtoItem);

@@ -33,8 +33,6 @@ public class Item {
     @Column(name = "bareMinimun", columnDefinition = "Integer default 0")
     private Integer bareMinimun = 0;
 
-    @Column(name = "net", columnDefinition = "Decimal(10,2) default 0")
-    private Double net = 0.0;
     @Column(name = "ignoreStock", columnDefinition = "Boolean default false")
     private Boolean ignoreStock = false;
 
@@ -44,20 +42,27 @@ public class Item {
     @CollectionTable(name = "price_history", joinColumns = @JoinColumn(name = "item_id"))
     private SortedMap<LocalDateTime, Double> priceHistory;
 
+    @ElementCollection
+    @MapKeyColumn(name = "date")
+    @Column(name = "net")
+    @CollectionTable(name = "net_history", joinColumns = @JoinColumn(name = "item_id"))
+    private SortedMap<LocalDateTime, Double> netHistory;
+
     @ManyToMany(mappedBy = "items")
     private List<Trade> trades;
 
     public Item() {
     }
 
-    public Item(Long id, String name, Category category, Integer stock, Integer bareMinimun, Double net,
+    public Item(Long id, String name, Category category, Integer stock, Integer bareMinimun,
+            SortedMap<LocalDateTime, Double> netHistory,
             Boolean ignoreStock) {
         this.id = id;
         this.name = name;
         this.category = category;
         this.stock = stock;
         this.bareMinimun = bareMinimun;
-        this.net = net;
+        this.netHistory = netHistory;
         this.ignoreStock = ignoreStock;
     }
 
@@ -117,12 +122,12 @@ public class Item {
         this.ignoreStock = ignoreStock;
     }
 
-    public double getNet() {
-        return this.net;
+    public SortedMap<LocalDateTime, Double> getNetHistory() {
+        return this.netHistory;
     }
 
-    public void setNet(double net) {
-        this.net = net;
+    public void setNetHistory(SortedMap<LocalDateTime, Double> netHistory) {
+        this.netHistory = netHistory;
     }
 
     public SortedMap<LocalDateTime, Double> getPriceHistory() {

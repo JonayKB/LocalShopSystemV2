@@ -10,14 +10,14 @@ public class ItemDto {
     private String image;
     private Integer stock;
     private Integer bareMinimun;
-    private Double net;
+    private double net;
     private Boolean ignoreStock;
 
     public ItemDto() {
     }
 
     public ItemDto(Long id, String name, double price, Long categoryId, Integer stock, Integer bareMinimun,
-            Boolean ignoreStock, Double net) {
+            Boolean ignoreStock, double net) {
         this.id = id;
         this.name = name;
         this.price = price;
@@ -93,12 +93,12 @@ public class ItemDto {
 
     }
 
-    public Double getNet() {
+    public double getNet() {
         return this.net;
     }
 
 
-    public void setNet(Double net) {
+    public void setNet(double net) {
         this.net = net;
     }
 

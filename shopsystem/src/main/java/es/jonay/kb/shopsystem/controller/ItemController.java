@@ -77,8 +77,13 @@ public class ItemController {
         Item item = ItemMapper.INSTANCE.toItem(itemDto);
         item.setCategory(categoryRepository.findById(itemDto.getCategoryId()).orElse(null));
         SortedMap<LocalDateTime, Double> priceHistory = new TreeMap<>();
+        SortedMap<LocalDateTime, Double> netHistory = new TreeMap<>();
 
         priceHistory.put(LocalDateTime.now(), itemDto.getPrice());
+
+        netHistory.put(LocalDateTime.now(), itemDto.getNet());
+
+        item.setNetHistory(netHistory);
 
         item.setPriceHistory(priceHistory);
 
@@ -96,11 +101,13 @@ public class ItemController {
         item.setImage(itemDto.getImage());
         item.setName(itemDto.getName());
         item.setStock(itemDto.getStock());
-        item.setNet(itemDto.getNet());
         if (item.getPriceHistory().isEmpty()
                 || item.getPriceHistory().get(item.getPriceHistory().lastKey()) != itemDto.getPrice()) {
             item.getPriceHistory().put(LocalDateTime.now(), itemDto.getPrice());
-
+        }
+        if (item.getNetHistory().isEmpty()
+                || item.getNetHistory().get(item.getNetHistory().lastKey()) != itemDto.getNet()) {
+            item.getNetHistory().put(LocalDateTime.now(), itemDto.getNet());
         }
         return ItemMapper.INSTANCE.toItemDto(itemRepository.save(item));
     }
