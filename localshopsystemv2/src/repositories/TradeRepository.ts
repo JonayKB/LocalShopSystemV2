@@ -20,6 +20,10 @@ class TradeRepository {
           price: item.price,
           categoryId: item.categoryId,
           image: item.image,
+          stock: item.stock,
+          bareMinimun: item.bareMinimun,
+          net: item.net,
+          ignoreStock: item.ignoreStock,
         });
       }
     });

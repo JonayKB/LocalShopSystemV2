@@ -5,5 +5,8 @@ type Item = {
   categoryId: number;
   image: string;
   stock:number;
+  bareMinimun:number;
+  net:number;
+  ignoreStock:boolean;
 };
 export default Item;

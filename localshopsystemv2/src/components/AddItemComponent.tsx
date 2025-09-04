@@ -77,6 +77,10 @@ const AddItemComponent = (props: Props) => {
             price: price,
             categoryId: Number(category),
             image: imageName,
+            stock: item?.stock ?? 0,
+            bareMinimun: item?.bareMinimun ?? 0,
+            net: item?.net ?? 0,
+            ignoreStock: item?.ignoreStock ?? false,
         };
         if (newItem.id < 0 || newItem.name === '' || newItem.price <= 0 || newItem.categoryId < 0) {
             alert('Rellena los datos correctamente');
@@ -265,7 +269,124 @@ const AddItemComponent = (props: Props) => {
                             required
                         />
                     </div>
-                    <div style={{ marginBottom: 20 }}>
+
+                    <div style={{ marginBottom: 24 }}>
+                        <label style={{ display: 'block', marginBottom: 6 }}>
+                            Precio Neto:
+                        </label>
+                        <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            style={{
+                                width: '94%',
+                                padding: '8px 12px',
+                                borderRadius: 6,
+                                border: '1px solid #444',
+                                background: '#181a24',
+                                color: '#fff',
+                                fontSize: 16,
+                            }}
+                            value={item?.net ?? 0}
+                            onChange={(e) => {
+                                const value = parseFloat(e.target.value);
+                                if (!isNaN(value) && value >= 0) {
+                                    setItem(prev => prev ? { ...prev, net: value } : null);
+                                } else {
+                                    console.error('Invalid price input:', e.target.value);
+                                    alert('Please enter a valid price.');
+                                    e.target.value = '0';
+                                    setItem(prev => prev ? { ...prev, net: 0 } : null);
+                                }
+                            }
+                            }
+                            name="net"
+                            id="net"
+                            required
+                        />
+                    </div>
+                    <div style={{ marginBottom: 24 }}>
+                        <label style={{ display: 'block', marginBottom: 6 }}>
+                            Stock Actual:
+                        </label>
+                        <input
+                            type="number"
+                            min="0"
+                            step="1"
+                            style={{
+                                width: '94%',
+                                padding: '8px 12px',
+                                borderRadius: 6,
+                                border: '1px solid #444',
+                                background: '#181a24',
+                                color: '#fff',
+                                fontSize: 16,
+                            }}
+                            value={item?.stock ?? 0}
+                            onChange={(e) => {
+                                const value = parseInt(e.target.value);
+                                if (!isNaN(value) && value >= 0) {
+                                    setItem(prev => prev ? { ...prev, stock: value } : null);
+                                }
+                            }}
+                            name="stock"
+                            id="stock"
+                            required
+                        />
+                    </div>
+                    <div style={{ marginBottom: 24 }}>
+                        <label style={{ display: 'block', marginBottom: 6 }}>
+                            Stock Minimo Indispensable:
+                        </label>
+                        <input
+                            type="number"
+                            step="1"
+                            style={{
+                                width: '94%',
+                                padding: '8px 12px',
+                                borderRadius: 6,
+                                border: '1px solid #444',
+                                background: '#181a24',
+                                color: '#fff',
+                                fontSize: 16,
+                            }}
+                            value={item?.bareMinimun ?? 0}
+                            onChange={(e) => {
+                                const value = parseInt(e.target.value);
+                                if (!isNaN(value) && value >= 0) {
+                                    setItem(prev => prev ? { ...prev, bareMinimun: value } : null);
+                                }
+                            }}
+                            name="bareMinimun"
+                            id="bareMinimun"
+                            required
+                        />
+                    </div>
+                    <div style={{ marginBottom: 24 }}>
+                        <label style={{ display: 'block', marginBottom: 6 }}>
+                            Ignorar Stock:
+                        </label>
+                        <input
+                            type="checkbox"
+                            style={{
+                                width: '20px',
+                                height: '20px',
+                                borderRadius: 6,
+                                border: '1px solid #444',
+                                background: '#181a24',
+                                color: '#fff',
+                                fontSize: 16,
+                            }}
+                            checked={item?.ignoreStock ?? false}
+                            onChange={(e) => {
+                                const checked = e.target.checked;
+                                setItem(prev => prev ? { ...prev, ignoreStock: checked } : null);
+                            }}
+                            name="ignoreStock"
+                            id="ignoreStock"
+                        />
+                    </div>
+                    <div style={{ marginBottom: 24 }}>
                         <label style={{ display: 'block', marginBottom: 6 }}>
                             Imagen:
                         </label>

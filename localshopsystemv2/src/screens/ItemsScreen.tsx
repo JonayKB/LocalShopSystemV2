@@ -50,6 +50,10 @@ const ItemsScreen = (props: Props) => {
             name: '',
             price: 0,
             id: -1,
+            stock: 0,
+            bareMinimun: 0,
+            net: 0,
+            ignoreStock: false,
           })}
           style={{
             backgroundColor: '#4CAF50',

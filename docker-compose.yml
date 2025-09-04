@@ -18,7 +18,7 @@ services:
       - shopnet
 
   app:
-    image: jonaykb/shop-app
+    image: jonaykb/shop-app:2.1
     container_name: shop-app
     restart: always
     pull_policy: always
