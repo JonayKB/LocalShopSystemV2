@@ -77,7 +77,9 @@ public class TradeController {
         tradeDto = TradeMapper.INSTANCE.toTradeDto(tradeRepository.save(trade));
         if (tradeDto != null) {
             // REMOVE STOCK
-            itemController.removeStock(trade.getItems(), 1);
+            for (ItemDto itemDto : tradeDto.getItems()) {
+                itemController.removeStock(itemDto.getId(), 1);
+            }
             return tradeDto;
         }
         return null;

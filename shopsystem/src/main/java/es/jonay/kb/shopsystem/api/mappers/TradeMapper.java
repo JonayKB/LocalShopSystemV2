@@ -48,7 +48,11 @@ public interface TradeMapper {
             if (!netHead.isEmpty()) {
                 dtoItem.setNet(netHead.get(netHead.lastKey()));
             } else {
-                dtoItem.setNet(netHistory.get(netHistory.firstKey()));
+                if(!netHistory.isEmpty()) {
+                    dtoItem.setNet(netHistory.get(netHistory.firstKey()));
+                } else {
+                    dtoItem.setNet(0.0);
+                }
             }
 
             dtoItem.setCategoryId(item.getCategory().getId());

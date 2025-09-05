@@ -142,14 +142,6 @@ public class ItemController {
         return null;
     }
 
-    public List<Item> removeStock(List<Item> items, Integer amount) {
-        List<Item> result = new ArrayList<>();
-        for (Item item : items) {
-            result.add(removeStock(item.getId(), amount));
-
-        }
-        return result;
-    }
 
     public Item addStock(Long id, Integer amount) {
         Optional<Item> itemOptional = itemRepository.findById(id);
@@ -163,15 +155,6 @@ public class ItemController {
             return item;
         }
         return null;
-    }
-
-    public List<Item> addStock(List<Item> items, Integer amount) {
-        List<Item> result = new ArrayList<>();
-        for (Item item : items) {
-            result.add(addStock(item.getId(), amount));
-
-        }
-        return result;
     }
 
     public Page<ItemDto> findByCategoryId(String name, int page, int size, String sortBy, boolean ascending,
