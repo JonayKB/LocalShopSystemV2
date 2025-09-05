@@ -1,5 +1,6 @@
 package es.jonay.kb.shopsystem.services;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import es.jonay.kb.shopsystem.api.dto.ItemDto;
 import es.jonay.kb.shopsystem.controller.AuthController;
 import es.jonay.kb.shopsystem.controller.ItemController;
+import es.jonay.kb.shopsystem.model.entities.Item;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
@@ -33,12 +35,14 @@ public class StockService {
     @PostMapping("/")
     public ResponseEntity<String> addItem(@RequestBody Map<Long, Integer> itemsStock) {
         try {
+            Map<Long,Integer> result = new HashMap<>();
             for (Map.Entry<Long, Integer> entry : itemsStock.entrySet()) {
                 Long itemId = entry.getKey();
                 Integer quantity = entry.getValue();
-                itemController.addStock(itemId, quantity);
+                Item item = itemController.addStock(itemId, quantity);
+                result.put(itemId, item.getStock());
             }
-            return ResponseEntity.ok("Items stock added successfully");
+            return ResponseEntity.ok("Items stock added successfully: " + result.toString());
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -47,12 +51,14 @@ public class StockService {
     @DeleteMapping("/")
     public ResponseEntity<String> removeItem(@RequestBody Map<Long, Integer> itemsStock) {
         try {
+            Map<Long,Integer> result = new HashMap<>();
             for (Map.Entry<Long, Integer> entry : itemsStock.entrySet()) {
                 Long itemId = entry.getKey();
                 Integer quantity = entry.getValue();
-                itemController.removeStock(itemId, quantity);
+                Item item = itemController.removeStock(itemId, quantity);
+                result.put(itemId, item.getStock());
             }
-            return ResponseEntity.ok("Items stock removed successfully");
+            return ResponseEntity.ok("Items stock removed successfully: " + result.toString());
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
