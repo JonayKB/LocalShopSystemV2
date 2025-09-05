@@ -12,6 +12,7 @@ import TradesScreen from './screens/TradesScreen';
 import Basket from './components/Basket';
 import ExportScreen from './screens/ExportScreen';
 import AddItemComponent from './components/AddItemComponent';
+import StockScreen from './screens/StockScreen';
 
 function App() {
 
@@ -31,6 +32,7 @@ function App() {
               <Route path="/items" element={<ItemsScreen />} />
               <Route path="/trades" element={<TradesScreen />} />
               <Route path="/export" element={<ExportScreen />} />
+              <Route path="/stock" element={<StockScreen />} /> 
             </Routes>
           </div>
         </div>

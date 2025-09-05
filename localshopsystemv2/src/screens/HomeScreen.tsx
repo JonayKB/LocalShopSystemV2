@@ -11,7 +11,7 @@ import ItemRepository from '../repositories/ItemRepository';
 type Props = {}
 
 const HomeScreen = (props: Props) => {
-  const { token, categories, setCategories, updateBasket, setOpenBasket, setOpenAddItemModal } = useContext(MainContext);
+  const { token, categories, setCategories, updateBasket, setOpenBasket, setOpenAddItemModal,basketItems } = useContext(MainContext);
   const navigate = useNavigate();
   const categoryRepository = new CategoryRepository();
   const itemRepository = new ItemRepository();
@@ -44,6 +44,8 @@ const HomeScreen = (props: Props) => {
     }
   };
 
+  
+
 
   return (
     <div
@@ -59,7 +61,7 @@ const HomeScreen = (props: Props) => {
     >
       <BarcodeListener handleBarcodeScan={handleBarcodeScan} />
       <ItemSearcher />
-      <Selector categories={categories} token={token} />
+      <Selector categories={categories} token={token}  />
     </div>
   );
 };

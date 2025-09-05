@@ -3,28 +3,18 @@ import ItemPagination from './ItemPagination'
 import Item from '../models/Item';
 import { MainContext } from './MainContextProvider';
 
-type Props = {}
+type Props = {
+    onItemClickProp?: (item: Item) => void;
+}
 
 const ItemSearcher = (props: Props) => {
     const [text, setText] = useState<string>();
-    const { basketItems, setOpenBasket, updateBasket, token, setOpenAddItemModal } = useContext(MainContext);
+    const { token, setOpenAddItemModal } = useContext(MainContext);
     const [selectedSortBy, setSelectedSortBy] = useState<string>('name')
     const [ascending, setAscending] = useState<boolean>(true);
 
 
 
-    function onItemClick(item: Item) {
-        if (basketItems.has(item)) {
-            const currentQuantity = basketItems.get(item) ?? 0;
-            updateBasket(item, currentQuantity + 1);
-        } else {
-            updateBasket(item, 1);
-
-        }
-        setText('');
-        setOpenBasket(true);
-
-    }
 
     function onClickSortBy(sortBy: string) {
         if (selectedSortBy === sortBy) {
@@ -32,6 +22,13 @@ const ItemSearcher = (props: Props) => {
         } else {
             setSelectedSortBy(sortBy);
             setAscending(true);
+        }
+    }
+
+    function onItemClick(item: Item) {
+        if (props.onItemClickProp) {
+            props.onItemClickProp(item);
+            setText('');
         }
     }
 

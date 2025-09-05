@@ -2,13 +2,25 @@ import React, { useContext, useEffect } from 'react';
 import { MainContext } from '../components/MainContextProvider';
 import { useNavigate } from 'react-router-dom';
 import ItemSearcher from '../components/ItemSearcher';
+import Item from '../models/Item';
 
 type Props = {}
 
 const ItemsScreen = (props: Props) => {
-  const { token, setOpenAddItemModal } = useContext(MainContext);
+  const { token, setOpenAddItemModal, basketItems, updateBasket, setOpenBasket } = useContext(MainContext);
   const navigate = useNavigate();
 
+  function onItemClick(item: Item) {
+    if (basketItems.has(item)) {
+      const currentQuantity = basketItems.get(item) ?? 0;
+      updateBasket(item, currentQuantity + 1);
+    } else {
+      updateBasket(item, 1);
+
+    }
+    setOpenBasket(true);
+
+  }
 
   useEffect(() => {
 
@@ -46,7 +58,7 @@ const ItemsScreen = (props: Props) => {
         <button
           onClick={() => setOpenAddItemModal({
             categoryId: 0,
-            image: '', 
+            image: '',
             name: '',
             price: 0,
             id: -1,
@@ -73,7 +85,7 @@ const ItemsScreen = (props: Props) => {
           Agregar Producto
         </button>
       </div>
-      <ItemSearcher />
+      <ItemSearcher onItemClickProp={onItemClick} />
     </div>
   );
 };

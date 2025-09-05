@@ -146,6 +146,25 @@ const Navbar: React.FC = () => {
             >
               Exportar
             </Link>
+
+          </li>
+          <li style={{ margin: '20px 0' }}>
+            <Link
+              to="/stock"
+              style={{
+                color: 'white',
+                fontSize: '18px',
+                textDecoration: 'none',
+                display: 'block',
+                padding: '8px 12px',
+                borderRadius: '4px',
+              }}
+              onMouseOver={e => (e.currentTarget.style.background = '#333')}
+              onMouseOut={e => (e.currentTarget.style.background = 'transparent')}
+            >
+              Stock
+            </Link>
+
           </li>
         </ul>
       </div>
