@@ -29,13 +29,19 @@ const MainContextProvider = (props: Props) => {
     const [openAddItemModal, setOpenAddItemModal] = useState<Item | null>(null);
     const updateBasket = (item: Item, quantity: number) => {
         setBasketItems(prev => {
-            const updated = new Map(prev);
-            if (quantity <= 0) {
-                updated.delete(item);
-            } else {
-                updated.set(item, quantity);
+            const newMap = new Map(prev);
+            const existingEntry = Array.from(newMap.keys()).find(i => i.id === item.id);
+            if (existingEntry) {
+
+                if (quantity > 0) {
+                    newMap.set(existingEntry, quantity);
+                } else {
+                    newMap.delete(existingEntry);
+                }
+            } else if (quantity > 0) {
+                newMap.set(item, quantity);
             }
-            return updated;
+            return newMap;
         });
     };
 

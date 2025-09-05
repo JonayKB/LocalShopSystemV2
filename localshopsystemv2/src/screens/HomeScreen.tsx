@@ -11,7 +11,7 @@ import ItemRepository from '../repositories/ItemRepository';
 type Props = {}
 
 const HomeScreen = (props: Props) => {
-  const { token, categories, setCategories, updateBasket, setOpenBasket, setOpenAddItemModal,basketItems } = useContext(MainContext);
+  const { token, categories, setCategories, updateBasket, setOpenBasket, setOpenAddItemModal, basketItems } = useContext(MainContext);
   const navigate = useNavigate();
   const categoryRepository = new CategoryRepository();
   const itemRepository = new ItemRepository();
@@ -34,17 +34,20 @@ const HomeScreen = (props: Props) => {
     if (!token) {
       return;
     }
+
     const item = await itemRepository.getItemById(code, token);
     if (item) {
+
       updateBasket(item, 1);
       setOpenBasket(true);
+
     } else {
       alert('Este item no esta registrado en el sistema. Por favor, registralo antes de agregarlo al carrito.');
       setOpenAddItemModal({ id: Number(code), name: '', price: 0, categoryId: 0, image: '' } as Item);
     }
   };
 
-  
+
 
 
   return (
@@ -61,7 +64,7 @@ const HomeScreen = (props: Props) => {
     >
       <BarcodeListener handleBarcodeScan={handleBarcodeScan} />
       <ItemSearcher />
-      <Selector categories={categories} token={token}  />
+      <Selector categories={categories} token={token} />
     </div>
   );
 };

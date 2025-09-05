@@ -40,7 +40,7 @@ const ItemComponent = (props: Props) => {
             boxSizing: 'border-box',
             border: props.item.ignoreStock
                 ? undefined
-                : props.item.stock === 0
+                : props.item.stock <= 0
                 ? '4px solid red'
                 : props.item.stock < props.item.bareMinimun
                 ? '4px solid orange'
