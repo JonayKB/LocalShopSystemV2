@@ -64,11 +64,14 @@ const AddItemComponent = (props: Props) => {
             await imageRepository.uploadImage(croppedImage, token)
                 .then((name) => {
                     imageName = name;
+                    setCroppedImage(null);
+
                 })
                 .catch((error) => {
                     console.error('Error uploading image:', error);
                     alert('Error al subir la imagen. Por favor, inténtalo de nuevo.');
                 });
+
         }
 
         const newItem: Item = {

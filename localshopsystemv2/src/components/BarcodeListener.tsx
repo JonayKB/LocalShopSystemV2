@@ -4,30 +4,19 @@ import ItemRepository from '../repositories/ItemRepository';
 import Item from '../models/Item';
 
 interface BarcodeListenerProps {
+    handleBarcodeScan: (code: string) => void;
 }
 
-const BarcodeListener: React.FC<BarcodeListenerProps> = () => {
+const BarcodeListener: React.FC<BarcodeListenerProps> = (props) => {
     const buffer = useRef('');
     const timer = useRef<NodeJS.Timeout | null>(null);
-    const { updateBasket, setOpenBasket, token, setOpenAddItemModal } = useContext(MainContext);
+    const { token } = useContext(MainContext);
+
 
 
     useEffect(() => {
 
-        const itemRepository = new ItemRepository();
-        const handleBarcodeScan = async (code: string) => {
-            if (!token) {
-                return;
-            }
-            const item = await itemRepository.getItemById(code, token);
-            if (item) {
-                updateBasket(item, 1);
-                setOpenBasket(true);
-            } else {
-                alert('Este item no esta registrado en el sistema. Por favor, registralo antes de agregarlo al carrito.');
-                setOpenAddItemModal({ id: Number(code), name: '', price: 0, categoryId: 0, image: '' } as Item);
-            }
-        };
+
 
 
         const handleKeyPress = (e: KeyboardEvent) => {
@@ -37,7 +26,7 @@ const BarcodeListener: React.FC<BarcodeListenerProps> = () => {
             if (e.key === 'Enter') {
                 const code = buffer.current;
                 if (/^\d{5,20}$/.test(code)) {
-                    handleBarcodeScan(code);
+                    props.handleBarcodeScan(code);
                 }
                 buffer.current = '';
                 return;

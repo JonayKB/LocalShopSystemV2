@@ -1,4 +1,4 @@
-import React, {  useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ItemComponent from './ItemComponent';
 import Item from '../models/Item';
 import Page from '../models/Page';
@@ -29,6 +29,10 @@ const ItemPagination = (props: Props) => {
             if (categoryId === undefined) {
                 url = `items/${page}/${pageSize}`;
             }
+            if (/^\d+$/.test(props.text ?? '')) {
+                url = `items/${props.text}`;
+                console.log('Searching by ID');
+            }
             const res = await axios.get(BaseInfoRepository.BASE_URL + url, {
                 params: {
                     sortBy: props.sortBy ?? 'name',
@@ -39,6 +43,44 @@ const ItemPagination = (props: Props) => {
                     Authorization: `Bearer ${token}`,
                 },
             });
+            // Check if response is of type Page<Item>
+            if (!res.data || typeof res.data !== 'object' || !('content' in res.data && 'totalPages' in res.data && 'number' in res.data)) {
+                console.warn('Response is not of type Page<Item>', res.data);
+                if (!res.data || typeof res.data !== 'object') {
+                    setPageData(null);
+                    setLoading(false);
+                    return;
+                }
+                // If the response is a single Item, convert it to Page<Item>
+                res.data = {
+                    content: [res.data] as Item[],
+                    totalPages: 0,
+                    number: page,
+                    first: true,
+                    last: true,
+                    totalElements: 0,
+                    pageable: {
+                        paged: true,
+                        pageNumber: page,
+                        pageSize: pageSize,
+                        offset: 0,
+                        sort: {
+                            sorted: false,
+                            empty: true,
+                            unsorted: true,
+                        },
+                        unpaged: false,
+                    },
+                    size: pageSize,
+                    sort: {
+                        sorted: false,
+                        empty: true,
+                        unsorted: true,
+                    },
+                    empty: true,
+                    numberOfElements: 1,
+                };
+            }
             setPageData(res.data);
 
             setLoading(false);
@@ -56,7 +98,7 @@ const ItemPagination = (props: Props) => {
                         return <div style={{ color: 'white', fontSize: 18 }}>No hay productos.</div>;
                     } else {
                         return pageData.content.map(item => (
-                            <ItemComponent key={item.id} item={item} token={token} onClick={props.onItemClick} onContextMenu={props.onItemMenu}/>
+                            <ItemComponent key={item.id} item={item} token={token} onClick={props.onItemClick} onContextMenu={props.onItemMenu} />
                         ));
                     }
                 })()}

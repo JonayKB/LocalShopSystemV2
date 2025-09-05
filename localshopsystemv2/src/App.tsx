@@ -23,7 +23,6 @@ function App() {
           <Basket />
           <Navbar />
           <div className="main-content">
-            <BarcodeListener />
             <AddItemComponent />
 
             <Routes>
