@@ -47,6 +47,19 @@ const HomeScreen = (props: Props) => {
     }
   };
 
+  function onItemClick(item: Item) {
+        if (basketItems.has(item)) {
+            const currentQuantity = basketItems.get(item) ?? 0;
+            updateBasket(item, currentQuantity + 1);
+        } else {
+            updateBasket(item, 1);
+
+        }
+        setOpenBasket(true);
+
+    }
+
+
 
 
 
@@ -63,7 +76,7 @@ const HomeScreen = (props: Props) => {
       }}
     >
       <BarcodeListener handleBarcodeScan={handleBarcodeScan} />
-      <ItemSearcher />
+      <ItemSearcher onItemClickProp={onItemClick}/>
       <Selector categories={categories} token={token} />
     </div>
   );

@@ -38,7 +38,7 @@ const ExportScreen = (props: Props) => {
                             const url = URL.createObjectURL(blob);
                             const link = document.createElement('a');
                             link.href = url;
-                            link.download = 'reporte' + new Date().toISOString() + '.xlsx';
+                            link.download = 'DEVOLUCION_' + new Date().toISOString() + '.xlsx';
                             document.body.appendChild(link);
                             link.click();
                             document.body.removeChild(link);

@@ -4,7 +4,6 @@ import BaseInfoRepository from "../utils/BaseInfoRepository";
 
 class StockRepository {
     async addStock(itemsToAdd: Map<Item, number>, token: string | null) {
-
         const body: Record<number, number> = {};
         itemsToAdd.forEach((quantity, item) => {
             body[item.id] = quantity;
@@ -13,7 +12,8 @@ class StockRepository {
         const res = await axios.post(BaseInfoRepository.BASE_URL + 'stock/', body, {
             headers: {
                 Authorization: `Bearer ${token}`
-            }
+            },
+            data: body
         });
 
         return res.data;
@@ -29,10 +29,16 @@ class StockRepository {
             headers: {
                 Authorization: `Bearer ${token}`
             },
-            data: body
+            data: body,
+            responseType: 'blob'
         });
 
-        return res.data;
+        const blob = new Blob([res.data], {
+            type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        });
+        console.log(blob);
+
+        return blob;
     }
 
 }

@@ -40,24 +40,30 @@ const StockScreen = (props: Props) => {
         const data = stockRepository.addStock(itemsToProcess, token);
         data.then((res) => {
             if (res) {
-                alert('Stock actualizado correctamente');
+                alert('Stock añadido correctamente');
             } else {
-                alert('Error al actualizar el stock');
+                alert('Error al añadir el stock');
             }
         });
 
-    }
-    function removeStock() {
+        
+    };
+    async function removeStock() {
 
         setItemsToProcess(new Map());
-        const data = stockRepository.removeStock(itemsToProcess, token);
-        data.then((res) => {
-            if (res) {
-                alert('Stock eliminado correctamente');
-            } else {
-                alert('Error al eliminar el stock');
-            }
-        });
+        const blob = await stockRepository.removeStock(itemsToProcess, token);
+        if (blob) {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'DEVOLUCIÓN_' + new Date().toISOString() + '.xlsx';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        } else {
+            alert('Error al eliminar el stock');
+        }
 
     }
 

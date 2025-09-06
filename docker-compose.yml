@@ -1,9 +1,8 @@
-version: "3.9"
-
 services:
   db:
     image: mysql:8.0
     container_name: mysql-db
+    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: shopdb
@@ -18,7 +17,7 @@ services:
       - shopnet
 
   app:
-    image: jonaykb/shop-app:2.2
+    image: jonaykb/shop-app:2.31
     container_name: shop-app
     restart: always
     pull_policy: always
@@ -28,6 +27,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/shopdb
       SPRING_DATASOURCE_USERNAME: shopuser
       SPRING_DATASOURCE_PASSWORD: shoppass
+      SENDGRID_API_KEY: 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
     ports:
       - "8080:8080"
     networks:
@@ -36,7 +36,7 @@ services:
       - ./uploads:/uploads
 
   web:
-    image: jonaykb/shop-web:2.2
+    image: jonaykb/shop-web:2.31
     container_name: shop-web
     restart: always
     pull_policy: always
