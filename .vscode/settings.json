@@ -1,6 +1,7 @@
 {
     "conventionalCommits.scopes": [
-        "V2.1"
+        "V2.1",
+        "V2.31"
     ],
     "java.compile.nullAnalysis.mode": "automatic",
     "sqltools.connections": [

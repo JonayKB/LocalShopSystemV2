@@ -27,7 +27,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/shopdb
       SPRING_DATASOURCE_USERNAME: shopuser
       SPRING_DATASOURCE_PASSWORD: shoppass
-      SENDGRID_API_KEY: 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
+      SENDGRID_API_KEY: YOUR SECRET KEY
     ports:
       - "8080:8080"
     networks:
