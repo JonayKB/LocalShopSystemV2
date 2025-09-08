@@ -37,7 +37,7 @@ const BarcodeListener: React.FC<BarcodeListenerProps> = (props) => {
 
                 timer.current = setTimeout(() => {
                     buffer.current = '';
-                }, 10000);
+                }, 1000);
             } else {
                 buffer.current = '';
             }
