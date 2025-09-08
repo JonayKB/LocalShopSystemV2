@@ -18,6 +18,7 @@ interface MainContextType {
     updateBasket: (item: Item, quantity: number) => void;
     openAddItemModal: Item | null;
     setOpenAddItemModal: Dispatch<SetStateAction<Item | null>>;
+    addItemToBasket: (item: Item) => void;
 }
 export const MainContext = createContext<MainContextType>({} as MainContextType);
 
@@ -32,6 +33,7 @@ const MainContextProvider = (props: Props) => {
             const newMap = new Map(prev);
             const existingEntry = Array.from(newMap.keys()).find(i => i.id === item.id);
             if (existingEntry) {
+                console.log('Updating existing item in basket');
 
                 if (quantity > 0) {
                     newMap.set(existingEntry, quantity);
@@ -40,6 +42,20 @@ const MainContextProvider = (props: Props) => {
                 }
             } else if (quantity > 0) {
                 newMap.set(item, quantity);
+            }
+            return newMap;
+        });
+    };
+
+    const addItemToBasket = (item: Item) => {
+        setBasketItems(prev => {
+            const newMap = new Map(prev);
+            const existingEntry = Array.from(newMap.keys()).find(i => i.id === item.id);
+            if (existingEntry) {
+                const currentQuantity = newMap.get(existingEntry) ?? 0;
+                newMap.set(existingEntry, currentQuantity + 1);
+            } else {
+                newMap.set(item, 1);
             }
             return newMap;
         });
@@ -57,6 +73,7 @@ const MainContextProvider = (props: Props) => {
         updateBasket: updateBasket,
         openAddItemModal,
         setOpenAddItemModal: setOpenAddItemModal,
+        addItemToBasket: addItemToBasket,
     }
 
     return (

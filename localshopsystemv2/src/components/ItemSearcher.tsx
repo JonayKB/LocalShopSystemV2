@@ -5,6 +5,7 @@ import { MainContext } from './MainContextProvider';
 
 type Props = {
     onItemClickProp?: (item: Item) => void;
+    onItemMenu?: (item: Item) => void;
 }
 
 const ItemSearcher = (props: Props) => {
@@ -115,7 +116,7 @@ const ItemSearcher = (props: Props) => {
                         </button>
                     </div>
                     <div style={{ flex: 13 }}>
-                        <ItemPagination token={token} onItemClick={onItemClick} text={text} sortBy={selectedSortBy} ascending={ascending} onItemMenu={(item) => setOpenAddItemModal(item)} />
+                        <ItemPagination token={token} onItemClick={onItemClick} text={text} sortBy={selectedSortBy} ascending={ascending} onItemMenu={props.onItemMenu} />
                     </div>
                 </div>
             )}

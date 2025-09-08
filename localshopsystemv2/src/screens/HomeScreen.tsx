@@ -11,7 +11,7 @@ import ItemRepository from '../repositories/ItemRepository';
 type Props = {}
 
 const HomeScreen = (props: Props) => {
-  const { token, categories, setCategories, updateBasket, setOpenBasket, setOpenAddItemModal, basketItems } = useContext(MainContext);
+  const { token, categories, setCategories, updateBasket, setOpenBasket, addItemToBasket, setOpenAddItemModal, basketItems } = useContext(MainContext);
   const navigate = useNavigate();
   const categoryRepository = new CategoryRepository();
   const itemRepository = new ItemRepository();
@@ -37,10 +37,8 @@ const HomeScreen = (props: Props) => {
 
     const item = await itemRepository.getItemById(code, token);
     if (item) {
-
-      updateBasket(item, 1);
+      addItemToBasket(item);
       setOpenBasket(true);
-
     } else {
       alert('Este item no esta registrado en el sistema. Por favor, registralo antes de agregarlo al carrito.');
       setOpenAddItemModal({ id: Number(code), name: '', price: 0, categoryId: 0, image: '' } as Item);
@@ -48,16 +46,10 @@ const HomeScreen = (props: Props) => {
   };
 
   function onItemClick(item: Item) {
-        if (basketItems.has(item)) {
-            const currentQuantity = basketItems.get(item) ?? 0;
-            updateBasket(item, currentQuantity + 1);
-        } else {
-            updateBasket(item, 1);
+    addItemToBasket(item);
+    setOpenBasket(true);
 
-        }
-        setOpenBasket(true);
-
-    }
+  }
 
 
 
@@ -76,7 +68,7 @@ const HomeScreen = (props: Props) => {
       }}
     >
       <BarcodeListener handleBarcodeScan={handleBarcodeScan} />
-      <ItemSearcher onItemClickProp={onItemClick}/>
+      <ItemSearcher onItemClickProp={onItemClick} />
       <Selector categories={categories} token={token} />
     </div>
   );
