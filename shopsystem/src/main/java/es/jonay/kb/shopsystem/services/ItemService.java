@@ -58,6 +58,7 @@ public class ItemService {
     @PostMapping("/")
     public ItemDto save(@RequestBody ItemDto entity) {
         return iItemController.save(entity);
+
     }
 
     @PutMapping("/")
@@ -76,15 +77,14 @@ public class ItemService {
     }
 
     @PostMapping("/{id}/stock")
-    public ItemDto addStock(@PathVariable(name = "id") final Long id,@RequestBody Integer amount) {
+    public ItemDto addStock(@PathVariable(name = "id") final Long id, @RequestBody Integer amount) {
         return ItemMapper.INSTANCE.toItemDto(iItemController.addStock(id, amount));
     }
 
     @DeleteMapping("/{id}/stock")
-    public ItemDto removeStock(@PathVariable(name = "id") final Long id,@RequestBody Integer amount) {
+    public ItemDto removeStock(@PathVariable(name = "id") final Long id, @RequestBody Integer amount) {
         return ItemMapper.INSTANCE.toItemDto(iItemController.removeStock(id, amount));
     }
-    
 
     @GetMapping("/{page}/{size}")
     public Page<ItemDto> findByNameContainingIgnoreCase(String name,

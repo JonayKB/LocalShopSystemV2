@@ -2,6 +2,7 @@
     "conventionalCommits.scopes": [
         "V2.1",
         "V2.3",
-        "Home"
+        "Home",
+        "V2.4"
     ]
 }

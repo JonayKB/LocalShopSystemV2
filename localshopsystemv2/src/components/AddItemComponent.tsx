@@ -167,18 +167,16 @@ const AddItemComponent = (props: Props) => {
                         <input
                             type="text"
                             value={
-                                item?.id === -1
-                                    ? ''
-                                    : item?.id.toString()
+                                item?.id.toString()
                             }
-                            disabled={!!item?.id && item.id !== -1}
+                            disabled={!!item?.id || item?.id === 0}
                             placeholder="Introduce el código del producto"
                             style={{
                                 width: '94%',
                                 padding: '8px 12px',
                                 borderRadius: 6,
                                 border: '1px solid #444',
-                                background: !!item?.id && item.id !== -1 ? '#444' : '#181a24',
+                                background: !!item?.id || item?.id === 0 ? '#444' : '#181a24',
                                 color: '#fff',
                                 fontSize: 16,
                             }}

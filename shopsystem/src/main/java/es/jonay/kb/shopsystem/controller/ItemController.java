@@ -142,7 +142,6 @@ public class ItemController {
         return null;
     }
 
-
     public Item addStock(Long id, Integer amount) {
         Optional<Item> itemOptional = itemRepository.findById(id);
         if (itemOptional.isPresent()) {

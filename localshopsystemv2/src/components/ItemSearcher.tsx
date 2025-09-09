@@ -77,25 +77,6 @@ const ItemSearcher = (props: Props) => {
                             )}
                         </button>
                         <button
-                            onClick={() => onClickSortBy('price')}
-                            style={{
-                                backgroundColor: selectedSortBy === 'price' ? '#3a3d4a' : '#1e1e2f',
-                                color: 'white',
-                                border: 'none',
-                                padding: '20px',
-                                width: '100%',
-                                cursor: 'pointer',
-                                fontWeight: selectedSortBy === 'price' ? 'bold' : 'normal'
-                            }}
-                        >
-                            Precio
-                            {selectedSortBy === 'price' && (
-                                <span style={{ marginLeft: 8 }}>
-                                    {ascending ? '▲' : '▼'}
-                                </span>
-                            )}
-                        </button>
-                        <button
                             onClick={() => onClickSortBy('category')}
                             style={{
                                 backgroundColor: selectedSortBy === 'category' ? '#3a3d4a' : '#1e1e2f',

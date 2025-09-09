@@ -50,7 +50,7 @@ const ItemsScreen = (props: Props) => {
             image: '',
             name: '',
             price: 0,
-            id: -1,
+            id: Math.floor(Math.random() * Number.MAX_SAFE_INTEGER),
             stock: 0,
             bareMinimun: 0,
             net: 0,
@@ -74,7 +74,7 @@ const ItemsScreen = (props: Props) => {
           Agregar Producto
         </button>
       </div>
-      <AddItemComponent/>
+      <AddItemComponent />
       <ItemSearcher onItemMenu={(item) => setOpenAddItemModal(item)} />
     </div>
   );

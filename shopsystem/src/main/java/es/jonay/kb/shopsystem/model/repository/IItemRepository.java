@@ -32,6 +32,6 @@ public interface IItemRepository extends JpaRepository<Item, Long> {
     @Query("SELECT i FROM Item i WHERE i.ignoreStock = false AND i.stock <= 0")
     List<Item> getOutOfStock();
 
-    @Query("SELECT i FROM Item i WHERE i.ignoreStock = false AND i.stock < i.bareMinimun")
+    @Query("SELECT i FROM Item i WHERE i.ignoreStock = false AND i.stock < i.bareMinimun AND i.bareMinimun > 0")
     List<Item> getUnderBareMinimun();
 }
