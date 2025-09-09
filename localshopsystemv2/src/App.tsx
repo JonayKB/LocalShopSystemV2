@@ -12,6 +12,7 @@ import Basket from './components/Basket';
 import ExportScreen from './screens/ExportScreen';
 import AddItemComponent from './components/AddItemComponent';
 import StockScreen from './screens/StockScreen';
+import GraphScreen from './screens/GraphScreen';
 
 function App() {
 
@@ -23,15 +24,14 @@ function App() {
           <Basket />
           <Navbar />
           <div className="main-content">
-            <AddItemComponent />
-
             <Routes>
               <Route path="/" element={<HomeScreen />} />
               <Route path='/login' element={<LoginScreen />} />
               <Route path="/items" element={<ItemsScreen />} />
               <Route path="/trades" element={<TradesScreen />} />
               <Route path="/export" element={<ExportScreen />} />
-              <Route path="/stock" element={<StockScreen />} /> 
+              <Route path="/stock" element={<StockScreen />} />
+              <Route path='/graphs' element={<GraphScreen />} />
             </Routes>
           </div>
         </div>

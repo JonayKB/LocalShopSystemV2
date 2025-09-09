@@ -10,6 +10,7 @@ import getCroppedImg from '../utils/CropImage';
 
 
 type Props = {
+    onComplete?: () => void;
 }
 
 const AddItemComponent = (props: Props) => {
@@ -71,6 +72,8 @@ const AddItemComponent = (props: Props) => {
                     console.error('Error uploading image:', error);
                     alert('Error al subir la imagen. Por favor, inténtalo de nuevo.');
                 });
+
+            props.onComplete && props.onComplete();
 
         }
 

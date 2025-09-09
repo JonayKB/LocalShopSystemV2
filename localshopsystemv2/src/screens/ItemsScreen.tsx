@@ -2,7 +2,7 @@ import React, { useContext, useEffect } from 'react';
 import { MainContext } from '../components/MainContextProvider';
 import { useNavigate } from 'react-router-dom';
 import ItemSearcher from '../components/ItemSearcher';
-import Item from '../models/Item';
+import AddItemComponent from '../components/AddItemComponent';
 
 type Props = {}
 
@@ -74,6 +74,7 @@ const ItemsScreen = (props: Props) => {
           Agregar Producto
         </button>
       </div>
+      <AddItemComponent/>
       <ItemSearcher onItemMenu={(item) => setOpenAddItemModal(item)} />
     </div>
   );
