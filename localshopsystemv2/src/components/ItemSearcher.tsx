@@ -1,7 +1,8 @@
-import React, { useContext, useState } from 'react'
+import React, { useContext, useRef, useState } from 'react'
 import ItemPagination from './ItemPagination'
 import Item from '../models/Item';
 import { MainContext } from './MainContextProvider';
+import AddItemComponent from './AddItemComponent';
 
 type Props = {
     onItemClickProp?: (item: Item) => void;
@@ -13,6 +14,7 @@ const ItemSearcher = (props: Props) => {
     const { token, setOpenAddItemModal } = useContext(MainContext);
     const [selectedSortBy, setSelectedSortBy] = useState<string>('name')
     const [ascending, setAscending] = useState<boolean>(true);
+    const itemPaginationRef = useRef<{ fetchItems: () => void }>(null);
 
 
 
@@ -47,6 +49,8 @@ const ItemSearcher = (props: Props) => {
             fontSize: '20px',
             borderRadius: '8px'
         }}>
+            <AddItemComponent onComplete={() => itemPaginationRef.current?.fetchItems()} />
+
             <input type="text"
                 placeholder="Buscar productos..."
                 value={text}
@@ -97,7 +101,7 @@ const ItemSearcher = (props: Props) => {
                         </button>
                     </div>
                     <div style={{ flex: 13 }}>
-                        <ItemPagination token={token} onItemClick={onItemClick} text={text} sortBy={selectedSortBy} ascending={ascending} onItemMenu={props.onItemMenu} />
+                        <ItemPagination token={token} onItemClick={onItemClick} text={text} sortBy={selectedSortBy} ascending={ascending} onItemMenu={props.onItemMenu} ref={itemPaginationRef} />
                     </div>
                 </div>
             )}

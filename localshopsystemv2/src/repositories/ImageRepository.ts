@@ -19,7 +19,7 @@ class ImageRespository {
 
   async uploadImage(file: File, token: string | null) {
     const formData = new FormData();
-    formData.append("file", file); // Note: field name is 'file' to match backend
+    formData.append("file", file); 
 
     const response = await axios.post(
       BaseInfoRepository.BASE_URL + "images/",
@@ -27,7 +27,6 @@ class ImageRespository {
       {
         headers: {
           Authorization: `Bearer ${token}`,
-          // 'Content-Type' will be set automatically by Axios when using FormData
         },
       }
     );

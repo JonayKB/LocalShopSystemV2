@@ -33,7 +33,6 @@ const MainContextProvider = (props: Props) => {
             const newMap = new Map(prev);
             const existingEntry = Array.from(newMap.keys()).find(i => i.id === item.id);
             if (existingEntry) {
-                console.log('Updating existing item in basket');
 
                 if (quantity > 0) {
                     newMap.set(existingEntry, quantity);

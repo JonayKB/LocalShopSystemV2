@@ -60,7 +60,7 @@ const AddItemComponent = (props: Props) => {
         const category = formData.get('category') as string;
         const price = parseFloat(formData.get('price') as string);
         const name = formData.get('name') as string;
-        let imageName = code + '.png';
+        let imageName = item?.image ?? '';
         if (croppedImage) {
             await imageRepository.uploadImage(croppedImage, token)
                 .then((name) => {
@@ -73,7 +73,6 @@ const AddItemComponent = (props: Props) => {
                     alert('Error al subir la imagen. Por favor, inténtalo de nuevo.');
                 });
 
-            props.onComplete && props.onComplete();
 
         }
 
@@ -97,6 +96,7 @@ const AddItemComponent = (props: Props) => {
             .then(() => {
                 alert('Producto agregado correctamente');
                 setOpenAddItemModal(null);
+                props.onComplete && props.onComplete();
             })
             .catch((error) => {
                 console.error('Error adding item:', error);

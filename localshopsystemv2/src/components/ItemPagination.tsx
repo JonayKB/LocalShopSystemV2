@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import ItemComponent from './ItemComponent';
 import Item from '../models/Item';
 import Page from '../models/Page';
@@ -15,76 +15,78 @@ type Props = {
     onItemMenu?: (item: Item) => void;
 }
 
-const ItemPagination = (props: Props) => {
+const ItemPagination = forwardRef((props: Props, ref) => {
     const { categoryId, token } = props;
     const [pageData, setPageData] = useState<Page<Item> | null>(null);
     const [page, setPage] = useState(0);
     const pageSize = 12;
     const [loading, setLoading] = useState(false);
-
-    useEffect(() => {
-        const fetchItems = async () => {
-            setLoading(true);
-            let url = `items/${categoryId}/${page}/${pageSize}`;
-            if (categoryId === undefined) {
-                url = `items/${page}/${pageSize}`;
+    const fetchItems = async () => {
+        setLoading(true);
+        let url = `items/${categoryId}/${page}/${pageSize}`;
+        if (categoryId === undefined) {
+            url = `items/${page}/${pageSize}`;
+        }
+        if (/^\d+$/.test(props.text ?? '')) {
+            url = `items/${props.text}`;
+        }
+        const res = await axios.get(BaseInfoRepository.BASE_URL + url, {
+            params: {
+                sortBy: props.sortBy ?? 'name',
+                ascending: props.ascending ?? true,
+                name: props.text ?? '',
+            },
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        if (!res.data || typeof res.data !== 'object' || !('content' in res.data && 'totalPages' in res.data && 'number' in res.data)) {
+            console.warn('Response is not of type Page<Item>', res.data);
+            if (!res.data || typeof res.data !== 'object') {
+                setPageData(null);
+                setLoading(false);
+                return;
             }
-            if (/^\d+$/.test(props.text ?? '')) {
-                url = `items/${props.text}`;
-                console.log('Searching by ID');
-            }
-            const res = await axios.get(BaseInfoRepository.BASE_URL + url, {
-                params: {
-                    sortBy: props.sortBy ?? 'name',
-                    ascending: props.ascending ?? true,
-                    name: props.text ?? '',
-                },
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-            // Check if response is of type Page<Item>
-            if (!res.data || typeof res.data !== 'object' || !('content' in res.data && 'totalPages' in res.data && 'number' in res.data)) {
-                console.warn('Response is not of type Page<Item>', res.data);
-                if (!res.data || typeof res.data !== 'object') {
-                    setPageData(null);
-                    setLoading(false);
-                    return;
-                }
-                // If the response is a single Item, convert it to Page<Item>
-                res.data = {
-                    content: [res.data] as Item[],
-                    totalPages: 0,
-                    number: page,
-                    first: true,
-                    last: true,
-                    totalElements: 0,
-                    pageable: {
-                        paged: true,
-                        pageNumber: page,
-                        pageSize: pageSize,
-                        offset: 0,
-                        sort: {
-                            sorted: false,
-                            empty: true,
-                            unsorted: true,
-                        },
-                        unpaged: false,
-                    },
-                    size: pageSize,
+            res.data = {
+                content: [res.data] as Item[],
+                totalPages: 0,
+                number: page,
+                first: true,
+                last: true,
+                totalElements: 0,
+                pageable: {
+                    paged: true,
+                    pageNumber: page,
+                    pageSize: pageSize,
+                    offset: 0,
                     sort: {
                         sorted: false,
                         empty: true,
                         unsorted: true,
                     },
+                    unpaged: false,
+                },
+                size: pageSize,
+                sort: {
+                    sorted: false,
                     empty: true,
-                    numberOfElements: 1,
-                };
-            }
-            setPageData(res.data);
+                    unsorted: true,
+                },
+                empty: true,
+                numberOfElements: 1,
+            };
+        }
+        setPageData(res.data);
 
-            setLoading(false);
-        };
+        setLoading(false);
+    };
+
+    useImperativeHandle(ref, () => ({
+        fetchItems: fetchItems
+    }));
+
+    useEffect(() => {
+
         fetchItems();
     }, [page, categoryId, token, props.text, props.sortBy, props.ascending]);
 
@@ -140,8 +142,8 @@ const ItemPagination = (props: Props) => {
                     Siguiente
                 </button>
             </div>
+
         </div>
     );
-}
-
+})
 export default ItemPagination

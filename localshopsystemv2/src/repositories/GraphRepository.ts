@@ -20,7 +20,6 @@ class GraphRepository {
             labels: response.data.map((item: any) => item.labels),
             data: response.data.map((item: any) => item.data),
         };
-        console.log('Graph data fetched:', graphData);
         return graphData as GraphData;
     }
 
@@ -37,7 +36,6 @@ class GraphRepository {
             labels: response.data.map((item: any) => item.labels),
             data: response.data.map((item: any) => item.data),
         };
-        console.log('Graph data fetched:', graphData);
         return graphData as GraphData;
     }
 
@@ -54,7 +52,6 @@ class GraphRepository {
             labels: ["Media valor de compra"],
             data: [response.data],
         };
-        console.log('Graph data fetched:', graphData);
         return graphData as GraphData;
     }
 
@@ -71,7 +68,6 @@ class GraphRepository {
             labels: response.data.map((item: any) => item.labels),
             data: response.data.map((item: any) => item.data),
         };
-        console.log('Graph data fetched:', graphData);
         return graphData as GraphData;
     }
 
@@ -89,7 +85,6 @@ class GraphRepository {
             labels: response.data.map((item: any) => item.labels),
             data: response.data.map((item: any) => item.data),
         };
-        console.log('Graph data fetched:', graphData);
         return graphData as GraphData;
     }
     async getItemsIgnoringStock(token: string | null) {
@@ -105,7 +100,6 @@ class GraphRepository {
             labels: response.data,
             data: response.data.map(() => 1),
         };
-        console.log('Graph data fetched:', graphData);
         return graphData as GraphData;
     }
 
@@ -124,7 +118,6 @@ class GraphRepository {
             labels: response.data.map((item: any) => item.labels),
             data: response.data.map((item: any) => item.data),
         };
-        console.log('Graph data fetched:', graphData);
         return graphData as GraphData;
     }
 
@@ -141,7 +134,6 @@ class GraphRepository {
             labels: response.data.map((item: any) => item.labels),
             data: response.data.map((item: any) => item.data),
         };
-        console.log('Graph data fetched:', graphData);
         return graphData as GraphData;
     }
 

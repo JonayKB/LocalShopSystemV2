@@ -1,7 +1,5 @@
 import { useContext, useEffect, useRef } from 'react';
 import { MainContext } from './MainContextProvider';
-import ItemRepository from '../repositories/ItemRepository';
-import Item from '../models/Item';
 
 interface BarcodeListenerProps {
     handleBarcodeScan: (code: string) => void;
@@ -37,7 +35,7 @@ const BarcodeListener: React.FC<BarcodeListenerProps> = (props) => {
 
                 timer.current = setTimeout(() => {
                     buffer.current = '';
-                }, 1000);
+                }, 10000);
             } else {
                 buffer.current = '';
             }

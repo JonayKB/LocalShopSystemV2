@@ -36,7 +36,6 @@ class StockRepository {
         const blob = new Blob([res.data], {
             type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         });
-        console.log(blob);
 
         return blob;
     }
