@@ -74,7 +74,7 @@ const ItemsScreen = (props: Props) => {
           Agregar Producto
         </button>
       </div>
-      <ItemSearcher onItemMenu={(item) => { setOpenAddItemModal(item); console.log(item) }} />
+      <ItemSearcher onItemMenu={(item) => setOpenAddItemModal(item)} />
     </div>
   );
 };
