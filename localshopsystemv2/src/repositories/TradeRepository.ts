@@ -3,7 +3,7 @@ import Item from "../models/Item";
 import BaseInfoRepository from "../utils/BaseInfoRepository";
 
 class TradeRepository {
-  async createTrade(itemMap: Map<Item, number>, token: string | null) {
+  async createTrade(itemMap: Map<Item, number>, token: string | null, print: boolean) {
     let items: Item[] = [];
     if (!token) {
       return;
@@ -35,6 +35,7 @@ class TradeRepository {
         headers: {
           Authorization: `Bearer ${token}`,
         },
+        params: { print },
       }
     );
     return response.data;

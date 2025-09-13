@@ -1,10 +1,21 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { MainContext } from './MainContextProvider';
 import TradeRepository from '../repositories/TradeRepository';
+import { Checkbox } from '@mui/material';
 
 const Basket: React.FC = () => {
     const { basketItems, openBasket, setOpenBasket, updateBasket, token, setBasketItems } = useContext(MainContext);
     const tradeRepository = new TradeRepository();
+    const [printTicket, setPrintTicket] = useState(false);
+
+    const handleCreateTrade = async () => {
+        const result = await tradeRepository.createTrade(basketItems, token, printTicket);
+        if (result) {
+            playSound('success_sound.mp3');
+            setBasketItems(new Map());
+            setPrintTicket(false);
+        }
+    };
 
     const playSound = (src: string) => {
         const audio = new Audio(src);
@@ -139,19 +150,18 @@ const Basket: React.FC = () => {
                         Total: {Array.from(basketItems.entries()).reduce((total, [item, quantity]) => total + item.price * quantity, 0).toFixed(2)}€
                     </span>
                 </div>
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
+                    <Checkbox
+                        checked={printTicket}
+                        onChange={(e) => setPrintTicket(e.target.checked)}
+                        color="primary"
+                        inputProps={{ 'aria-label': 'Print Ticket' }}
+                        style={{ color: 'white' }}
+                    />
+                    <span style={{ marginLeft: '8px' }}>Print Ticket</span>
+                </div>
                 <button
-                    onClick={async () => {
-                        try {
-                            await tradeRepository.createTrade(basketItems, token);
-                            playSound('success_sound.mp3');
-                            setBasketItems(new Map());
-
-
-                        } catch (error) {
-                            alert('Error creating trade. Please try again later.');
-
-                        }
-                    }}
+                    onClick={handleCreateTrade}
                     onMouseEnter={(e) => {
                         e.currentTarget.style.transform = 'scale(1.05)';
                     }
