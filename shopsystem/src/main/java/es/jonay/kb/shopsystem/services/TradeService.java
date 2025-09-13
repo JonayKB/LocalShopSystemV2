@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import es.jonay.kb.shopsystem.api.dto.ItemDto;
 import es.jonay.kb.shopsystem.api.dto.TradeDto;
+import es.jonay.kb.shopsystem.api.services.TicketPrinterService;
 import es.jonay.kb.shopsystem.controller.TradeController;
 
 @RestController
@@ -27,6 +28,7 @@ import es.jonay.kb.shopsystem.controller.TradeController;
 @CrossOrigin
 public class TradeService {
     TradeController tradeController;
+    TicketPrinterService ticketPrinterService;
 
     public TradeController getTradeController() {
         return this.tradeController;
@@ -35,6 +37,11 @@ public class TradeService {
     @Autowired
     public void setTradeController(TradeController tradeController) {
         this.tradeController = tradeController;
+    }
+
+    @Autowired
+    public void setTicketPrinterService(TicketPrinterService ticketPrinterService) {
+        this.ticketPrinterService = ticketPrinterService;
     }
 
     @GetMapping("/")
@@ -53,8 +60,13 @@ public class TradeService {
     }
 
     @PostMapping("/newTrade")
-    public TradeDto saveList(@RequestBody List<ItemDto> items) {
-        return tradeController.saveList(items);
+    public TradeDto saveList(@RequestBody List<ItemDto> items,
+            @RequestParam(name = "print", defaultValue = "false") boolean print) throws Exception {
+        TradeDto trade = tradeController.saveList(items);
+        if (print) {
+            ticketPrinterService.print(trade);
+        }
+        return trade;
     }
 
     @GetMapping("/range")
