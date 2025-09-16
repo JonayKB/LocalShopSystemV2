@@ -56,7 +56,7 @@ const Basket: React.FC = () => {
                     top: 0,
                     right: openBasket ? 0 : -600,
                     width: 500,
-                    height: '100vh',
+                    height: '93.7vh',
                     backgroundColor: '#1e1e2f',
                     color: 'white',
                     transition: 'right 0.3s ease-in-out',
@@ -66,6 +66,9 @@ const Basket: React.FC = () => {
                     borderRadius: '0 0 0 10px',
                     overflowY: 'auto',
                     borderLeft: '1px solid #555',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
                 }}
             >
                 <button
@@ -83,7 +86,7 @@ const Basket: React.FC = () => {
                 >
                     ✖
                 </button>
-                <div style={{ marginBottom: '20px', fontSize: '20px', fontWeight: 'bold', overflowY: 'scroll', height: '80vh', backgroundColor: '#2a2d3a', padding: '20px', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ marginBottom: '20px', fontSize: '20px', fontWeight: 'bold', overflowY: 'scroll', height: '75vh', backgroundColor: '#2a2d3a', padding: '20px', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     {Array.from(basketItems.entries()).map(([item, quantity]) => (
                         <div key={item.id} style={{ marginBottom: '10px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -183,6 +186,9 @@ const Basket: React.FC = () => {
                         fontSize: '16px',
                         transition: 'all 0.3s ease',
                         boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                        fontWeight: 'bold',
+                        marginBottom: '20px',
+                        
                     }}
                 >
                     Checkout
