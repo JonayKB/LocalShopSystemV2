@@ -68,7 +68,7 @@ const Basket: React.FC = () => {
                     borderLeft: '1px solid #555',
                     display: 'flex',
                     flexDirection: 'column',
-                    justifyContent: 'space-between',
+                    justifyContent: 'flex-end'
                 }}
             >
                 <button

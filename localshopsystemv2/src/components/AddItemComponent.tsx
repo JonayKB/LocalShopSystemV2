@@ -108,16 +108,16 @@ const AddItemComponent = (props: Props) => {
     return (
         <div
             style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                width: '100vw',
-                height: '100vh',
-                background: 'rgba(42,45,58,0.85)',
-                zIndex: 1000,
-                display: item !== null ? 'flex' : 'none',
-                alignItems: 'center',
-                justifyContent: 'center',
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            background: 'rgba(42,45,58,0.85)',
+            zIndex: 1000,
+            display: item !== null ? 'flex' : 'none',
+            alignItems: 'center',
+            justifyContent: 'center',
             }}
             className={`modal ${item !== null ? 'open' : ''}`}
         >
@@ -159,7 +159,7 @@ const AddItemComponent = (props: Props) => {
                 >
                     ✖
                 </button>
-                <form onSubmit={onSubmit}>
+                <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column' }}>
                     <div style={{ marginBottom: 20 }}>
                         <label style={{ display: 'block', marginBottom: 6 }}>
                             Código:
