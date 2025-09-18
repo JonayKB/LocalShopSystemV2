@@ -9,11 +9,13 @@ const Basket: React.FC = () => {
     const [printTicket, setPrintTicket] = useState(false);
 
     const handleCreateTrade = async () => {
+        console.log('Creating trade with items:', basketItems);
         const result = await tradeRepository.createTrade(basketItems, token, printTicket);
         if (result) {
             playSound('success_sound.mp3');
             setBasketItems(new Map());
             setPrintTicket(false);
+            document.activeElement instanceof HTMLElement && document.activeElement.blur();
         }
     };
 
@@ -188,7 +190,7 @@ const Basket: React.FC = () => {
                         boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
                         fontWeight: 'bold',
                         marginBottom: '20px',
-                        
+
                     }}
                 >
                     Checkout

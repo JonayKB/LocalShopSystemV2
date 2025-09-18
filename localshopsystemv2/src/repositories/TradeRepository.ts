@@ -40,5 +40,23 @@ class TradeRepository {
     );
     return response.data;
   }
+  async deleteTrade(tradeId: number, token: string | null) {
+    if (!token) {
+      return;
+    }
+    if (!tradeId) {
+      return;
+    }
+    const response = await axios.delete(
+      BaseInfoRepository.BASE_URL + `trade/${tradeId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  }
 }
+
 export default TradeRepository;

@@ -3,7 +3,8 @@ import Page from '../models/Page';
 import Trade from '../models/Trade';
 import axios from 'axios';
 import BaseInfoRepository from '../utils/BaseInfoRepository';
-import TradeComponnet from './TradeComponnet';
+import TradeComponnet from './TradeComponent';
+import TradeRepository from '../repositories/TradeRepository';
 
 type Props = {
     token: string | null,
@@ -14,26 +15,41 @@ const TradePagination = (props: Props) => {
     const [page, setPage] = useState(0);
     const pageSize = 12;
     const [loading, setLoading] = useState(false);
+    const tradeRepository = new TradeRepository();
+    const fetchItems = async () => {
+        setLoading(true);
+        let url = `trade/${page}/${pageSize}`;
+        const res = await axios.get(BaseInfoRepository.BASE_URL + url, {
+            headers: {
+                Authorization: `Bearer ${props.token}`,
+            },
+        });
+        setPageData(res.data);
+
+        setLoading(false);
+    };
 
     useEffect(() => {
-        const fetchItems = async () => {
-            setLoading(true);
-            let url = `trade/${page}/${pageSize}`;
-            const res = await axios.get(BaseInfoRepository.BASE_URL + url, {
-                headers: {
-                    Authorization: `Bearer ${props.token}`,
-                },
-            });
-            setPageData(res.data);
-
-            setLoading(false);
-        };
         fetchItems();
     }, [page, props.token]);
 
+    const handleDelete = async (tradeId: number) => {
+        if (!window.confirm('¿Estás seguro de que deseas eliminar esta venta? Esta acción no se puede deshacer.')) {
+            return;
+        }
+        await tradeRepository.deleteTrade(tradeId, props.token);
+        fetchItems();
+    };
+
     return (
         <div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100%, 1fr))', gap: '20px', padding: '20px', backgroundColor: '#1e1e2f', color: 'white', borderRadius: 8, height: '65vh', overflowY: 'scroll' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100%, 1fr))', gap: '20px', padding: '20px', backgroundColor: '#1e1e2f', color: 'white', borderRadius: 8, height: '85vh', overflowY: 'scroll', margin: 10 }}>
+                <div style={{ flex: 1, display: 'flex', justifyContent: 'space-around', alignItems: 'center', marginBottom: 10 }}>
+                    <h2 style={{ textAlign: 'center' }}>Identificador</h2>
+                    <h2 style={{ textAlign: 'center' }}>Fecha</h2>
+                    <h2 style={{ textAlign: 'center' }}>Total</h2>
+                    <h2 style={{ textAlign: 'center' }}>Acciones</h2>
+                </div>
                 {(() => {
                     if (loading) {
                         return <div style={{ color: 'white', fontSize: 18 }}>Cargando...</div>;
@@ -41,7 +57,7 @@ const TradePagination = (props: Props) => {
                         return <div style={{ color: 'white', fontSize: 18 }}>No hay productos.</div>;
                     } else {
                         return pageData.content.map(item => (
-                            <TradeComponnet key={item.id} trade={item} />
+                            <TradeComponnet key={item.id} trade={item} onDelete={handleDelete} />
                         ));
                     }
                 })()}

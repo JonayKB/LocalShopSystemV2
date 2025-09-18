@@ -2,7 +2,8 @@ import React, { useState } from 'react'
 import Trade from '../models/Trade'
 
 type Props = {
-    trade: Trade
+    trade: Trade,
+    onDelete?: (tradeId: number) => void;
 }
 
 const TradeComponnet = (props: Props) => {
@@ -12,14 +13,17 @@ const TradeComponnet = (props: Props) => {
     return (
         <div style={{ textAlign: 'center', color: 'white', background: '#3a3d4a', padding: '10px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)', marginBottom: '10px' }}>
             <div
-                style={{ cursor: 'pointer', display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}
+                style={{ cursor: 'pointer', display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center' }}
                 onClick={() => setOpen(o => !o)}
             >
                 <h3 style={{ textTransform: 'capitalize', padding: 20 }}>{trade.id}</h3>
-                <h3 style={{ textTransform: 'capitalize', padding: 20 }}>{trade.date}</h3>
+                <h3 style={{ textTransform: 'capitalize', padding: 20 }}>{new Date(trade.date).toLocaleDateString()}</h3>
                 <h3 style={{ textTransform: 'capitalize', padding: 20 }}>
-                    {trade.items.reduce((sum, item) => sum + item.price, 0).toFixed(2)}€ total
+                    {trade.items.reduce((sum, item) => sum + item.price, 0).toFixed(2)}€
                 </h3>
+                <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                    <button style={{ color: 'red', border: 'none', cursor: 'pointer', backgroundColor: 'transparent', fontSize: 38, padding: 20 }} onClick={() => props?.onDelete?.(trade.id)}>✖</button>
+                </div>
             </div>
             <div
                 style={{
