@@ -80,7 +80,7 @@ const Navbar: React.FC = () => {
           </button>
           <li style={{ margin: '20px 0' }}>
             <Link
-              to="/"
+              to="home"
               style={{
                 color: 'white',
                 fontSize: '18px',
@@ -97,7 +97,7 @@ const Navbar: React.FC = () => {
           </li>
           <li style={{ margin: '20px 0' }}>
             <Link
-              to="/items"
+              to="items"
               style={{
                 color: 'white',
                 fontSize: '18px',
@@ -114,7 +114,7 @@ const Navbar: React.FC = () => {
           </li>
           <li style={{ margin: '20px 0' }}>
             <Link
-              to="/trades"
+              to="trades"
               style={{
                 color: 'white',
                 fontSize: '18px',
@@ -132,7 +132,7 @@ const Navbar: React.FC = () => {
 
           <li style={{ margin: '20px 0' }}>
             <Link
-              to="/export"
+              to="export"
               style={{
                 color: 'white',
                 fontSize: '18px',
@@ -150,7 +150,7 @@ const Navbar: React.FC = () => {
           </li>
           <li style={{ margin: '20px 0' }}>
             <Link
-              to="/stock"
+              to="stock"
               style={{
                 color: 'white',
                 fontSize: '18px',
@@ -169,7 +169,7 @@ const Navbar: React.FC = () => {
           </li>
           <li style={{ margin: '20px 0' }}>
             <Link
-              to="/graphs"
+              to="graphs"
               style={{
                 color: 'white',
                 fontSize: '18px',

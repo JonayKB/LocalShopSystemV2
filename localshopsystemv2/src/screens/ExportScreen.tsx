@@ -11,7 +11,7 @@ const ExportScreen = (props: Props) => {
     const exportRepository = new ExportRepository();
     useEffect(() => {
         if (!token) {
-            navigate('/login');
+            navigate('/admin/login');
         }
     }, [token, navigate]);
     return (

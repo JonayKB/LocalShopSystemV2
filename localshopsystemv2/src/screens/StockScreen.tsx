@@ -18,7 +18,7 @@ const StockScreen = (props: Props) => {
 
     useEffect(() => {
         if (!token) {
-            navitigation('/login');
+            navitigation('/admin/login');
         }
     }, [token, navitigation]);
 

@@ -10,7 +10,7 @@ const TradesScreen = (props: Props) => {
   const navitigation = useNavigate();
   useEffect(() => {
     if (!token) {
-      navitigation('/login');
+      navitigation('/admin/login');
     }
   }, [token, navitigation]);
   return (

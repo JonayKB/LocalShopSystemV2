@@ -16,7 +16,7 @@ const ItemsScreen = (props: Props) => {
 
 
     if (!token) {
-      navigate('/login');
+      navigate('/admin/login');
     }
 
 
