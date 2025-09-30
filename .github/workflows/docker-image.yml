@@ -41,6 +41,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
+    needs: build-and-push
 
     steps:
     # 2️⃣ Deploy via SSH
