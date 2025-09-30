@@ -38,3 +38,21 @@ jobs:
         docker build ./shopsystem -f ./shopsystem/Dockerfile -t $IMAGE_TAG -t $LATEST_TAG
         docker push $IMAGE_TAG
         docker push $LATEST_TAG
+
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 2️⃣ Deploy via SSH
+    - name: Deploy to Remote Server
+      uses: appleboy/ssh-action@v0.1.7
+      with:
+        host: ${{ secrets.SSH_HOST }} 
+        username: ${{ secrets.SSH_USER }}
+        password: ${{ secrets.SSH_PASSWORD }}
+        port: 22
+        script: |
+          docker compose down
+          docker image prune -f
+          docker compose pull
+          docker compose up -d
