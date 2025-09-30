@@ -31,6 +31,10 @@ const HomeScreen = (props: Props) => {
         description: 'Únete a nuestros talleres de jardinería y aprende de los expertos. Consulta nuestro calendario de eventos para más detalles.'
       }
     ])
+    setcarouselImages([
+      "https://media.istockphoto.com/id/1035676256/photo/background-of-galaxy-and-stars.jpg?s=612x612&w=0&k=20&c=dh7eWJ6ovqnQZ9QwQQlq2wxqmAR7mgRlQTgaIylgBwc=",
+      "https://media.istockphoto.com/id/814423752/es/foto/ojo-modelo-con-un-maquillaje-colorido-arte-primer-plano.jpg?s=612x612&w=0&k=20&c=lr7yWmFVkmY0pCkTjHbxJN6OZNOy1ZZczmVS7hkN4lg="
+    ])
   }, [])
   return (
     <div
@@ -99,22 +103,9 @@ const HomeScreen = (props: Props) => {
               position: 'absolute',
               top: 0,
               left: `${index * 100}%`,
-              transition: 'left 0.5s ease-in-out',
-              animation: `slide ${carouselImages.length * 5}s infinite`
             }}
           />
         ))}
-        <style>
-          {`
-            @keyframes slide {
-              0% { left: 0%; }
-              ${100 / carouselImages.length}% { left: -100%; }
-              ${200 / carouselImages.length}% { left: -200%; }
-              ${300 / carouselImages.length}% { left: -300%; }
-              ${400 / carouselImages.length}% { left: -400%; }
-            }
-          `}
-        </style>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '40px', marginTop: '48px', width: '100%', maxWidth: '80%' }}>
         {news.map((item: any, index) => (
