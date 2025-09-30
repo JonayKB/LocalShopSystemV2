@@ -22,13 +22,19 @@ jobs:
     # 3️⃣ Build y push de la imagen Web
     - name: Build and push Docker image Web
       run: |
-        IMAGE_TAG=jonaykb/shop-web:$(date +%s)
-        docker build ./localshopsystemv2 -f ./localshopsystemv2/Dockerfile -t $IMAGE_TAG
+        TIMESTAMP=$(date +%s)
+        IMAGE_TAG=jonaykb/shop-web:$TIMESTAMP
+        LATEST_TAG=jonaykb/shop-web:latest
+        docker build ./localshopsystemv2 -f ./localshopsystemv2/Dockerfile -t $IMAGE_TAG -t $LATEST_TAG
         docker push $IMAGE_TAG
+        docker push $LATEST_TAG
 
     # 4️⃣ Build y push de la imagen API
     - name: Build and push Docker image API
       run: |
-        IMAGE_TAG=jonaykb/shop-app:$(date +%s)
-        docker build ./shopsystem -f ./shopsystem/Dockerfile -t $IMAGE_TAG
+        TIMESTAMP=$(date +%s)
+        IMAGE_TAG=jonaykb/shop-app:$TIMESTAMP
+        LATEST_TAG=jonaykb/shop-app:latest
+        docker build ./shopsystem -f ./shopsystem/Dockerfile -t $IMAGE_TAG -t $LATEST_TAG
         docker push $IMAGE_TAG
+        docker push $LATEST_TAG
