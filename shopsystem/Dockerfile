@@ -9,5 +9,5 @@ RUN mvn clean package -DskipTests
 FROM openjdk:17-jdk-slim
 WORKDIR /app
 COPY --from=build /app/target/*.jar app_localShop.jar
-EXPOSE 8080
+EXPOSE 56784
 ENTRYPOINT ["java", "-jar", "app_localShop.jar"]
