@@ -30,7 +30,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: shoppass
       SENDGRID_API_KEY: YOUR_SECRET_KEY
     ports:
-      - "8080:8080"
+      - "56784:56784"
     networks:
       - shopnet
     volumes:
