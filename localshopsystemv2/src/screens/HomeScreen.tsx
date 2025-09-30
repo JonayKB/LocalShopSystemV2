@@ -45,6 +45,7 @@ const HomeScreen = (props: Props) => {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
+        width: '98%',
       }}
     >
       <Link
@@ -117,14 +118,15 @@ const HomeScreen = (props: Props) => {
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '40px', marginTop: '48px', width: '100%', maxWidth: '80%' }}>
         {news.map((item: any, index) => (
-          <InfoDisplay
-            key={index}
-            imageSrc={item.imageSrc}
-            title={item.title}
-            description={item.description}
-            orientation={index % 2 === 0 ? 'image-left' : 'image-right'}
-
-          />
+          <>
+            <InfoDisplay
+              key={index}
+              imageSrc={item.imageSrc}
+              title={item.title}
+              description={item.description}
+              orientation={index % 2 === 0 ? 'image-left' : 'image-right'}
+            />
+          </>
         ))}
 
       </div>
