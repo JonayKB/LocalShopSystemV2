@@ -1,6 +1,6 @@
 import axios from "axios";
 import Item from "../models/Item";
-import BaseInfoRepository from "../utils/BaseInfoRepository";
+import {BaseInfoRepository} from "../utils/BaseInfoRepository";
 
 class StockRepository {
     async addStock(itemsToAdd: Map<Item, number>, token: string | null) {

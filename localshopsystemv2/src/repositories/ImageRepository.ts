@@ -1,5 +1,5 @@
 import axios from "axios";
-import BaseInfoRepository from "../utils/BaseInfoRepository";
+import {BaseInfoRepository} from "../utils/BaseInfoRepository";
 
 class ImageRespository {
   async getImageById(id: string, token: string | null): Promise<string> {

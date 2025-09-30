@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import Page from '../models/Page';
 import Trade from '../models/Trade';
 import axios from 'axios';
-import BaseInfoRepository from '../utils/BaseInfoRepository';
+import {BaseInfoRepository} from '../utils/BaseInfoRepository';
 import TradeComponnet from './TradeComponent';
 import TradeRepository from '../repositories/TradeRepository';
 

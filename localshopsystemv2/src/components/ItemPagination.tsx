@@ -3,7 +3,7 @@ import ItemComponent from './ItemComponent';
 import Item from '../models/Item';
 import Page from '../models/Page';
 import axios from 'axios';
-import BaseInfoRepository from '../utils/BaseInfoRepository';
+import {BaseInfoRepository} from '../utils/BaseInfoRepository';
 
 type Props = {
     categoryId?: number;

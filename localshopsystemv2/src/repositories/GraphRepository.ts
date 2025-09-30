@@ -1,5 +1,5 @@
 import axios from "axios";
-import BaseInfoRepository from "../utils/BaseInfoRepository";
+import {BaseInfoRepository} from "../utils/BaseInfoRepository";
 import GraphData from "../models/Graph";
 
 class GraphRepository {

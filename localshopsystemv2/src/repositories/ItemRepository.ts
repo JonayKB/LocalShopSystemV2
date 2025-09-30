@@ -1,6 +1,6 @@
 import axios from "axios";
 import Page from "../models/Page";
-import BaseInfoRepository from "../utils/BaseInfoRepository";
+import {BaseInfoRepository} from "../utils/BaseInfoRepository";
 import Item from "../models/Item";
 
 class ItemRepository {

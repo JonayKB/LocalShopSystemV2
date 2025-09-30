@@ -1,5 +1,5 @@
 import axios from "axios";
-import BaseInfoRepository from "../utils/BaseInfoRepository";
+import {BaseInfoRepository} from "../utils/BaseInfoRepository";
 
 class AuthRepository {
   async login(username: string, password: string) {

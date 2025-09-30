@@ -1,5 +1,5 @@
 import axios from "axios";
-import BaseInfoRepository from "../utils/BaseInfoRepository";
+import {BaseInfoRepository} from "../utils/BaseInfoRepository";
 import Category from "../models/Category";
 
 class CategoryRepository {
