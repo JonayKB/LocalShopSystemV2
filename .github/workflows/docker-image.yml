@@ -1,20 +1,34 @@
-name: Docker Image CI
+name: Docker Image CI/CD
 
 on:
   push:
     branches: [ "main" ]
 
 jobs:
-
-  build:
-
+  build-and-push:
     runs-on: ubuntu-latest
 
     steps:
+    # 1️⃣ Checkout del repositorio
     - uses: actions/checkout@v4
-    - name: Build the Docker image Web
-      run: docker build ./localshopsystemv2 --file Dockerfile --tag jonaykb/shop-web:$(date +%s)
-    - uses: actions/checkout@v4
-    - name: Build the Docker image Api
-      run: docker build ./shopsystem --file Dockerfile --tag jonaykb/shop-app:$(date +%s)
-    
+
+    # 2️⃣ Login en Docker Hub
+    - name: Login to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_HUB_USERNAME }}
+        password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+    # 3️⃣ Build y push de la imagen Web
+    - name: Build and push Docker image Web
+      run: |
+        IMAGE_TAG=jonaykb/shop-web:$(date +%s)
+        docker build ./localshopsystemv2 -f ./localshopsystemv2/Dockerfile -t $IMAGE_TAG
+        docker push $IMAGE_TAG
+
+    # 4️⃣ Build y push de la imagen API
+    - name: Build and push Docker image API
+      run: |
+        IMAGE_TAG=jonaykb/shop-app:$(date +%s)
+        docker build ./shopsystem -f ./shopsystem/Dockerfile -t $IMAGE_TAG
+        docker push $IMAGE_TAG
