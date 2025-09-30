@@ -1,3 +1,5 @@
+version: "3.9"
+
 services:
   db:
     image: mysql:8.0
@@ -20,14 +22,13 @@ services:
     image: jonaykb/shop-app:2.31
     container_name: shop-app
     restart: always
-    pull_policy: always
     depends_on:
       - db
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/shopdb
       SPRING_DATASOURCE_USERNAME: shopuser
       SPRING_DATASOURCE_PASSWORD: shoppass
-      SENDGRID_API_KEY: YOUR SECRET KEY
+      SENDGRID_API_KEY: YOUR_SECRET_KEY
     ports:
       - "8080:8080"
     networks:
@@ -39,15 +40,20 @@ services:
     image: jonaykb/shop-web:2.31
     container_name: shop-web
     restart: always
-    pull_policy: always
+    environment:
+      HOST: kioscobotanico.es
     depends_on:
       - app
     ports:
       - "80:80"
+      - "443:443"
     networks:
       - shopnet
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt:ro
 
 networks:
   shopnet:
+
 volumes:
   db_data:

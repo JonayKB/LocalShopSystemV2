@@ -1,0 +1,59 @@
+name: Docker Image CI/CD
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1️⃣ Checkout del repositorio
+    - uses: actions/checkout@v4
+
+    # 2️⃣ Login en Docker Hub
+    - name: Login to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_HUB_USERNAME }}
+        password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+    # 3️⃣ Build y push de la imagen Web
+    - name: Build and push Docker image Web
+      run: |
+        TIMESTAMP=$(date +%s)
+        IMAGE_TAG=jonaykb/shop-web:$TIMESTAMP
+        LATEST_TAG=jonaykb/shop-web:latest
+        docker build ./localshopsystemv2 -f ./localshopsystemv2/Dockerfile -t $IMAGE_TAG -t $LATEST_TAG
+        docker push $IMAGE_TAG
+        docker push $LATEST_TAG
+
+    # 4️⃣ Build y push de la imagen API
+    - name: Build and push Docker image API
+      run: |
+        TIMESTAMP=$(date +%s)
+        IMAGE_TAG=jonaykb/shop-app:$TIMESTAMP
+        LATEST_TAG=jonaykb/shop-app:latest
+        docker build ./shopsystem -f ./shopsystem/Dockerfile -t $IMAGE_TAG -t $LATEST_TAG
+        docker push $IMAGE_TAG
+        docker push $LATEST_TAG
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+
+    steps:
+    # 2️⃣ Deploy via SSH
+    - name: Deploy to Remote Server
+      uses: appleboy/ssh-action@v0.1.7
+      with:
+        host: ${{ vars.SSH_HOST }} 
+        username: ${{ vars.SSH_USER }}
+        password: ${{ secrets.SSH_PASSWORD }}
+        port: 22
+        script: |
+          docker compose down
+          docker image prune -f
+          docker compose pull
+          docker compose up -d
