@@ -35,7 +35,7 @@ services:
       - shopnet
     volumes:
       - ./uploads:/uploads
-       - /etc/letsencrypt:/etc/letsencrypt:ro
+       - /etc/letsencrypt:/certs
 
   web:
     image: jonaykb/shop-web:2.31
