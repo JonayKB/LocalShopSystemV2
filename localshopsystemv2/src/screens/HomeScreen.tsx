@@ -16,24 +16,43 @@ const HomeScreen = (props: Props) => {
   useEffect(() => {
     setnews([
       {
-        imageSrc: '/assets/news1.jpg',
-        title: 'Nuevas plantas en stock',
-        description: 'Hemos recibido una nueva variedad de plantas exóticas. Ven y descubre las últimas incorporaciones a nuestro catálogo.'
+        imageSrc: '/assets/fotocopias.png',
+        title: 'Fotocopias',
+        description: 'Realizamos fotocopias en blanco y negro y a color, en varios tamaños y acabados. Calidad garantizada y precios competitivos.'
       },
       {
-        imageSrc: '/assets/news2.jpg',
-        title: 'Descuentos especiales',
-        description: 'Aprovecha nuestros descuentos exclusivos por tiempo limitado en todas las categorías. ¡No te lo pierdas!'
+        imageSrc: '/assets/hotwheels.jpg',
+        title: 'Hotwheels',
+        description: 'Explora nuestra nueva colección de Hotwheels para coleccionistas. Modelos de ultimas ediciones, al momento.'
       },
       {
-        imageSrc: '/assets/news3.jpg',
-        title: 'Eventos y talleres',
-        description: 'Únete a nuestros talleres de jardinería y aprende de los expertos. Consulta nuestro calendario de eventos para más detalles.'
-      }
+        imageSrc: '/assets/plantas.jpg',
+        title: 'Plantas de temporada',
+        description: 'Visita nuestra sección de plantas y semillas de temporada y descubre las variedades más frescas y hermosas para tu hogar.'
+      },
+
+      {
+        imageSrc: '/assets/golosinas.jpg',
+        title: 'Golosinas',
+        description: 'Descubre nuestra nueva colección de golosinas, perfectas para disfrutar en cualquier momento.'
+      },
+      {
+        imageSrc: '/assets/helados.jpg',
+        title: 'Helados',
+        description: 'Helados de diversos sabores, perfectos para refrescarte en cualquier momento.'
+      },
+      {
+        imageSrc: '/assets/prensa.jpg',
+        title: 'Prensa',
+        description: 'Periódicos y revistas nacionales e internacionales, para mantenerte informado.'
+      },
+      {
+        imageSrc: '/assets/bebidas.jpg',
+        title: 'Bebidas',
+        description: 'Refrescos, jugos y bebidas energéticas para mantenerte hidratado.'
+      },
     ])
     setcarouselImages([
-      "https://media.istockphoto.com/id/1035676256/photo/background-of-galaxy-and-stars.jpg?s=612x612&w=0&k=20&c=dh7eWJ6ovqnQZ9QwQQlq2wxqmAR7mgRlQTgaIylgBwc=",
-      "https://media.istockphoto.com/id/814423752/es/foto/ojo-modelo-con-un-maquillaje-colorido-arte-primer-plano.jpg?s=612x612&w=0&k=20&c=lr7yWmFVkmY0pCkTjHbxJN6OZNOy1ZZczmVS7hkN4lg="
     ])
   }, [])
   return (
@@ -50,6 +69,13 @@ const HomeScreen = (props: Props) => {
         alignItems: 'center',
         justifyContent: 'center',
         width: '98%',
+        boxSizing: 'border-box',
+        fontFamily: `'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif`,
+        position: 'relative',
+        gap: '20px',
+        overflowX: 'hidden',
+        scrollBehavior: 'smooth',
+
       }}
     >
       <Link
@@ -57,16 +83,16 @@ const HomeScreen = (props: Props) => {
         style={{
           background: '#4caf50',
           color: 'white',
-          padding: '14px 32px',
+          padding: '1vw 2vw',
           borderRadius: '8px',
           textDecoration: 'none',
           fontWeight: 'bold',
-          fontSize: '20px',
           boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
           transition: 'background 0.2s',
           position: 'absolute',
           top: '20px',
           right: '20px',
+          fontSize: 'calc(12px + 1vw)'
         }}
         onMouseOver={e => (e.currentTarget.style.background = '#388e3c')}
         onMouseOut={e => (e.currentTarget.style.background = '#4caf50')}
@@ -80,17 +106,18 @@ const HomeScreen = (props: Props) => {
           position: 'absolute',
           top: '20px',
           left: '20px',
-          width: '64px',
-          height: '64px',
           borderRadius: '50%',
           boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
           objectFit: 'contain',
+          width: '10vw',
+          aspectRatio: '1 / 1',
+          maxWidth: '150px',
         }}
       />
-      <h1 style={{ marginBottom: '24px', textShadow: '2px 2px 8px #000' }}>
+      <h1 style={{ marginBottom: '24px', textShadow: '2px 2px 8px #000', fontSize: 'calc(24px + 2vw)', fontWeight: '700' }}>
         Kiosco Botanico
       </h1>
-      <div style={{ width: '100%', height: '400px', overflow: 'hidden', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', marginBottom: '48px', position: 'relative' }}>
+      <div style={{ width: '80%', overflow: 'hidden', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', marginBottom: '48px', position: 'relative', aspectRatio: '20/9' }}>
         {carouselImages.map((src, index) => (
           <img
             key={index}
@@ -107,7 +134,7 @@ const HomeScreen = (props: Props) => {
           />
         ))}
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '40px', marginTop: '48px', width: '100%', maxWidth: '80%' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '40px', marginTop: '48px', width: '100%' }}>
         {news.map((item: any, index) => (
           <>
             <InfoDisplay

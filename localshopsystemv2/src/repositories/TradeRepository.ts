@@ -2,7 +2,10 @@ import axios from "axios";
 import Item from "../models/Item";
 import { BaseInfoRepository } from "../utils/BaseInfoRepository";
 
+
+
 class TradeRepository {
+
   async createTrade(itemMap: Map<Item, number>, token: string | null, print: boolean) {
     let items: Item[] = [];
     if (!token) {
@@ -38,6 +41,10 @@ class TradeRepository {
         params: { print },
       }
     );
+    // response.data = bytes desde tu backend Java
+    if (print) {
+    }
+
     return response.data;
   }
   async deleteTrade(tradeId: number, token: string | null) {

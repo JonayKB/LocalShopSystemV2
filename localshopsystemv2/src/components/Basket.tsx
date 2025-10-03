@@ -12,7 +12,7 @@ const Basket: React.FC = () => {
         console.log('Creating trade with items:', basketItems);
         const result = await tradeRepository.createTrade(basketItems, token, printTicket);
         if (result) {
-            playSound('success_sound.mp3');
+            playSound('/success_sound.mp3');
             setBasketItems(new Map());
             setPrintTicket(false);
             document.activeElement instanceof HTMLElement && document.activeElement.blur();

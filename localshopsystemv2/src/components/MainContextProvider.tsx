@@ -26,7 +26,7 @@ const MainContextProvider = (props: Props) => {
     const [categories, setCategories] = useState<Category[]>([]);
     const [token, setToken] = useState<string | null>(null);
     const [basketItems, setBasketItems] = useState<Map<Item, number>>(new Map<Item, number>());
-    const [openBasket, setOpenBasket] = useState(true);
+    const [openBasket, setOpenBasket] = useState(false);
     const [openAddItemModal, setOpenAddItemModal] = useState<Item | null>(null);
     const updateBasket = (item: Item, quantity: number) => {
         setBasketItems(prev => {

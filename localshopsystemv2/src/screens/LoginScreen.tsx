@@ -16,7 +16,7 @@ const LoginScreen = (props: Props) => {
             setToken(tokenStorage);
         }
         if (token) {
-            navigate('/');
+            navigate('/admin/Home');
         }
     }, [token, navigate]);
 
@@ -32,7 +32,7 @@ const LoginScreen = (props: Props) => {
                 localStorage.setItem('token', token);
                 if (setToken) {
                     setToken(token);
-                    navigate('/');
+                    navigate('/admin/Home');
 
                 }
             }
