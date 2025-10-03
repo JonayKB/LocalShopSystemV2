@@ -86,6 +86,7 @@ public class TradeController {
 
     }
 
+    
     public TradeDto saveList(List<ItemDto> items) {
 
         List<Item> itemList = new ArrayList<>();

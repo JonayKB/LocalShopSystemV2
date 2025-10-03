@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -27,12 +28,10 @@ import es.jonay.kb.shopsystem.api.dto.TradeDto;
 public class TicketPrinterService {
     Logger logger = Logger.getLogger(TicketPrinterService.class.getName());
 
-    private Socket socket;
-    private OutputStream outputStream;
     private String street;
     private String nif;
     private String businessName;
-    private static final int TOTAL_WIDTH = 42; // Ancho total del ticket en caracteres
+    private static final int TOTAL_WIDTH = 48; // Ancho total del ticket en caracteres
     private static final byte[] INITIALIZE = new byte[] { 0x1B, 0x40 };
     private static final byte[] HEADER = new byte[] {
             0x1B, 0x61, 0x01, // ESC a 1 → Centrado
@@ -41,24 +40,13 @@ public class TicketPrinterService {
     private static final byte[] CUT = new byte[] { 0x1D, 0x56, 0x00 }; // Full cut
 
     public TicketPrinterService(TicketPrinterConfigurationProperties config) throws Exception {
-        try {
-            socket = new Socket(config.getIp(), config.getPort());
-            outputStream = socket.getOutputStream();
-            this.street = config.getStreet();
-            this.businessName = config.getBusinessName();
-            this.nif = config.getNif();
-            if (!socket.isConnected()) {
-                logger.severe("Could not connect to printer at " + config.getIp() + ":" + config.getPort());
-            }
-        } catch (UnknownHostException e) {
-            logger.severe("Could not connect to printer at " + config.getIp() + ":" + config.getPort());
-        } catch (IOException e) {
-            logger.severe("Could not connect to printer at " + config.getIp() + ":" + config.getPort());
-        }
+        this.street = config.getStreet();
+        this.businessName = config.getBusinessName();
+        this.nif = config.getNif();
 
     }
 
-    public void print(TradeDto tradeDto) throws Exception {
+    public byte[] print(TradeDto tradeDto) throws Exception {
         StringBuilder ticket = new StringBuilder();
         Map<ItemDto, Integer> itemCountMap = new HashMap<>();
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
@@ -126,86 +114,25 @@ public class TicketPrinterService {
 
         // Total
         String totalLabel = "TOTAL:";
-        String totalValue = String.format("%.2f", subtotal); // si hay impuestos, podrías sumarlos aquí
+        String totalValue = String.format("%.2f", subtotal);
         int totalSpaces = TOTAL_WIDTH - totalLabel.length() - totalValue.length();
         if (totalSpaces < 1)
             totalSpaces = 1;
         ticket.append(totalLabel + " ".repeat(totalSpaces) + totalValue + "\n");
 
-        // Enviar a la impresora
-        outputStream.write(INITIALIZE);
-        outputStream.write(ticket.toString().getBytes("Cp858"));
-        outputStream.write(CUT);
-        outputStream.flush();
-    }
+        ticket.append("\n\n\n");
+        ticket.append(HEADER);
+        ticket.append("Gracias por su compra!\n");
+        ticket.append("\n\n\n\n\n\n\n\n\n\n\n\n");
 
-    private void printLogo(OutputStream out) throws Exception {
-        // Load image from resources (adjust path as needed)
-        InputStream is = getClass().getResourceAsStream("/logo.png");
-        if (is == null) {
-            logger.warning("Logo image not found");
-            return;
-        }
-        BufferedImage image = ImageIO.read(is);
-        is.close();
+        // Agrega los bytes generados al PrintSecuenceDto
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        baos.write(INITIALIZE);
+        baos.write(ticket.toString().getBytes(StandardCharsets.US_ASCII));
+        baos.write(CUT);
 
-        // Resize image width to printer width in pixels (e.g., 384 pixels for 48mm
-        // printer at 8 dots/mm)
-        // Adjust width according to your printer's pixel width
-        int printerWidthPx = 384;
-        int newHeight = (int) ((double) image.getHeight() * printerWidthPx / image.getWidth());
-        Image scaled = image.getScaledInstance(printerWidthPx, newHeight, Image.SCALE_SMOOTH);
-        BufferedImage resized = new BufferedImage(printerWidthPx, newHeight, BufferedImage.TYPE_INT_RGB);
-        Graphics2D g = resized.createGraphics();
-        g.drawImage(scaled, 0, 0, null);
-        g.dispose();
+        return baos.toByteArray();
 
-        // Convert to monochrome bitmap
-        BufferedImage monoImage = new BufferedImage(printerWidthPx, newHeight, BufferedImage.TYPE_BYTE_BINARY);
-        Graphics2D g2 = monoImage.createGraphics();
-        g2.drawImage(resized, 0, 0, null);
-        g2.dispose();
-
-        // ESC/POS command: Set line spacing to 24 dots
-        out.write(new byte[] { 0x1B, 0x33, 24 });
-
-        // Print image in slices of 24 dots height
-        for (int y = 0; y < newHeight; y += 24) {
-            // Select bit image mode: ESC * m nL nH
-            // m=33 for 24-dot double density
-            out.write(0x1B);
-            out.write('*');
-            out.write(33);
-
-            int widthBytes = printerWidthPx / 8;
-            out.write(widthBytes & 0xFF); // nL
-            out.write((widthBytes >> 8) & 0xFF); // nH
-
-            for (int x = 0; x < printerWidthPx; x++) {
-                byte[] slice = new byte[3];
-                for (int sliceIndex = 0; sliceIndex < 3; sliceIndex++) {
-                    byte b = 0;
-                    for (int bit = 0; bit < 8; bit++) {
-                        int yPos = y + sliceIndex * 8 + bit;
-                        int pixel = 0;
-                        if (yPos < newHeight) {
-                            int color = monoImage.getRGB(x, yPos);
-                            // In TYPE_BYTE_BINARY, black pixels have RGB=0xFF000000 (opaque black)
-                            // White pixels are 0xFFFFFFFF
-                            pixel = (color == 0xFF000000) ? 1 : 0;
-                        }
-                        b |= (pixel << (7 - bit));
-                    }
-                    slice[sliceIndex] = b;
-                }
-                out.write(slice);
-            }
-            out.write(0x0A); // line feed
-        }
-
-        // Reset line spacing to default (30)
-        out.write(new byte[] { 0x1B, 0x33, 30 });
-        out.flush();
     }
 
 }

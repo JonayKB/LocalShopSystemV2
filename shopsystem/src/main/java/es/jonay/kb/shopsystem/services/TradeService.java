@@ -7,6 +7,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -60,13 +61,16 @@ public class TradeService {
     }
 
     @PostMapping("/newTrade")
-    public TradeDto saveList(@RequestBody List<ItemDto> items,
+    public ResponseEntity<?> saveList(@RequestBody List<ItemDto> items,
             @RequestParam(name = "print", defaultValue = "false") boolean print) throws Exception {
         TradeDto trade = tradeController.saveList(items);
         if (print) {
-            ticketPrinterService.print(trade);
+            byte[] printedBytes = ticketPrinterService.print(trade);
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .body(printedBytes);
         }
-        return trade;
+        return ResponseEntity.ok(trade);
     }
 
     @GetMapping("/range")
