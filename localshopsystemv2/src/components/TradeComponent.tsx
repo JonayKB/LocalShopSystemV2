@@ -17,7 +17,7 @@ const TradeComponnet = (props: Props) => {
                 onClick={() => setOpen(o => !o)}
             >
                 <h3 style={{ textTransform: 'capitalize', padding: 20 }}>{trade.id}</h3>
-                <h3 style={{ textTransform: 'capitalize', padding: 20 }}>{new Date(trade.date).toLocaleDateString()}</h3>
+                <h3 style={{ textTransform: 'capitalize', padding: 20 }}>{new Date(trade.date).toLocaleDateString('es-ES')}</h3>
                 <h3 style={{ textTransform: 'capitalize', padding: 20 }}>
                     {trade.items.reduce((sum, item) => sum + item.price, 0).toFixed(2)}€
                 </h3>

@@ -76,98 +76,71 @@ public class TicketPrinterService {
     }
 
     public void print(TradeDto tradeDto, String ip, int port) throws Exception {
-        connect(ip, port);
-        if (outputStream == null) {
-            throw new IllegalStateException("Printer is not connected");
-        }
-        StringBuilder ticket = new StringBuilder();
-        Map<ItemDto, Integer> itemCountMap = new HashMap<>();
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
-        String fechaFormateada = sdf.format(tradeDto.getDate());
-        for (ItemDto item : tradeDto.getItems()) {
-            itemCountMap.put(item, itemCountMap.getOrDefault(item, 0) + 1);
-        }
+    connect(ip, port);
+    if (outputStream == null)
+        throw new IllegalStateException("Printer is not connected");
 
-        // Encabezado centrado y en negrita
-        // printLogo(outputStream);
-        // ticket.append("\n\n\n\n");
-        ticket.append(HEADER);
-        ticket.append(this.businessName + "\n");
-        ticket.append(this.street + "\n");
-        ticket.append("NIF : " + this.nif + "\n");
-        ticket.append("TICKET");
-        ticket.append("\n\n\n\n\n\n");
-        ticket.append(new String(new byte[] {
-                0x1B, 0x61, 0x00, // ESC a 0 → Alineación izquierda
-                0x1B, 0x45, 0x00 // ESC E 0 → Negrita OFF
-        }));
-        ticket.append("Nro : " + tradeDto.getId() + "\n");
-        ticket.append("Fecha : " + fechaFormateada + "\n");
+    ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 
-        ticket.append("\n\n\n");
+    // Inicializar impresora
+    buffer.write(INITIALIZE);
+    buffer.write(HEADER); // centrado + negrita
 
-        ticket.append("------------------------------------------\n");
-        ticket.append("DESCRIPCION             PRECIO CANT  TOTAL\n");
-        ticket.append("------------------------------------------\n");
+    buffer.write((businessName + "\n").getBytes("CP437"));
+    buffer.write((street + "\n").getBytes("CP437"));
+    buffer.write(("NIF : " + nif + "\n").getBytes("CP437"));
+    buffer.write("TICKET\n\n".getBytes("CP437"));
 
-        // Productos (alineados)
-        double subtotal = 0.0;
-        for (Map.Entry<ItemDto, Integer> entry : itemCountMap.entrySet()) {
-            ItemDto item = entry.getKey();
-            int cantidad = entry.getValue();
-            double precio = item.getPrice();
-            double totalLinea = precio * cantidad;
-            subtotal += totalLinea;
+    // Alineación izquierda
+    buffer.write(new byte[]{0x1B, 0x61, 0x00, 0x1B, 0x45, 0x00});
 
-            // Producto (máximo 16 caracteres para dejar espacio a precio y cantidad)
-            String nombre = item.getName();
-            if (nombre.length() > 16) {
-                nombre = nombre.substring(0, 16);
-            }
+    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+    buffer.write(("Nro : " + tradeDto.getId() + "\n").getBytes("CP437"));
+    buffer.write(("Fecha : " + sdf.format(tradeDto.getDate()) + "\n\n").getBytes("CP437"));
 
-            String rightPart = String.format("%6.2f x%-2d  %6.2f", precio, cantidad, precio * cantidad);
+    buffer.write("------------------------------------------------\n".getBytes("CP437"));
+    buffer.write("DESCRIPCION                   PRECIO CANT  TOTAL\n".getBytes("CP437"));
+    buffer.write("------------------------------------------------\n".getBytes("CP437"));
 
-            // Calcula espacios necesarios para empujar rightPart a la derecha
-            int spaces = TOTAL_WIDTH - nombre.length() - rightPart.length();
-            if (spaces < 1)
-                spaces = 1; // evitar valores negativos
+    // Productos
+    Map<ItemDto, Integer> itemCountMap = new HashMap<>();
+    for (ItemDto item : tradeDto.getItems())
+        itemCountMap.put(item, itemCountMap.getOrDefault(item, 0) + 1);
 
-            String linea = nombre.toUpperCase() + " ".repeat(spaces) + rightPart + "\n";
-            ticket.append(linea);
-        }
+    double subtotal = 0.0;
+    for (Map.Entry<ItemDto, Integer> entry : itemCountMap.entrySet()) {
+        ItemDto item = entry.getKey();
+        int cantidad = entry.getValue();
+        double precio = item.getPrice();
+        double totalLinea = precio * cantidad;
+        subtotal += totalLinea;
 
-        ticket.append("\n\n\n");
-        // Subtotal
-        String subtotalLabel = "Subtotal:";
-        String subtotalValue = String.format("%.2f", subtotal);
-        int subtotalSpaces = TOTAL_WIDTH - subtotalLabel.length() - subtotalValue.length();
-        if (subtotalSpaces < 1)
-            subtotalSpaces = 1;
-        ticket.append(subtotalLabel + " ".repeat(subtotalSpaces) + subtotalValue + "\n");
+        String nombre = item.getName();
+        if (nombre.length() > 16) nombre = nombre.substring(0, 16);
 
-        // Total
-        String totalLabel = "TOTAL:";
-        String totalValue = String.format("%.2f", subtotal);
-        int totalSpaces = TOTAL_WIDTH - totalLabel.length() - totalValue.length();
-        if (totalSpaces < 1)
-            totalSpaces = 1;
-        ticket.append(totalLabel + " ".repeat(totalSpaces) + totalValue + "\n");
+        String rightPart = String.format("%6.2f x%-2d  %6.2f", precio, cantidad, totalLinea);
+        int spaces = TOTAL_WIDTH - nombre.length() - rightPart.length();
+        if (spaces < 1) spaces = 1;
 
-        ticket.append("\n\n\n");
-        ticket.append(HEADER);
-        ticket.append("Gracias por su compra!\n");
-        ticket.append("\n\n\n\n\n\n\n\n\n\n\n\n");
-        ticket.append(new String(new byte[] {
-                0x1B, 0x61, 0x00, // ESC a 0 → Alineación izquierda
-                0x1B, 0x45, 0x00 // ESC E 0 → Negrita OFF
-        }));
-
-        outputStream.write(INITIALIZE);
-        outputStream.write(ticket.toString().getBytes(StandardCharsets.US_ASCII));
-        outputStream.write(CUT);
-        outputStream.flush();
-
-        close();
+        buffer.write((nombre.toUpperCase() + " ".repeat(spaces) + rightPart + "\n").getBytes(StandardCharsets.US_ASCII));
     }
+
+    buffer.write("\n".getBytes("CP437"));
+    buffer.write(String.format("Subtotal:        %30.2f\n", subtotal).getBytes(StandardCharsets.US_ASCII));
+    buffer.write(String.format("TOTAL:        %33.2f\n", subtotal).getBytes(StandardCharsets.US_ASCII));
+
+    buffer.write("\n\n".getBytes("CP437"));
+    buffer.write(HEADER);
+    buffer.write("Gracias por su compra!\n".getBytes("CP437"));
+    buffer.write("\n\n\n\n".getBytes("CP437"));
+    buffer.write(CUT);
+
+    // Enviar a la impresora
+    outputStream.write(buffer.toByteArray());
+    outputStream.flush();
+
+    close();
+}
+
 
 }

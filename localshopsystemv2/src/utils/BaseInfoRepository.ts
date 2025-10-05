@@ -1,5 +1,5 @@
 class BaseInfoRepositoryDevelopment {
-  public static readonly BASE_URL = 'https://localhost:56784/kiosco/';
+  public static readonly BASE_URL = 'http://localhost:56784/kiosco/';
 }
 class BaseInfoRepositoryProduction {
   public static readonly BASE_URL = 'https://kioscobotanico.es:56784/kiosco/';
