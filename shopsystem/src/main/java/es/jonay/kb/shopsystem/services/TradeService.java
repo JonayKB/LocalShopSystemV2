@@ -23,6 +23,7 @@ import es.jonay.kb.shopsystem.api.dto.ItemDto;
 import es.jonay.kb.shopsystem.api.dto.TradeDto;
 import es.jonay.kb.shopsystem.api.services.TicketPrinterService;
 import es.jonay.kb.shopsystem.controller.TradeController;
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("trade")
@@ -62,13 +63,17 @@ public class TradeService {
 
     @PostMapping("/newTrade")
     public ResponseEntity<?> saveList(@RequestBody List<ItemDto> items,
-            @RequestParam(name = "print", defaultValue = "false") boolean print) throws Exception {
+            @RequestParam(name = "print", defaultValue = "false") boolean print,
+            HttpServletRequest request) throws Exception {
+
         TradeDto trade = tradeController.saveList(items);
+        
         if (print) {
-            byte[] printedBytes = ticketPrinterService.print(trade);
-            return ResponseEntity.ok()
-                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                    .body(printedBytes);
+            String clientIp = request.getHeader("X-Forwarded-For");
+            if (clientIp == null || clientIp.isEmpty()) {
+                clientIp = request.getRemoteAddr();
+            }
+            ticketPrinterService.print(trade, clientIp, 9100); // Usa la IP pública del cliente
         }
         return ResponseEntity.ok(trade);
     }

@@ -11,12 +11,9 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
-
-import javax.imageio.ImageIO;
 
 import org.springframework.stereotype.Controller;
 
@@ -31,6 +28,8 @@ public class TicketPrinterService {
     private String street;
     private String nif;
     private String businessName;
+    private Socket socket;
+    private OutputStream outputStream;
     private static final int TOTAL_WIDTH = 48; // Ancho total del ticket en caracteres
     private static final byte[] INITIALIZE = new byte[] { 0x1B, 0x40 };
     private static final byte[] HEADER = new byte[] {
@@ -40,13 +39,47 @@ public class TicketPrinterService {
     private static final byte[] CUT = new byte[] { 0x1D, 0x56, 0x00 }; // Full cut
 
     public TicketPrinterService(TicketPrinterConfigurationProperties config) throws Exception {
+
+        this.street = config.getStreet();
+        this.businessName = config.getBusinessName();
+        this.nif = config.getNif();
+
         this.street = config.getStreet();
         this.businessName = config.getBusinessName();
         this.nif = config.getNif();
 
     }
 
-    public byte[] print(TradeDto tradeDto) throws Exception {
+    public void connect(String ip, int port) throws IOException {
+        if (socket == null || !socket.isConnected()) {
+            try {
+                socket = new Socket(ip, port);
+                outputStream = socket.getOutputStream();
+                logger.info("Connected to printer at " + ip + ":" + port);
+                if (!socket.isConnected()) {
+                    logger.severe("Could not connect to printer at " + ip + ":" + port);
+                }
+            } catch (UnknownHostException e) {
+                logger.severe("Could not connect to printer at " + ip + ":" + port);
+            } catch (IOException e) {
+                logger.severe("Could not connect to printer at " + ip + ":" + port);
+            }
+        }
+    }
+
+    public void close() throws IOException {
+        if (socket != null && socket.isConnected()) {
+            socket.close();
+            outputStream = null;
+            logger.info("Printer connection closed.");
+        }
+    }
+
+    public void print(TradeDto tradeDto, String ip, int port) throws Exception {
+        connect(ip, port);
+        if (outputStream == null) {
+            throw new IllegalStateException("Printer is not connected");
+        }
         StringBuilder ticket = new StringBuilder();
         Map<ItemDto, Integer> itemCountMap = new HashMap<>();
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
@@ -124,15 +157,17 @@ public class TicketPrinterService {
         ticket.append(HEADER);
         ticket.append("Gracias por su compra!\n");
         ticket.append("\n\n\n\n\n\n\n\n\n\n\n\n");
+        ticket.append(new String(new byte[] {
+                0x1B, 0x61, 0x00, // ESC a 0 → Alineación izquierda
+                0x1B, 0x45, 0x00 // ESC E 0 → Negrita OFF
+        }));
 
-        // Agrega los bytes generados al PrintSecuenceDto
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        baos.write(INITIALIZE);
-        baos.write(ticket.toString().getBytes(StandardCharsets.US_ASCII));
-        baos.write(CUT);
+        outputStream.write(INITIALIZE);
+        outputStream.write(ticket.toString().getBytes(StandardCharsets.US_ASCII));
+        outputStream.write(CUT);
+        outputStream.flush();
 
-        return baos.toByteArray();
-
+        close();
     }
 
 }
