@@ -41,9 +41,6 @@ class TradeRepository {
         params: { print },
       }
     );
-    // response.data = bytes desde tu backend Java
-    if (print) {
-    }
 
     return response.data;
   }
