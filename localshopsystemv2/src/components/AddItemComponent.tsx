@@ -46,7 +46,7 @@ const AddItemComponent = (props: Props) => {
         );
         setCroppingImage(null);
         setImageUrl(URL.createObjectURL(croppedImg));
-        setCroppedImage(new File([croppedImg], `${item?.id + '_' + new Date().toISOString()}.png`, { type: 'image/png' }));
+        setCroppedImage(new File([croppedImg], `${item?.id + '_' + new Date().getTime()}.png`, { type: 'image/png' }));
     };
 
 
