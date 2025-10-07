@@ -1,6 +1,8 @@
 package es.jonay.kb.shopsystem.api.tasks;
 
 import jakarta.annotation.PostConstruct;
+
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import es.jonay.kb.shopsystem.api.services.MailService;
@@ -8,16 +10,12 @@ import es.jonay.kb.shopsystem.model.entities.Item;
 import es.jonay.kb.shopsystem.model.repository.IItemRepository;
 
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @Component
 public class StockTasks {
     private final Logger logger = Logger.getLogger(StockTasks.class.getName());
-    private static final  Integer WAIT_TO_EXECUTE_SECONDS = 600;
     private final IItemRepository itemRepository;
     private final MailService mailService;
 
@@ -26,17 +24,7 @@ public class StockTasks {
         this.mailService = mailService;
     }
 
-    @PostConstruct
-    public void runOnStartupWithDelay() {
-        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-
-        scheduler.schedule(this::checkOutOfStockItems, WAIT_TO_EXECUTE_SECONDS, TimeUnit.SECONDS);
-
-        scheduler.schedule(this::checkUnderBareMinimumItems, WAIT_TO_EXECUTE_SECONDS, TimeUnit.SECONDS);
-
-        scheduler.schedule(scheduler::shutdown, WAIT_TO_EXECUTE_SECONDS + 5L, TimeUnit.SECONDS);
-    }
-
+    @Scheduled(cron = "0 0 9 * * ?")
     public void checkOutOfStockItems() {
         logger.log(Level.INFO, "EXECUTED TASK CHECK OUT ITEMS");
 
@@ -50,6 +38,7 @@ public class StockTasks {
 
     }
 
+    @Scheduled(cron = "0 0 9 * * ?")
     public void checkUnderBareMinimumItems() {
         logger.log(Level.INFO, "EXECUTED TASK CHECK BARE MINIMUM");
 
