@@ -3,11 +3,11 @@ package es.jonay.kb.shopsystem.services;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Logger;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -29,8 +29,10 @@ import jakarta.servlet.http.HttpServletRequest;
 @RequestMapping("trade")
 @CrossOrigin
 public class TradeService {
+    private static final int PORT = 9100;
     TradeController tradeController;
     TicketPrinterService ticketPrinterService;
+    Logger logger = Logger.getLogger(TradeService.class.getName());
 
     public TradeController getTradeController() {
         return this.tradeController;
@@ -67,14 +69,21 @@ public class TradeService {
             HttpServletRequest request) throws Exception {
 
         TradeDto trade = tradeController.saveList(items);
-        
-        if (print) {
-            String clientIp = request.getHeader("X-Forwarded-For");
-            if (clientIp == null || clientIp.isEmpty()) {
-                clientIp = request.getRemoteAddr();
-            }
-            ticketPrinterService.print(trade, clientIp, 9100); // Usa la IP pública del cliente
+        String clientIp = request.getHeader("X-Forwarded-For");
+        if (clientIp == null || clientIp.isEmpty()) {
+            clientIp = request.getRemoteAddr();
         }
+        System.out.println("Client IP: " + clientIp);
+        try {
+            if (print) {
+                ticketPrinterService.print(trade, clientIp, PORT); // Usa la IP pública del cliente
+            } else {
+                ticketPrinterService.openCashDrawer(clientIp, PORT);
+            }
+        } catch (Exception e) {
+            logger.severe("Error printing ticket or opening cash drawer: " + e.getMessage());
+        }
+
         return ResponseEntity.ok(trade);
     }
 

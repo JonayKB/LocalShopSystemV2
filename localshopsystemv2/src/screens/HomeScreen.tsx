@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import InfoDisplay from '../components/InfoDisplay'
+import useEmblaCarousel from 'embla-carousel-react'
 
 type Props = {}
 
@@ -13,6 +14,8 @@ type NewItem = {
 const HomeScreen = (props: Props) => {
   const [news, setnews] = useState<NewItem[]>([])
   const [carouselImages, setcarouselImages] = useState<string[]>([])
+  const [emblaRef] = useEmblaCarousel({loop:true})
+
   useEffect(() => {
     setnews([
       {
@@ -52,9 +55,9 @@ const HomeScreen = (props: Props) => {
         description: 'Refrescos, jugos y bebidas energéticas para mantenerte hidratado.'
       },
     ])
-    setcarouselImages([
-    ])
+    setcarouselImages([])
   }, [])
+
   return (
     <div
       style={{
@@ -117,23 +120,6 @@ const HomeScreen = (props: Props) => {
       <h1 style={{ marginBottom: '24px', textShadow: '2px 2px 8px #000', fontSize: 'calc(24px + 2vw)', fontWeight: '700' }}>
         Kiosco Botanico
       </h1>
-      <div style={{ width: '80%', overflow: 'hidden', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', marginBottom: '48px', position: 'relative', aspectRatio: '20/9' }}>
-        {carouselImages.map((src, index) => (
-          <img
-            key={index}
-            src={src}
-            alt={`Carousel ${index + 1}`}
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              position: 'absolute',
-              top: 0,
-              left: `${index * 100}%`,
-            }}
-          />
-        ))}
-      </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '40px', marginTop: '48px', width: '100%' }}>
         {news.map((item: any, index) => (
           <>
