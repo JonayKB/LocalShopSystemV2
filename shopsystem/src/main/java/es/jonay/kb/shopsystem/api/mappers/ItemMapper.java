@@ -10,7 +10,7 @@ import org.mapstruct.factory.Mappers;
 import es.jonay.kb.shopsystem.api.dto.ItemDto;
 import es.jonay.kb.shopsystem.model.entities.Item;
 
-@Mapper
+@Mapper(componentModel = "spring")
 public interface ItemMapper {
     ItemMapper INSTANCE = Mappers.getMapper(ItemMapper.class);
 

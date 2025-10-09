@@ -1,34 +1,32 @@
 import React, { useContext, useEffect, useState } from 'react'
 import { MainContext } from '../components/MainContextProvider';
 import { useNavigate } from 'react-router-dom';
-import TradeRepository from '../repositories/TradeRepository';
-import TradeComponent from '../components/TradeComponent';
-import Trade from '../models/Trade';
+import ExportRepository from '../repositories/ExportRepository';
+
 
 type Props = {}
 
 const TodayCash = (props: Props) => {
     const { token } = useContext(MainContext);
     const navitigation = useNavigate();
-    const [todayTrades, setTodayTrades] = useState([]);
-    const tradeRepository = new TradeRepository();
-    const handleDelete = async (tradeId: number) => {
-        if (!window.confirm('¿Estás seguro de que deseas eliminar esta venta? Esta acción no se puede deshacer.')) {
-            return;
-        }
-        await tradeRepository.deleteTrade(tradeId, token);
-        fetchTodayTrades();
-    };
-    const fetchTodayTrades = async () => {
-        const trades = await tradeRepository.getTodayTrades(token);
-        setTodayTrades(trades || []);
-    };
+    const exportRepository = new ExportRepository();
+    const [incomeByCategory, setIncomeByCategory] = useState<Record<string, number>>();
+
     useEffect(() => {
         if (!token) {
             navitigation('/admin/login');
         }
+        const fetchData = async () => {
+            if (token) {
+                const data = await exportRepository.getIncomeByCategory(token);
+                setIncomeByCategory(data);
+                console.log(data);
+            }
 
-        fetchTodayTrades();
+        }
+        fetchData();
+
+
     }, [token, navitigation]);
     return (
         <div
@@ -41,17 +39,31 @@ const TodayCash = (props: Props) => {
                 fontSize: '20px',
             }}
         >
-            <div style={{  padding: '20px', backgroundColor: '#1e1e2f', color: 'white', borderRadius: 8, height: '85vh', overflowY: 'scroll', margin: 10 }}>
-                <div style={{ flex: 1, display: 'flex', justifyContent: 'space-around', alignItems: 'center', marginBottom: 10 }}>
-                    <h2 style={{ textAlign: 'center' }}>Identificador</h2>
-                    <h2 style={{ textAlign: 'center' }}>Fecha</h2>
-                    <h2 style={{ textAlign: 'center' }}>Total</h2>
-                    <h2 style={{ textAlign: 'center' }}>Acciones</h2>
-                </div>
+            <h1 style={{ fontSize: '3rem', fontWeight: 'bold', textAlign: 'center' }}>CAJA DEL DÍA</h1>
+            <div style={{ padding: '20px', backgroundColor: '#1e1e2f', color: 'white', borderRadius: 8, height: '85vh', overflowY: 'scroll', margin: 10 }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 20 }}>
+                    <thead style={{ borderBottom: '2px solid white' }}>
+                        <tr>
+                            {incomeByCategory && Object.keys(incomeByCategory).map((key) => (
+                                <th key={key} style={{ padding: 10, textAlign: 'left' }}>{key.toUpperCase()}</th>
+                            ))}
+                            <th key="total" style={{ padding: 10, textAlign: 'left' }}>TOTAL</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+
+                            {incomeByCategory && Object.keys(incomeByCategory).map((key) => (
+                                <td key={key} style={{ padding: 10, textAlign: 'left', border: '1px solid white' }}>{incomeByCategory[key].toFixed(2)} €</td>
+                            ))}
+                            <td key="total" style={{ padding: 10, textAlign: 'left', fontWeight: 'bold', border: '1px solid white' }}>{incomeByCategory && Object.values(incomeByCategory).reduce((a, b) => a + b, 0).toFixed(2)} €</td>
+                        </tr>
+                    </tbody>
+
+                </table>
+
                 <div>
-                    {todayTrades.map((trade: Trade) => (
-                        <TradeComponent key={trade.id} trade={trade} onDelete={handleDelete}/>
-                    ))}
+
                 </div>
             </div>
         </div>

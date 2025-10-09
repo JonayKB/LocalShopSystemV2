@@ -28,6 +28,12 @@ public class TradeController {
     private ICategoryRepository categoryRepository;
     private ItemController itemController;
     private IItemRepository itemRepository;
+    private TradeMapper tradeMapper;
+
+    @Autowired
+    public void setTradeMapper(TradeMapper tradeMapper) {
+        this.tradeMapper = tradeMapper;
+    }
 
     @Autowired
     public void setIICategoryRepository(ICategoryRepository categoryRepository) {
@@ -68,13 +74,13 @@ public class TradeController {
 
     public Optional<TradeDto> findById(Long id) {
         Optional<Trade> trade = tradeRepository.findById(id);
-        return trade.map(TradeMapper.INSTANCE::toTradeDto);
+        return trade.map(tradeMapper::toTradeDto);
     }
 
     public TradeDto save(TradeDto tradeDto) {
-        Trade trade = TradeMapper.INSTANCE.toTrade(tradeDto);
+        Trade trade = tradeMapper.toTrade(tradeDto);
 
-        tradeDto = TradeMapper.INSTANCE.toTradeDto(tradeRepository.save(trade));
+        tradeDto = tradeMapper.toTradeDto(tradeRepository.save(trade));
         if (tradeDto != null) {
             // REMOVE STOCK
             for (ItemDto itemDto : tradeDto.getItems()) {
@@ -86,7 +92,6 @@ public class TradeController {
 
     }
 
-    
     public TradeDto saveList(List<ItemDto> items) {
 
         List<Item> itemList = new ArrayList<>();
@@ -114,7 +119,7 @@ public class TradeController {
         }
         List<TradeDto> tradesDtoList = new ArrayList<>();
         for (Trade trade : tradeRepository.findAllTradesInRange(startDate, endDate)) {
-            tradesDtoList.add(TradeMapper.INSTANCE.toTradeDto(trade));
+            tradesDtoList.add(tradeMapper.toTradeDto(trade));
         }
         return tradesDtoList;
     }
@@ -125,7 +130,7 @@ public class TradeController {
 
     public Page<TradeDto> getPage(int page, int size) {
         Page<Trade> trades = tradeRepository.findAll(PageRequest.of(page, size).withSort(Sort.by("date").descending()));
-        return trades.map(TradeMapper.INSTANCE::toTradeDto);
+        return trades.map(tradeMapper::toTradeDto);
     }
 
 }

@@ -2,6 +2,7 @@ package es.jonay.kb.shopsystem.model.repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -28,4 +29,6 @@ public interface ITradeRepository extends JpaRepository<Trade, Long> {
             @Param("endDate") LocalDateTime endDate);
 
     Page<Trade> findAll(Pageable pageable);
+
+
 }

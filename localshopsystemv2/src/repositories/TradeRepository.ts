@@ -62,7 +62,7 @@ class TradeRepository {
     );
     return response.data;
   }
-  async getTodayTrades(token: string | null, startDate?: Date, endDate?: Date) {
+  async getTradesByDate(token: string | null, startDate?: Date, endDate?: Date) {
     if (!token) {
       return;
     }
@@ -82,6 +82,7 @@ class TradeRepository {
     );
     return response.data;
   }
+
 }
 
 export default TradeRepository;

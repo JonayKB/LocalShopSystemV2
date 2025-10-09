@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import es.jonay.kb.shopsystem.api.dto.CategoryDto;
@@ -129,6 +130,23 @@ public class TradeReportService {
         LocalDateTime endOfMonth = endOfMonthZoned.toLocalDateTime();
 
         return tradeController.findTradesInRange(startOfMonth, endOfMonth);
+    }
+
+    // Esto está mal, pk sería obtenerlo desde la base de datos así, no
+    // transformarlo
+    @GetMapping("/total-income-by-category")
+    public Map<String, Double> getTotalIncomeByCategory(@RequestParam LocalDateTime startDate, @RequestParam LocalDateTime endDate) {
+        List<TradeDto> trades = tradeController.findTradesInRange(startDate, endDate);
+        Map<String, Double> incomeByCategory = new HashMap<>();
+
+        for (TradeDto trade : trades) {
+            for (ItemDto item : trade.getItems()) {
+                String categoryName = fetchCategoryNames().get(Integer.parseInt(item.getCategoryId().toString()));
+                incomeByCategory.merge(categoryName, item.getPrice(), Double::sum);
+            }
+        }
+
+        return incomeByCategory;
     }
 
     private Map<LocalDate, Map<String, Double>> organizeDataByDate(List<TradeDto> trades) {

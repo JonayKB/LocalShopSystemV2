@@ -15,7 +15,7 @@ import es.jonay.kb.shopsystem.api.dto.TradeDto;
 import es.jonay.kb.shopsystem.model.entities.Item;
 import es.jonay.kb.shopsystem.model.entities.Trade;
 
-@Mapper(uses = ItemMapper.class)
+@Mapper(uses = ItemMapper.class, componentModel = "spring")
 public interface TradeMapper {
     TradeMapper INSTANCE = Mappers.getMapper(TradeMapper.class);
 
