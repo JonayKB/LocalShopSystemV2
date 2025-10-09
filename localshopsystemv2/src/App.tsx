@@ -14,6 +14,7 @@ import StockScreen from './screens/StockScreen';
 import GraphScreen from './screens/GraphScreen';
 import HomeScreen from './screens/HomeScreen';
 import AdminWrapper from './components/AdminWrapper';
+import TodayCash from './screens/TodayCash';
 
 function App() {
 
@@ -39,6 +40,7 @@ function App() {
                 <Route path="export" element={<ExportScreen />} />
                 <Route path="stock" element={<StockScreen />} />
                 <Route path='graphs' element={<GraphScreen />} />
+                <Route path='today-cash' element={<TodayCash />} />
 
               </Route>
 

@@ -1,6 +1,7 @@
 import axios from "axios";
 import Item from "../models/Item";
 import { BaseInfoRepository } from "../utils/BaseInfoRepository";
+import { start } from "repl";
 
 
 
@@ -57,6 +58,26 @@ class TradeRepository {
         headers: {
           Authorization: `Bearer ${token}`,
         },
+      }
+    );
+    return response.data;
+  }
+  async getTodayTrades(token: string | null, startDate?: Date, endDate?: Date) {
+    if (!token) {
+      return;
+    }
+
+    const today = new Date();
+    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0, 0);
+    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);
+
+    const response = await axios.get(
+      BaseInfoRepository.BASE_URL + `trade/range`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        params: { startDate: startDate?.toISOString() ?? startOfDay.toISOString(), endDate: endDate?.toISOString() ?? endOfDay.toISOString() },
       }
     );
     return response.data;

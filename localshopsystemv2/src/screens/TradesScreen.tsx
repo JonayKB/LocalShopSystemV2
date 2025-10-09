@@ -13,6 +13,7 @@ const TradesScreen = (props: Props) => {
       navitigation('/admin/login');
     }
   }, [token, navitigation]);
+
   return (
     <div
       style={{
