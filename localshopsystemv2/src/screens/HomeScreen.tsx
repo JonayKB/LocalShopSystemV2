@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import InfoDisplay from '../components/InfoDisplay'
-import useEmblaCarousel from 'embla-carousel-react'
 
 type Props = {}
 
@@ -14,7 +13,6 @@ type NewItem = {
 const HomeScreen = (props: Props) => {
   const [news, setnews] = useState<NewItem[]>([])
   const [carouselImages, setcarouselImages] = useState<string[]>([])
-  const [emblaRef] = useEmblaCarousel({loop:true})
 
   useEffect(() => {
     setnews([
@@ -120,6 +118,7 @@ const HomeScreen = (props: Props) => {
       <h1 style={{ marginBottom: '24px', textShadow: '2px 2px 8px #000', fontSize: 'calc(24px + 2vw)', fontWeight: '700' }}>
         Kiosco Botanico
       </h1>
+      
       <div style={{ display: 'flex', flexDirection: 'column', gap: '40px', marginTop: '48px', width: '100%' }}>
         {news.map((item: any, index) => (
           <>
