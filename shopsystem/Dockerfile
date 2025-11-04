@@ -6,7 +6,7 @@ COPY src ./src
 RUN mvn clean package -DskipTests
 
 # Etapa de ejecución
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:17-jdk-jammy
 WORKDIR /app
 COPY --from=build /app/target/*.jar app_localShop.jar
 EXPOSE 56784
