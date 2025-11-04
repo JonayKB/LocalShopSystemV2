@@ -52,9 +52,10 @@ public class TradeReportService {
     }
 
     @GetMapping("/generate-report")
-    public void generateExcelReport(HttpServletResponse response) throws IOException {
+    public void generateExcelReport(HttpServletResponse response,
+            @RequestParam(value = "month", required = false) Integer month) throws IOException {
         // Obtener datos de la API o de la base de datos
-        List<TradeDto> trades = fetchTradesFromDatabase();
+        List<TradeDto> trades = fetchTradesFromDatabase(month);
 
         // Organizar datos por fecha (utilizando LocalDate en lugar de String para un
         // orden correcto)
@@ -109,14 +110,23 @@ public class TradeReportService {
         workbook.close();
     }
 
-    private List<TradeDto> fetchTradesFromDatabase() {
-        LocalDate today = LocalDate.now();
+    private List<TradeDto> fetchTradesFromDatabase(Integer month) {
+        LocalDate selectedDay;
+        if (month == null) {
+            selectedDay = LocalDate.now();
+        } else if (month >= 1 && month <= 12) {
+            // Usar el mes proporcionado y el año actual
+            int currentYear = LocalDate.now().getYear();
+            selectedDay = LocalDate.of(currentYear, month, 1);
+        } else {
+            selectedDay = LocalDate.now();
+        }
 
         // Obtener el primer día del mes actual
-        LocalDate firstDayOfMonth = today.withDayOfMonth(1);
+        LocalDate firstDayOfMonth = selectedDay.withDayOfMonth(1);
 
         // Obtener el último día del mes actual
-        LocalDate lastDayOfMonth = today.withDayOfMonth(today.lengthOfMonth());
+        LocalDate lastDayOfMonth = selectedDay.withDayOfMonth(selectedDay.lengthOfMonth());
 
         // Definir la hora de inicio y fin del día
         LocalTime startOfDay = LocalTime.MIN; // 00:00:00
@@ -135,7 +145,8 @@ public class TradeReportService {
     // Esto está mal, pk sería obtenerlo desde la base de datos así, no
     // transformarlo
     @GetMapping("/total-income-by-category")
-    public Map<String, Double> getTotalIncomeByCategory(@RequestParam LocalDateTime startDate, @RequestParam LocalDateTime endDate) {
+    public Map<String, Double> getTotalIncomeByCategory(@RequestParam LocalDateTime startDate,
+            @RequestParam LocalDateTime endDate) {
         List<TradeDto> trades = tradeController.findTradesInRange(startDate, endDate);
         Map<String, Double> incomeByCategory = new HashMap<>();
 

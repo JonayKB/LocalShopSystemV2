@@ -2,7 +2,8 @@ import axios from "axios";
 import { BaseInfoRepository } from "../utils/BaseInfoRepository";
 
 class ExportRepository {
-  async getExcel(token: string | null) {
+  async getExcel(token: string | null, month?: number) {
+    console.log(month)
     const file = await axios.get(
       BaseInfoRepository.BASE_URL + "generate-report",
       {
@@ -10,6 +11,7 @@ class ExportRepository {
         headers: {
           Authorization: `Bearer ${token}`,
         },
+        params: { month: month },
       }
     );
     const blob = new Blob([file.data], {
