@@ -29,7 +29,7 @@ import jakarta.servlet.http.HttpServletRequest;
 @RequestMapping("trade")
 @CrossOrigin
 public class TradeService {
-    private static final int PORT = 9100;
+    private static final int PORT = 63018;
     TradeController tradeController;
     TicketPrinterService ticketPrinterService;
     Logger logger = Logger.getLogger(TradeService.class.getName());
