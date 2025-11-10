@@ -58,12 +58,12 @@ public class TicketPrinterService {
                 outputStream = socket.getOutputStream();
                 logger.info("Connected to printer at " + ip + ":" + port);
                 if (!socket.isConnected()) {
-                    logger.severe("Could not connect to printer at " + ip + ":" + port);
+                    logger.severe("Not is connected Could not connect to printer at " + ip + ":" + port);
                 }
             } catch (UnknownHostException e) {
-                logger.severe("Could not connect to printer at " + ip + ":" + port);
+                logger.severe("Not Host Could not connect to printer at " + ip + ":" + port);
             } catch (IOException e) {
-                logger.severe("Could not connect to printer at " + ip + ":" + port);
+                logger.severe("IOException Could not connect to printer at " + ip + ":" + port);
             }
         }
     }
@@ -72,14 +72,13 @@ public class TicketPrinterService {
         if (socket != null && socket.isConnected()) {
             socket.close();
             outputStream = null;
+            socket = null;
             logger.info("Printer connection closed.");
         }
     }
 
     public void print(TradeDto tradeDto, String ip, int port) throws Exception {
         connect(ip, port);
-        if (outputStream == null)
-            throw new IllegalStateException("Printer is not connected");
 
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 
@@ -149,9 +148,6 @@ public class TicketPrinterService {
 
     public void openCashDrawer(String ip, int port) throws Exception {
         connect(ip, port);
-        if (outputStream == null)
-            throw new IllegalStateException("Printer is not connected");
-
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 
         // Inicializar impresora
