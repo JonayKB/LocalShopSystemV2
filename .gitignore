@@ -137,3 +137,5 @@ dist
 
 # VS code config
 .vscode
+
+database.sql
