@@ -9,15 +9,27 @@ type Props = {
 
 const InfoDisplay = (props: Props) => {
     return (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '32px', flexDirection: (props.orientation === 'image-right' ? 'row-reverse' : 'row'), fontSize: 'calc(8px + 1vw)' }}>
+        <div
+            style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '32px',
+                flexDirection: props.orientation === 'image-right' ? 'row-reverse' : 'row',
+                padding: '20px',
+                borderRadius: 'var(--radius)',
+                background: 'var(--surface-2)',
+                border: '1px solid var(--border)',
+                boxShadow: 'var(--shadow-sm)',
+            }}
+        >
             <img
                 src={props.imageSrc}
                 alt={props.title}
-                style={{ width: '40%', objectFit: 'cover', borderRadius: '12px', boxShadow: '0 2px 8px #0006', aspectRatio: '5 / 4' }}
+                style={{ width: '40%', objectFit: 'cover', borderRadius: 'var(--radius-sm)', aspectRatio: '5 / 4' }}
             />
             <div style={{ flex: 1 }}>
-                <h2 style={{ marginBottom: '12px', textAlign: (props.orientation === 'image-left' ? 'left' : 'right') }}>{props.title}</h2>
-                <p>{props.description}</p>
+                <h2 style={{ margin: '0 0 12px', fontFamily: 'var(--font-display)' }}>{props.title}</h2>
+                <p style={{ margin: 0, color: 'var(--muted)', lineHeight: 1.6 }}>{props.description}</p>
             </div>
         </div>
     )

@@ -19,7 +19,7 @@ const ExportScreen = (props: Props) => {
         <div
             style={{
                 flex: 1,
-                background: '#2a2d3a',
+                background: 'var(--bg)',
                 width: '100%',
                 color: 'white',
                 padding: '20px',
@@ -31,7 +31,7 @@ const ExportScreen = (props: Props) => {
                 justifyContent: 'center'
             }}
         >
-            <select name="month" id="month"  value={month} style={{ marginBottom: '20px', padding: '10px', fontSize: '18px', borderRadius: '5px', border: '1px solid #ccc', background: '#2a2d3a', color: '#fff' }} onChange={(e) => setMonth(Number(e.target.value))}>
+            <select name="month" id="month"  value={month} style={{ marginBottom: '20px', padding: '10px', fontSize: '18px', borderRadius: '5px', border: '1px solid var(--muted)', background: 'var(--bg)', color: '#fff' }} onChange={(e) => setMonth(Number(e.target.value))}>
                 <option value="1">Enero</option>
                 <option value="2">Febrero</option>
                 <option value="3">Marzo</option>
@@ -68,7 +68,7 @@ const ExportScreen = (props: Props) => {
 
                 style={{
                     padding: '10px 20px',
-                    backgroundColor: '#4CAF50',
+                    backgroundColor: 'var(--accent-strong)',
                     color: 'white',
                     border: 'none',
                     borderRadius: '5px',

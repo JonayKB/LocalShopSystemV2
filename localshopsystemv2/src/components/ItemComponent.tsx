@@ -31,7 +31,7 @@ const ItemComponent = (props: Props) => {
             style={{
             textAlign: 'center',
             color: 'white',
-            background: props.item.ignoreStock ? '#b0b0b0' : '#3a3d4a',
+            background: props.item.ignoreStock ? 'var(--ignore)' : 'var(--surface-3)',
             padding: '10px',
             borderRadius: '8px',
             boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',

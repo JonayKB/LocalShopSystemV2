@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { Trash2 } from 'lucide-react'
 import Trade from '../models/Trade'
 
 type Props = {
@@ -11,7 +12,7 @@ const TradeComponnet = (props: Props) => {
     const [open, setOpen] = useState(false);
 
     return (
-        <div style={{ textAlign: 'center', color: 'white', background: '#3a3d4a', padding: '10px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)', marginBottom: '10px' }}>
+        <div style={{ textAlign: 'center', color: 'white', background: 'var(--surface-3)', padding: '10px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)', marginBottom: '10px' }}>
             <div
                 style={{ cursor: 'pointer', display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center' }}
                 onClick={() => setOpen(o => !o)}
@@ -29,7 +30,7 @@ const TradeComponnet = (props: Props) => {
                     {trade.items.reduce((sum, item) => sum + item.price, 0).toFixed(2)}€
                 </h3>
                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                    <button style={{ color: 'red', border: 'none', cursor: 'pointer', backgroundColor: 'transparent', fontSize: 38, padding: 20 }} onClick={() => props?.onDelete?.(trade.id)}>✖</button>
+                    <button aria-label="Eliminar venta" style={{ color: 'var(--danger)', border: 'none', cursor: 'pointer', backgroundColor: 'transparent', display: 'flex', padding: 20 }} onClick={() => props?.onDelete?.(trade.id)}><Trash2 size={28} strokeWidth={1.75} /></button>
                 </div>
             </div>
             <div
@@ -59,9 +60,9 @@ const TradeComponnet = (props: Props) => {
                         return acc;
                     }, {})
                 ).map((item, index) => (
-                    <div key={index} style={{ textAlign: 'center', padding: '10px', borderRadius: '8px', backgroundColor: '#2a2d3a' }}>
+                    <div key={index} style={{ textAlign: 'center', padding: '10px', borderRadius: '8px', backgroundColor: 'var(--bg)' }}>
                         <h4 style={{ textTransform: 'capitalize' }}>
-                            {item.name} {item.amount > 1 && <span style={{ color: '#aaa' }}>x{item.amount}</span>}
+                            {item.name} {item.amount > 1 && <span style={{ color: 'var(--muted)' }}>x{item.amount}</span>}
                         </h4>
                         <p>{item.price.toFixed(2)} €</p>
                     </div>

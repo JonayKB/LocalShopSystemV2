@@ -64,7 +64,7 @@ const Selector = (props: Props) => {
                     height: '94.5vh',
                     justifyItems: 'center',
                     alignItems: 'start',
-                    background: '#2a2d3a',
+                    background: 'var(--bg)',
                     color: 'white',
                     fontFamily: `'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif`,
                     overflowY: 'auto',
@@ -78,8 +78,8 @@ const Selector = (props: Props) => {
                             style={{
                                 textAlign: 'center',
                                 width: 'fit-content',
-                                background: '#23263a',
-                                border: '1px solid #444',
+                                background: 'var(--surface-2)',
+                                border: '1px solid var(--border)',
                                 padding: '12px 28px',
                                 cursor: 'pointer',
                                 color: '#fff',
@@ -95,11 +95,11 @@ const Selector = (props: Props) => {
                             }}
                             onClick={() => setSelectedCategory(null)}
                             onMouseEnter={(e) => {
-                                e.currentTarget.style.background = '#35385a';
+                                e.currentTarget.style.background = 'var(--surface-hover)';
                                 e.currentTarget.style.transform = 'scale(1.06)';
                             }}
                             onMouseLeave={(e) => {
-                                e.currentTarget.style.background = '#23263a';
+                                e.currentTarget.style.background = 'var(--surface-2)';
                                 e.currentTarget.style.transform = 'scale(1)';
                             }}
                             tabIndex={0}
@@ -124,7 +124,7 @@ const Selector = (props: Props) => {
                             border: 'none',
                             padding: 20,
                             cursor: 'pointer',
-                            backgroundColor: '#2a2d3a',
+                            backgroundColor: 'var(--bg)',
                             color: 'white',
                             borderRadius: '8px',
                             boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',

@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react'
+import { X } from 'lucide-react';
 import { MainContext } from './MainContextProvider';
 import Category from '../models/Category';
 import Item from '../models/Item';
@@ -124,7 +125,7 @@ const AddItemComponent = (props: Props) => {
 
             <div
                 style={{
-                    background: '#23263a',
+                    background: 'var(--surface-2)',
                     color: 'white',
                     padding: 32,
                     borderRadius: 12,
@@ -144,7 +145,7 @@ const AddItemComponent = (props: Props) => {
                         height: 32,
                         border: 'none',
                         borderRadius: '50%',
-                        background: '#444',
+                        background: 'var(--border)',
                         color: '#fff',
                         fontSize: 20,
                         cursor: 'pointer',
@@ -154,10 +155,10 @@ const AddItemComponent = (props: Props) => {
                         transition: 'background 0.2s',
                     }}
                     aria-label="Cerrar"
-                    onMouseOver={e => (e.currentTarget.style.background = '#666')}
-                    onMouseOut={e => (e.currentTarget.style.background = '#444')}
+                    onMouseOver={e => (e.currentTarget.style.background = 'var(--border-strong)')}
+                    onMouseOut={e => (e.currentTarget.style.background = 'var(--border)')}
                 >
-                    ✖
+                    <X size={16} strokeWidth={2.25} />
                 </button>
                 <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column' }}>
                     <div style={{ marginBottom: 20 }}>
@@ -175,8 +176,8 @@ const AddItemComponent = (props: Props) => {
                                 width: '94%',
                                 padding: '8px 12px',
                                 borderRadius: 6,
-                                border: '1px solid #444',
-                                background: !!item?.id || item?.id === 0 ? '#444' : '#181a24',
+                                border: '1px solid var(--border)',
+                                background: !!item?.id || item?.id === 0 ? 'var(--border)' : 'var(--input)',
                                 color: '#fff',
                                 fontSize: 16,
                             }}
@@ -198,8 +199,8 @@ const AddItemComponent = (props: Props) => {
                                 width: '94%',
                                 padding: '8px 12px',
                                 borderRadius: 6,
-                                border: '1px solid #444',
-                                background: '#181a24',
+                                border: '1px solid var(--border)',
+                                background: 'var(--input)',
                                 color: '#fff',
                                 fontSize: 16,
                             }}
@@ -217,8 +218,8 @@ const AddItemComponent = (props: Props) => {
                                 width: '100%',
                                 padding: '8px 12px',
                                 borderRadius: 6,
-                                border: '1px solid #444',
-                                background: '#181a24',
+                                border: '1px solid var(--border)',
+                                background: 'var(--input)',
                                 color: '#fff',
                                 fontSize: 16,
                                 textTransform: 'capitalize',
@@ -253,8 +254,8 @@ const AddItemComponent = (props: Props) => {
                                         width: '94%',
                                         padding: '8px 12px',
                                         borderRadius: 6,
-                                        border: '1px solid #444',
-                                        background: '#181a24',
+                                        border: '1px solid var(--border)',
+                                        background: 'var(--input)',
                                         color: '#fff',
                                         fontSize: 16,
                                     }}
@@ -289,8 +290,8 @@ const AddItemComponent = (props: Props) => {
                                         width: '94%',
                                         padding: '8px 12px',
                                         borderRadius: 6,
-                                        border: '1px solid #444',
-                                        background: '#181a24',
+                                        border: '1px solid var(--border)',
+                                        background: 'var(--input)',
                                         color: '#fff',
                                         fontSize: 16,
                                     }}
@@ -326,8 +327,8 @@ const AddItemComponent = (props: Props) => {
                                         width: '94%',
                                         padding: '8px 12px',
                                         borderRadius: 6,
-                                        border: '1px solid #444',
-                                        background: '#181a24',
+                                        border: '1px solid var(--border)',
+                                        background: 'var(--input)',
                                         color: '#fff',
                                         fontSize: 16,
                                     }}
@@ -354,8 +355,8 @@ const AddItemComponent = (props: Props) => {
                                         width: '94%',
                                         padding: '8px 12px',
                                         borderRadius: 6,
-                                        border: '1px solid #444',
-                                        background: '#181a24',
+                                        border: '1px solid var(--border)',
+                                        background: 'var(--input)',
                                         color: '#fff',
                                         fontSize: 16,
                                     }}
@@ -381,8 +382,8 @@ const AddItemComponent = (props: Props) => {
                                         width: '20px',
                                         height: '20px',
                                         borderRadius: 6,
-                                        border: '1px solid #444',
-                                        background: '#181a24',
+                                        border: '1px solid var(--border)',
+                                        background: 'var(--input)',
                                         color: '#fff',
                                         fontSize: 16,
                                     }}
@@ -420,8 +421,8 @@ const AddItemComponent = (props: Props) => {
                                 width: '94%',
                                 padding: '8px 12px',
                                 borderRadius: 6,
-                                border: '1px solid #444',
-                                background: '#181a24',
+                                border: '1px solid var(--border)',
+                                background: 'var(--input)',
                                 color: '#fff',
                                 fontSize: 16,
                             }}
@@ -450,7 +451,7 @@ const AddItemComponent = (props: Props) => {
                                                 overflow: 'hidden',
                                             },
                                             cropAreaStyle: {
-                                                border: '2px dashed #4f8cff',
+                                                border: '2px dashed var(--primary)',
                                                 borderRadius: 6,
                                             },
                                         }}
@@ -466,7 +467,7 @@ const AddItemComponent = (props: Props) => {
                                         padding: '8px 16px',
                                         borderRadius: 6,
                                         border: 'none',
-                                        background: '#4f8cff',
+                                        background: 'var(--primary)',
                                         color: '#fff',
                                         fontWeight: 600,
                                         fontSize: 16,
@@ -500,7 +501,7 @@ const AddItemComponent = (props: Props) => {
                             padding: '12px 0',
                             borderRadius: 6,
                             border: 'none',
-                            background: '#4f8cff',
+                            background: 'var(--primary)',
                             color: '#fff',
                             fontWeight: 600,
                             fontSize: 18,

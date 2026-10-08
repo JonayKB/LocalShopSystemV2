@@ -18,7 +18,7 @@ const TradesScreen = (props: Props) => {
     <div
       style={{
         flex: 1,
-        background: '#2a2d3a',
+        background: 'var(--bg)',
         width: '100%',
         color: 'white',
         padding: '20px',

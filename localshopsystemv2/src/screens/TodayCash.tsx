@@ -32,7 +32,7 @@ const TodayCash = (props: Props) => {
         <div
             style={{
                 flex: 1,
-                background: '#2a2d3a',
+                background: 'var(--bg)',
                 width: '100%',
                 color: 'white',
                 padding: '20px',
@@ -40,7 +40,7 @@ const TodayCash = (props: Props) => {
             }}
         >
             <h1 style={{ fontSize: '3rem', fontWeight: 'bold', textAlign: 'center' }}>CAJA DEL DÍA</h1>
-            <div style={{ padding: '20px', backgroundColor: '#1e1e2f', color: 'white', borderRadius: 8, height: '85vh', overflowY: 'scroll', margin: 10 }}>
+            <div style={{ padding: '20px', backgroundColor: 'var(--surface)', color: 'white', borderRadius: 8, height: '85vh', overflowY: 'scroll', margin: 10 }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 20 }}>
                     <thead style={{ borderBottom: '2px solid white' }}>
                         <tr>

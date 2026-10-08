@@ -16,7 +16,7 @@ const GraphScreen = (props: Props) => {
     const [graphData, setGraphData] = useState<GraphData | null>(null);
     const buttonStyle = {
 
-        background: '#00bcd4',
+        background: 'var(--primary-dark)',
         color: 'white',
         border: 'none',
         borderRadius: '6px',
@@ -50,7 +50,7 @@ const GraphScreen = (props: Props) => {
         <div
             style={{
                 flex: 1,
-                background: '#2a2d3a',
+                background: 'var(--bg)',
                 width: '100vw',
                 color: 'white',
                 padding: '32px',
@@ -66,7 +66,7 @@ const GraphScreen = (props: Props) => {
             <div style={{ display: 'flex', gap: '16px', marginBottom: '32px' }}>
                 <button
                     style={{
-                        background: selectedCategory === 'Ventas' ? '#4f5b62' : '#3949ab',
+                        background: selectedCategory === 'Ventas' ? 'var(--surface-3)' : 'var(--primary-dark)',
                         color: 'white',
                         border: 'none',
                         borderRadius: '6px',
@@ -81,7 +81,7 @@ const GraphScreen = (props: Props) => {
                 </button>
                 <button
                     style={{
-                        background: selectedCategory === 'Stock' ? '#4f5b62' : '#3949ab',
+                        background: selectedCategory === 'Stock' ? 'var(--surface-3)' : 'var(--primary-dark)',
                         color: 'white',
                         border: 'none',
                         borderRadius: '6px',
@@ -96,7 +96,7 @@ const GraphScreen = (props: Props) => {
                 </button>
                 <button
                     style={{
-                        background: selectedCategory === 'Economia' ? '#4f5b62' : '#3949ab',
+                        background: selectedCategory === 'Economia' ? 'var(--surface-3)' : 'var(--primary-dark)',
                         color: 'white',
                         border: 'none',
                         borderRadius: '6px',
@@ -182,10 +182,10 @@ const GraphScreen = (props: Props) => {
                     <BarChart
                         xAxis={[{ data: graphData.labels, tickLabelStyle: { fill: '#ffffffff' } }]}
                         yAxis={[{ tickLabelStyle: { fill: '#ffffffff' } }]}
-                        series={[{ data: graphData.data, color: '#073780ff' }]}
+                        series={[{ data: graphData.data, color: '#5fb38c' }]}
                         height={window.innerHeight - 180}
                         sx={{
-                            background: '#23263a',
+                            background: 'var(--surface-2)',
                             borderRadius: '12px',
                             boxShadow: '0 2px 12px rgba(0,0,0,0.2)',
                             color: '#ffffffff',

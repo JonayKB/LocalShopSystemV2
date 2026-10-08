@@ -26,7 +26,7 @@ const ItemsScreen = (props: Props) => {
     <div
       style={{
         flex: 1,
-        background: '#2a2d3a',
+        background: 'var(--bg)',
         width: '100%',
         color: 'white',
         padding: '20px',
@@ -57,7 +57,7 @@ const ItemsScreen = (props: Props) => {
             ignoreStock: false,
           })}
           style={{
-            backgroundColor: '#4CAF50',
+            backgroundColor: 'var(--accent-strong)',
             color: 'white',
             padding: '12px 24px',
             border: 'none',
@@ -68,8 +68,8 @@ const ItemsScreen = (props: Props) => {
             boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
             transition: 'background 0.2s',
           }}
-          onMouseOver={e => (e.currentTarget.style.backgroundColor = '#388e3c')}
-          onMouseOut={e => (e.currentTarget.style.backgroundColor = '#4CAF50')}
+          onMouseOver={e => (e.currentTarget.style.backgroundColor = 'var(--accent-dark)')}
+          onMouseOut={e => (e.currentTarget.style.backgroundColor = 'var(--accent-strong)')}
         >
           Agregar Producto
         </button>

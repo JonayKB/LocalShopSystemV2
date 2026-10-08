@@ -92,7 +92,7 @@ const ItemPagination = forwardRef((props: Props, ref) => {
 
     return (
         <div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(15%, 1fr))', gap: '20px', padding: '20px', backgroundColor: '#1e1e2f', color: 'white', borderRadius: 8, height: '65vh', overflowY: 'scroll' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(15%, 1fr))', gap: '20px', padding: '20px', backgroundColor: 'var(--surface)', color: 'white', borderRadius: 8, height: '65vh', overflowY: 'scroll' }}>
                 {(() => {
                     if (loading) {
                         return <div style={{ color: 'white', fontSize: 18 }}>Cargando...</div>;
@@ -110,7 +110,7 @@ const ItemPagination = forwardRef((props: Props, ref) => {
                     onClick={() => setPage(p => Math.max(0, p - 1))}
                     disabled={!pageData || pageData.first}
                     style={{
-                        background: '#1e1e2f',
+                        background: 'var(--surface)',
                         color: 'white',
                         border: 'none',
                         borderRadius: 4,
@@ -129,7 +129,7 @@ const ItemPagination = forwardRef((props: Props, ref) => {
                     onClick={() => setPage(p => pageData ? Math.min(pageData.totalPages - 1, p + 1) : p)}
                     disabled={!pageData || pageData.last || pageData.totalPages === 0}
                     style={{
-                        background: '#1e1e2f',
+                        background: 'var(--surface)',
                         color: 'white',
                         border: 'none',
                         borderRadius: 4,

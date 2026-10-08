@@ -43,7 +43,7 @@ const TradePagination = (props: Props) => {
 
     return (
         <div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100%, 1fr))', gap: '20px', padding: '20px', backgroundColor: '#1e1e2f', color: 'white', borderRadius: 8, height: '85vh', overflowY: 'scroll', margin: 10 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100%, 1fr))', gap: '20px', padding: '20px', backgroundColor: 'var(--surface)', color: 'white', borderRadius: 8, height: '85vh', overflowY: 'scroll', margin: 10 }}>
                 <div style={{ flex: 1, display: 'flex', justifyContent: 'space-around', alignItems: 'center', marginBottom: 10 }}>
                     <h2 style={{ textAlign: 'center' }}>Identificador</h2>
                     <h2 style={{ textAlign: 'center' }}>Fecha</h2>
@@ -67,7 +67,7 @@ const TradePagination = (props: Props) => {
                     onClick={() => setPage(p => Math.max(0, p - 1))}
                     disabled={!pageData || pageData.first}
                     style={{
-                        background: '#1e1e2f',
+                        background: 'var(--surface)',
                         color: 'white',
                         border: 'none',
                         borderRadius: 4,
@@ -86,7 +86,7 @@ const TradePagination = (props: Props) => {
                     onClick={() => setPage(p => pageData ? Math.min(pageData.totalPages - 1, p + 1) : p)}
                     disabled={!pageData || pageData.last || pageData.totalPages === 0}
                     style={{
-                        background: '#1e1e2f',
+                        background: 'var(--surface)',
                         color: 'white',
                         border: 'none',
                         borderRadius: 4,

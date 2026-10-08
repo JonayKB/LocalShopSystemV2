@@ -1,13 +1,166 @@
+/* ============================================================
+   Tokens de diseño
+   - :root        -> panel de administración (grafito neutro)
+   - .theme-light -> web pública y login (papel claro)
+   ============================================================ */
+:root {
+  --bg: #121416;
+  --surface: #181b1e;
+  --surface-2: #1e2226;
+  --surface-3: #282d32;
+  --surface-hover: #323840;
+  --input: #0f1113;
+  --border: #2b3035;
+  --border-strong: #3c434a;
+  --text: #e8ebed;
+  --muted: #9aa3aa;
+  --ignore: #59636b;
+
+  --accent: #6dbb97;
+  --accent-strong: #2a7d5a;
+  --accent-dark: #206648;
+  --accent-soft: rgba(109, 187, 151, 0.12);
+
+  --primary: #5b7fb5;
+  --primary-dark: #46679a;
+
+  --danger: #e5737d;
+  --danger-bg: #3a2024;
+  --danger-bg-hover: #52292f;
+  --ok-bg: #1b3a2d;
+  --ok-bg-hover: #25503d;
+
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
+  --shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+
+  --font: 'Inter', 'Segoe UI', system-ui, -apple-system, 'Roboto', sans-serif;
+  --font-display: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.theme-light {
+  --bg: #f6f5f1;
+  --surface: #ffffff;
+  --surface-2: #fbfaf7;
+  --surface-3: #efede6;
+  --surface-hover: #e7e4db;
+  --input: #ffffff;
+  --border: #e2dfd6;
+  --border-strong: #cbc7bb;
+  --text: #17211c;
+  --muted: #5b665f;
+
+  --accent: #1f5e46;
+  --accent-strong: #1f5e46;
+  --accent-dark: #174735;
+  --accent-soft: rgba(31, 94, 70, 0.07);
+
+  --danger: #b3261e;
+  --danger-bg: #fdeceb;
+
+  --shadow-sm: 0 1px 2px rgba(23, 33, 28, 0.06);
+  --shadow: 0 10px 30px rgba(23, 33, 28, 0.08);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  color-scheme: dark;
+}
+
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: var(--font);
+  color: var(--text);
+  background: var(--bg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Fondo claro también en el "rebote" del scroll cuando la página es clara */
+body:has(.theme-light) {
+  background: #f6f5f1;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+button {
+  transition: background-color 0.2s var(--ease), border-color 0.2s var(--ease), opacity 0.2s;
+}
+
+input,
+select,
+textarea {
+  transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: none;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: rgba(109, 187, 151, 0.3);
+}
+
+/* Scrollbars discretas */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+table {
+  border-collapse: collapse;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family: ui-monospace, 'JetBrains Mono', Menlo, Monaco, Consolas, monospace;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

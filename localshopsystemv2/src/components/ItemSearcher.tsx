@@ -1,4 +1,5 @@
 import React, { useContext, useRef, useState } from 'react'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 import ItemPagination from './ItemPagination'
 import Item from '../models/Item';
 import { MainContext } from './MainContextProvider';
@@ -43,7 +44,7 @@ const ItemSearcher = (props: Props) => {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: '#2a2d3a',
+            backgroundColor: 'var(--bg)',
             color: 'white',
             padding: '20px',
             fontSize: '20px',
@@ -55,7 +56,7 @@ const ItemSearcher = (props: Props) => {
                 placeholder="Buscar productos..."
                 value={text}
                 onChange={(e) => setText(e.target.value)}
-                style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc', marginBottom: '20px', backgroundColor: '#1e1e2f', color: 'white', width: '80%' }}
+                style={{ padding: '10px', borderRadius: '4px', border: '1px solid var(--muted)', marginBottom: '20px', backgroundColor: 'var(--surface)', color: 'white', width: '80%' }}
             />
 
             {text && (
@@ -64,7 +65,7 @@ const ItemSearcher = (props: Props) => {
                         <button
                             onClick={() => onClickSortBy('name')}
                             style={{
-                                backgroundColor: selectedSortBy === 'name' ? '#3a3d4a' : '#1e1e2f',
+                                backgroundColor: selectedSortBy === 'name' ? 'var(--surface-3)' : 'var(--surface)',
                                 color: 'white',
                                 border: 'none',
                                 padding: '20px',
@@ -75,15 +76,15 @@ const ItemSearcher = (props: Props) => {
                         >
                             Nombre
                             {selectedSortBy === 'name' && (
-                                <span style={{ marginLeft: 8 }}>
-                                    {ascending ? '▲' : '▼'}
+                                <span style={{ marginLeft: 8, display: 'inline-flex', verticalAlign: 'middle' }}>
+                                    {ascending ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                                 </span>
                             )}
                         </button>
                         <button
                             onClick={() => onClickSortBy('category')}
                             style={{
-                                backgroundColor: selectedSortBy === 'category' ? '#3a3d4a' : '#1e1e2f',
+                                backgroundColor: selectedSortBy === 'category' ? 'var(--surface-3)' : 'var(--surface)',
                                 color: 'white',
                                 border: 'none',
                                 padding: '20px',
@@ -94,8 +95,8 @@ const ItemSearcher = (props: Props) => {
                         >
                             Categoria
                             {selectedSortBy === 'category' && (
-                                <span style={{ marginLeft: 8 }}>
-                                    {ascending ? '▲' : '▼'}
+                                <span style={{ marginLeft: 8, display: 'inline-flex', verticalAlign: 'middle' }}>
+                                    {ascending ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                                 </span>
                             )}
                         </button>

@@ -83,7 +83,7 @@ const StockScreen = (props: Props) => {
         <div
             style={{
                 flex: 1,
-                background: '#2a2d3a',
+                background: 'var(--bg)',
                 width: '100%',
                 color: 'white',
                 padding: '20px',
@@ -97,15 +97,15 @@ const StockScreen = (props: Props) => {
                 <table style={{ width: '80%', borderCollapse: 'collapse', marginLeft: 'auto', marginRight: 'auto' }}>
                     <thead>
                         <tr>
-                            <th style={{ borderBottom: '1px solid #444', padding: '10px', textAlign: 'left' }}>Nombre</th>
-                            <th style={{ borderBottom: '1px solid #444', padding: '10px', textAlign: 'left' }}>Cantidad</th>
+                            <th style={{ borderBottom: '1px solid var(--border)', padding: '10px', textAlign: 'left' }}>Nombre</th>
+                            <th style={{ borderBottom: '1px solid var(--border)', padding: '10px', textAlign: 'left' }}>Cantidad</th>
                         </tr>
                     </thead>
                     <tbody>
                         {Array.from(itemsToProcess.entries()).map(([item, cantidad]) => (
                             <tr key={item.id}>
-                                <td style={{ borderBottom: '1px solid #444', padding: '10px' }}>{item.name}</td>
-                                <td style={{ borderBottom: '1px solid #444', padding: '10px' }}>{cantidad}</td>
+                                <td style={{ borderBottom: '1px solid var(--border)', padding: '10px' }}>{item.name}</td>
+                                <td style={{ borderBottom: '1px solid var(--border)', padding: '10px' }}>{cantidad}</td>
                             </tr>
                         ))}
                     </tbody>
@@ -118,8 +118,8 @@ const StockScreen = (props: Props) => {
                         style={{
                             textAlign: 'center',
                             width: 'fit-content',
-                            background: '#3a2323ff',
-                            border: '1px solid #444',
+                            background: 'var(--danger-bg)',
+                            border: '1px solid var(--border)',
                             padding: '12px 28px',
                             cursor: 'pointer',
                             color: '#fff',
@@ -131,11 +131,11 @@ const StockScreen = (props: Props) => {
                         }}
                         onClick={removeStock}
                         onMouseEnter={(e) => {
-                            e.currentTarget.style.background = '#5a3535ff';
+                            e.currentTarget.style.background = 'var(--danger-bg-hover)';
                             e.currentTarget.style.transform = 'scale(1.06)';
                         }}
                         onMouseLeave={(e) => {
-                            e.currentTarget.style.background = '#3a2323ff';
+                            e.currentTarget.style.background = 'var(--danger-bg)';
                             e.currentTarget.style.transform = 'scale(1)';
                         }}
                         tabIndex={0}
@@ -148,8 +148,8 @@ const StockScreen = (props: Props) => {
                         style={{
                             textAlign: 'center',
                             width: 'fit-content',
-                            background: '#233a30ff',
-                            border: '1px solid #444',
+                            background: 'var(--ok-bg)',
+                            border: '1px solid var(--border)',
                             padding: '12px 28px',
                             cursor: 'pointer',
                             color: '#fff',
@@ -162,11 +162,11 @@ const StockScreen = (props: Props) => {
                         }}
                         onClick={addStock}
                         onMouseEnter={(e) => {
-                            e.currentTarget.style.background = '#355a40ff';
+                            e.currentTarget.style.background = 'var(--ok-bg-hover)';
                             e.currentTarget.style.transform = 'scale(1.06)';
                         }}
                         onMouseLeave={(e) => {
-                            e.currentTarget.style.background = '#233a30ff';
+                            e.currentTarget.style.background = 'var(--ok-bg)';
                             e.currentTarget.style.transform = 'scale(1)';
                         }}
                         tabIndex={0}

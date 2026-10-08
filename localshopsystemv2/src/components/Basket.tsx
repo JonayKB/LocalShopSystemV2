@@ -1,4 +1,5 @@
 import React, { useContext, useState } from 'react';
+import { ShoppingCart, X } from 'lucide-react';
 import { MainContext } from './MainContextProvider';
 import TradeRepository from '../repositories/TradeRepository';
 import { Checkbox } from '@mui/material';
@@ -48,7 +49,7 @@ const Basket: React.FC = () => {
                     cursor: 'pointer',
                 }}
             >
-                🛒
+                <ShoppingCart size={26} strokeWidth={1.75} />
             </button>
 
             {/* Sidebar */}
@@ -59,7 +60,7 @@ const Basket: React.FC = () => {
                     right: openBasket ? 0 : -600,
                     width: 500,
                     height: '93.7vh',
-                    backgroundColor: '#1e1e2f',
+                    backgroundColor: 'var(--surface)',
                     color: 'white',
                     transition: 'right 0.3s ease-in-out',
                     padding: '60px 20px 20px',
@@ -67,7 +68,7 @@ const Basket: React.FC = () => {
                     boxShadow: '2px 0 10px rgba(0, 0, 0, 0.3)',
                     borderRadius: '0 0 0 10px',
                     overflowY: 'auto',
-                    borderLeft: '1px solid #555',
+                    borderLeft: '1px solid var(--border)',
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'flex-end'
@@ -86,9 +87,9 @@ const Basket: React.FC = () => {
                         cursor: 'pointer',
                     }}
                 >
-                    ✖
+                    <X size={26} strokeWidth={1.75} />
                 </button>
-                <div style={{ marginBottom: '20px', fontSize: '20px', fontWeight: 'bold', overflowY: 'scroll', height: '75vh', backgroundColor: '#2a2d3a', padding: '20px', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ marginBottom: '20px', fontSize: '20px', fontWeight: 'bold', overflowY: 'scroll', height: '75vh', backgroundColor: 'var(--bg)', padding: '20px', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     {Array.from(basketItems.entries()).map(([item, quantity]) => (
                         <div key={item.id} style={{ marginBottom: '10px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -101,7 +102,7 @@ const Basket: React.FC = () => {
                                     style={{
                                         background: 'none',
                                         border: 'none',
-                                        color: '#ff6b6b',
+                                        color: 'var(--danger)',
                                         cursor: 'pointer',
                                         fontSize: '14px',
                                     }}
@@ -119,9 +120,9 @@ const Basket: React.FC = () => {
                                     style={{
                                         width: '60px',
                                         fontSize: '12px',
-                                        color: '#aaa',
+                                        color: 'var(--muted)',
                                         background: 'transparent',
-                                        border: '1px solid #555',
+                                        border: '1px solid var(--border)',
                                         borderRadius: '4px',
                                         padding: '2px 6px',
                                         margin: '0 8px',
@@ -138,7 +139,7 @@ const Basket: React.FC = () => {
                                     style={{
                                         background: 'none',
                                         border: 'none',
-                                        color: '#6bcf6b',
+                                        color: 'var(--accent)',
                                         cursor: 'pointer',
                                         fontSize: '14px',
                                     }}
@@ -180,7 +181,7 @@ const Basket: React.FC = () => {
                     style={{
                         width: '100%',
                         padding: '10px',
-                        backgroundColor: '#6bcf6b',
+                        backgroundColor: 'var(--accent-strong)',
                         color: 'white',
                         border: 'none',
                         borderRadius: '8px',

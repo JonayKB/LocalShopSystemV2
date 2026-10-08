@@ -2,6 +2,8 @@ import React, { useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MainContext } from '../components/MainContextProvider';
 import AuthRepository from '../repositories/AuthRepository';
+import { Lock } from 'lucide-react';
+import '../styles/login.css';
 
 type Props = {}
 
@@ -48,124 +50,24 @@ const LoginScreen = (props: Props) => {
     }
 
     return (
-        <div
-            style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: '#2a2d3a',
-                width: '100vw',
-                height: '100vh',
-                fontFamily: `'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif`,
-            }}
-        >
-            <div
-                style={{
-                    background: '#1e1f2a',
-                    padding: '40px',
-                    borderRadius: '12px',
-                    boxShadow: '0 0 20px rgba(0, 0, 0, 0.5)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    width: '320px',
-                    color: 'white',
-                }}
-            >
-                <h1 style={{ marginBottom: '25px', fontSize: '26px', fontWeight: '600' }}>Iniciar sesión</h1>
-                <form
-                    onSubmit={handleSubmit}
-                    style={{ display: 'flex', flexDirection: 'column', width: '100%' }}
-                >
-                    <div style={{ marginBottom: '18px' }}>
-                        <label
-                            htmlFor="username"
-                            style={{
-                                display: 'block',
-                                marginBottom: '6px',
-                                fontSize: '14px',
-                                color: '#bbb',
-                                fontWeight: '500',
-                            }}
-                        >
-                            Correo electrónico
-                        </label>
-                        <input
-                            type="text"
-                            id="username"
-                            name="username"
-                            style={{
-                                width: '93%',
-                                padding: '10px',
-                                borderRadius: '6px',
-                                border: '1px solid #555',
-                                backgroundColor: '#2a2d3a',
-                                color: 'white',
-                                fontSize: '15px',
-                                outline: 'none',
-                            }}
-                        />
+        <div className="login theme-light">
+            <div className="login-card">
+                <div className="login-mark" aria-hidden="true">
+                    <Lock size={20} strokeWidth={1.9} />
+                </div>
+                <h1>Iniciar sesión</h1>
+                <p className="login-sub">Panel de administración · Kiosco Botanico</p>
+                <form onSubmit={handleSubmit}>
+                    <div className="login-field">
+                        <label htmlFor="username">Correo electrónico</label>
+                        <input type="text" id="username" name="username" autoComplete="username" />
                     </div>
-                    <div style={{ marginBottom: '25px' }}>
-                        <label
-                            htmlFor="password"
-                            style={{
-                                display: 'block',
-                                marginBottom: '6px',
-                                fontSize: '14px',
-                                color: '#bbb',
-                                fontWeight: '500',
-                            }}
-                        >
-                            Contraseña
-                        </label>
-                        <input
-                            type="password"
-                            id="password"
-                            name="password"
-                            style={{
-                                width: '93%',
-                                padding: '10px',
-                                borderRadius: '6px',
-                                border: '1px solid #555',
-                                backgroundColor: '#2a2d3a',
-                                color: 'white',
-                                fontSize: '15px',
-                                outline: 'none',
-                            }}
-                        />
+                    <div className="login-field">
+                        <label htmlFor="password">Contraseña</label>
+                        <input type="password" id="password" name="password" autoComplete="current-password" />
                     </div>
-                    {errorMessage && (
-                        <div
-                            style={{
-                                backgroundColor: '#f44336',
-                                color: 'white',
-                                padding: '10px',
-                                borderRadius: '6px',
-                                marginBottom: '20px',
-                                textAlign: 'center',
-                            }}
-                        >
-                            {errorMessage}
-                        </div>
-                    )}
-                    <button
-                        type="submit"
-                        style={{
-                            padding: '10px',
-                            backgroundColor: '#4c5cdb',
-                            border: 'none',
-                            borderRadius: '6px',
-                            color: 'white',
-                            fontSize: '16px',
-                            fontWeight: '600',
-                            cursor: 'pointer',
-                            transition: 'background-color 0.2s ease-in-out',
-                        }}
-                        onMouseOver={e => (e.currentTarget.style.backgroundColor = '#3b4bc1')}
-                        onMouseOut={e => (e.currentTarget.style.backgroundColor = '#4c5cdb')}
-                    >
-
+                    {errorMessage && <div className="login-error">{errorMessage}</div>}
+                    <button type="submit" className="login-submit">
                         Entrar
                     </button>
                 </form>
