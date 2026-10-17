@@ -3,15 +3,15 @@
   flex-direction: column;
   min-height: 100vh;
   background: var(--bg);
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 .main-content {
-  overflow: auto;
+  overflow: visible;
   min-height: 100vh;
   flex: 1;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   width: 100%;
 }

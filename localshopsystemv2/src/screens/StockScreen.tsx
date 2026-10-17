@@ -1,4 +1,5 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react'
+import { Boxes, Minus, Plus, Trash2 } from 'lucide-react';
 import { MainContext } from '../components/MainContextProvider';
 import { useNavigate } from 'react-router-dom';
 import ItemSearcher from '../components/ItemSearcher';
@@ -6,6 +7,7 @@ import Item from '../models/Item';
 import BarcodeListener from '../components/BarcodeListener';
 import ItemRepository from '../repositories/ItemRepository';
 import StockRepository from '../repositories/StockRepository';
+import PageHeader from '../components/PageHeader';
 
 type Props = {}
 
@@ -22,6 +24,18 @@ const StockScreen = (props: Props) => {
         }
     }, [token, navitigation]);
 
+    function setQuantity(item: Item, quantity: number) {
+        setItemsToProcess(prev => {
+            const newMap = new Map(prev);
+            if (quantity > 0) {
+                newMap.set(item, quantity);
+            } else {
+                newMap.delete(item);
+            }
+            return newMap;
+        });
+    }
+
     function onItemClick(item: Item) {
         setItemsToProcess(prev => {
             const newMap = new Map(prev);
@@ -36,8 +50,9 @@ const StockScreen = (props: Props) => {
     }
 
     function addStock() {
+        const toSend = itemsToProcess;
         setItemsToProcess(new Map());
-        const data = stockRepository.addStock(itemsToProcess, token);
+        const data = stockRepository.addStock(toSend, token);
         data.then((res) => {
             if (res) {
                 alert('Stock añadido correctamente');
@@ -45,13 +60,12 @@ const StockScreen = (props: Props) => {
                 alert('Error al añadir el stock');
             }
         });
-
-        
     };
-    async function removeStock() {
 
+    async function removeStock() {
+        const toSend = itemsToProcess;
         setItemsToProcess(new Map());
-        const blob = await stockRepository.removeStock(itemsToProcess, token);
+        const blob = await stockRepository.removeStock(toSend, token);
         if (blob) {
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
@@ -64,7 +78,6 @@ const StockScreen = (props: Props) => {
         } else {
             alert('Error al eliminar el stock');
         }
-
     }
 
     const handleBarcodeScan = async (code: string) => {
@@ -79,108 +92,76 @@ const StockScreen = (props: Props) => {
         }
     };
 
+    const entries = Array.from(itemsToProcess.entries());
+
     return (
-        <div
-            style={{
-                flex: 1,
-                background: 'var(--bg)',
-                width: '100%',
-                color: 'white',
-                padding: '20px',
-                fontSize: '20px',
-            }}
-        >
+        <>
+            <PageHeader
+                eyebrow="Gestión"
+                title="Stock"
+                sub="Añade los productos que entran o que devuelves al proveedor y confirma el movimiento."
+            />
             <BarcodeListener handleBarcodeScan={handleBarcodeScan} />
             <ItemSearcher onItemClickProp={onItemClick} />
 
-            <div style={{ maxHeight: '50%', overflowY: 'auto', marginBottom: '20px' }}>
-                <table style={{ width: '80%', borderCollapse: 'collapse', marginLeft: 'auto', marginRight: 'auto' }}>
-                    <thead>
-                        <tr>
-                            <th style={{ borderBottom: '1px solid var(--border)', padding: '10px', textAlign: 'left' }}>Nombre</th>
-                            <th style={{ borderBottom: '1px solid var(--border)', padding: '10px', textAlign: 'left' }}>Cantidad</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {Array.from(itemsToProcess.entries()).map(([item, cantidad]) => (
-                            <tr key={item.id}>
-                                <td style={{ borderBottom: '1px solid var(--border)', padding: '10px' }}>{item.name}</td>
-                                <td style={{ borderBottom: '1px solid var(--border)', padding: '10px' }}>{cantidad}</td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-
-            {Array.from(itemsToProcess.entries()).length > 0 && (
-                <div style={{ textAlign: 'center' }}>
-                    <button
-                        style={{
-                            textAlign: 'center',
-                            width: 'fit-content',
-                            background: 'var(--danger-bg)',
-                            border: '1px solid var(--border)',
-                            padding: '12px 28px',
-                            cursor: 'pointer',
-                            color: '#fff',
-                            borderRadius: '6px',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
-                            transition: 'background 0.2s, transform 0.2s',
-                            fontWeight: 500,
-                            fontSize: '1rem',
-                        }}
-                        onClick={removeStock}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.background = 'var(--danger-bg-hover)';
-                            e.currentTarget.style.transform = 'scale(1.06)';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.background = 'var(--danger-bg)';
-                            e.currentTarget.style.transform = 'scale(1)';
-                        }}
-                        tabIndex={0}
-                        aria-label="Process Stock Update"
-                        type="button"
-                    >
-                        Devolver
-                    </button>
-                    <button
-                        style={{
-                            textAlign: 'center',
-                            width: 'fit-content',
-                            background: 'var(--ok-bg)',
-                            border: '1px solid var(--border)',
-                            padding: '12px 28px',
-                            cursor: 'pointer',
-                            color: '#fff',
-                            borderRadius: '6px',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
-                            transition: 'background 0.2s, transform 0.2s',
-                            fontWeight: 500,
-                            fontSize: '1rem',
-                            marginLeft: '20px'
-                        }}
-                        onClick={addStock}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.background = 'var(--ok-bg-hover)';
-                            e.currentTarget.style.transform = 'scale(1.06)';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.background = 'var(--ok-bg)';
-                            e.currentTarget.style.transform = 'scale(1)';
-                        }}
-                        tabIndex={0}
-                        aria-label="Clear Stock Update"
-                        type="button"
-                    >
-                        Añadir
-                    </button>
-                </div>
-            )}
-
-
-
-        </div>
+            <section className="card card-pad" style={{ marginTop: 28 }}>
+                <h2 className="section-title">Movimiento actual</h2>
+                {entries.length === 0 ? (
+                    <div className="empty">
+                        <Boxes size={34} strokeWidth={1.4} />
+                        <strong>Aún no has añadido productos</strong>
+                        <span>Escanea o busca un producto para empezar.</span>
+                    </div>
+                ) : (
+                    <>
+                        <div className="table-wrap">
+                            <table className="table">
+                                <thead>
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th className="num">Cantidad</th>
+                                        <th />
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {entries.map(([item, cantidad]) => (
+                                        <tr key={item.id}>
+                                            <td className="name">{item.name}</td>
+                                            <td className="num">
+                                                <div className="qty">
+                                                    <button onClick={() => setQuantity(item, cantidad - 1)} aria-label="Quitar uno"><Minus size={14} /></button>
+                                                    <input
+                                                        type="number"
+                                                        min={1}
+                                                        value={cantidad}
+                                                        aria-label={`Cantidad de ${item.name}`}
+                                                        onChange={e => setQuantity(item, parseInt(e.target.value) || 0)}
+                                                    />
+                                                    <button onClick={() => setQuantity(item, cantidad + 1)} aria-label="Añadir uno"><Plus size={14} /></button>
+                                                </div>
+                                            </td>
+                                            <td className="num">
+                                                <button className="btn-icon" onClick={() => setQuantity(item, 0)} aria-label={`Quitar ${item.name}`}>
+                                                    <Trash2 size={17} />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div className="action-bar">
+                            <button className="btn btn-danger" onClick={removeStock} type="button">
+                                Devolver
+                            </button>
+                            <button className="btn btn-primary" onClick={addStock} type="button">
+                                Añadir al stock
+                            </button>
+                        </div>
+                    </>
+                )}
+            </section>
+        </>
     );
 };
 

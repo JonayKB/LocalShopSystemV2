@@ -14,5 +14,18 @@ class CategoryRepository {
     );
     return response.data as Category[];
   }
+
+  async saveCategory(category: Category, token: string | null) {
+    const response = await axios.post(
+      BaseInfoRepository.BASE_URL + "categories/",
+      category,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data as Category;
+  }
 }
 export default CategoryRepository;

@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react'
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { MainContext } from './MainContextProvider';
 import Category from '../models/Category';
@@ -7,6 +8,7 @@ import ItemRepository from '../repositories/ItemRepository';
 import ImageRespository from '../repositories/ImageRepository';
 import Cropper, { Area } from 'react-easy-crop';
 import getCroppedImg from '../utils/CropImage';
+import { PLACEHOLDER_IMG } from '../utils/placeholder';
 
 
 
@@ -35,7 +37,7 @@ const AddItemComponent = (props: Props) => {
         if (openAddItemModal?.image) {
             imageRepository.getImageById(openAddItemModal.image, token)
                 .then(url => setImageUrl(url))
-                .catch(() => setImageUrl('https://static.vecteezy.com/system/resources/previews/008/695/917/non_2x/no-image-available-icon-simple-two-colors-template-for-no-image-or-picture-coming-soon-and-placeholder-illustration-isolated-on-white-background-vector.jpg'));
+                .catch(() => setImageUrl(PLACEHOLDER_IMG));
         }
     }, [openAddItemModal]);
 
@@ -106,414 +108,226 @@ const AddItemComponent = (props: Props) => {
 
 
     }
-    return (
-        <div
-            style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100vw',
-            height: '100vh',
-            background: 'rgba(42,45,58,0.85)',
-            zIndex: 1000,
-            display: item !== null ? 'flex' : 'none',
-            alignItems: 'center',
-            justifyContent: 'center',
-            }}
-            className={`modal ${item !== null ? 'open' : ''}`}
-        >
+    if (item === null) {
+        return null;
+    }
 
-            <div
-                style={{
-                    background: 'var(--surface-2)',
-                    color: 'white',
-                    padding: 32,
-                    borderRadius: 12,
-                    width: 420,
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
-                    position: 'relative',
-                    fontSize: 18,
-                }}
-            >
+    const isNew = !openAddItemModal?.name;
+    const lockedCode = !!item.id || item.id === 0;
+
+    return createPortal(
+        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label={isNew ? 'Nuevo producto' : 'Editar producto'}>
+            <div className="modal-card" style={{ maxWidth: 580 }}>
                 <button
+                    className="btn-icon modal-close"
                     onClick={() => { setOpenAddItemModal(null) }}
-                    style={{
-                        position: 'absolute',
-                        top: 16,
-                        right: 16,
-                        width: 32,
-                        height: 32,
-                        border: 'none',
-                        borderRadius: '50%',
-                        background: 'var(--border)',
-                        color: '#fff',
-                        fontSize: 20,
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        transition: 'background 0.2s',
-                    }}
                     aria-label="Cerrar"
-                    onMouseOver={e => (e.currentTarget.style.background = 'var(--border-strong)')}
-                    onMouseOut={e => (e.currentTarget.style.background = 'var(--border)')}
+                    type="button"
                 >
-                    <X size={16} strokeWidth={2.25} />
+                    <X size={18} strokeWidth={2} />
                 </button>
-                <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column' }}>
-                    <div style={{ marginBottom: 20 }}>
-                        <label style={{ display: 'block', marginBottom: 6 }}>
-                            Código:
-                        </label>
-                        <input
-                            type="text"
-                            value={
-                                item?.id.toString()
-                            }
-                            disabled={!!item?.id || item?.id === 0}
-                            placeholder="Introduce el código del producto"
-                            style={{
-                                width: '94%',
-                                padding: '8px 12px',
-                                borderRadius: 6,
-                                border: '1px solid var(--border)',
-                                background: !!item?.id || item?.id === 0 ? 'var(--border)' : 'var(--input)',
-                                color: '#fff',
-                                fontSize: 16,
-                            }}
-                            name="code"
-                            id="code"
-                            required
-                        />
-                    </div>
-                    <div style={{ marginBottom: 20 }}>
-                        <label style={{ display: 'block', marginBottom: 6 }}>
-                            Nombre:
-                        </label>
-                        <input
-                            type="text"
-                            value={item?.name ?? ''}
-                            placeholder="Introduce el nombre del producto"
-                            onChange={(e) => setItem(prev => prev ? { ...prev, name: e.target.value } : null)}
-                            style={{
-                                width: '94%',
-                                padding: '8px 12px',
-                                borderRadius: 6,
-                                border: '1px solid var(--border)',
-                                background: 'var(--input)',
-                                color: '#fff',
-                                fontSize: 16,
-                            }}
-                            name="name"
-                            id="name"
-                            required
-                        />
-                    </div>
-                    <div style={{ marginBottom: 20 }}>
-                        <label style={{ display: 'block', marginBottom: 6 }}>
-                            Categoría:
-                        </label>
-                        <select
-                            style={{
-                                width: '100%',
-                                padding: '8px 12px',
-                                borderRadius: 6,
-                                border: '1px solid var(--border)',
-                                background: 'var(--input)',
-                                color: '#fff',
-                                fontSize: 16,
-                                textTransform: 'capitalize',
-                            }}
-                            name="category"
-                            id="category"
-                        >
-                            {Array.isArray(categories) &&
-                                categories.map((cat: Category) => (
-                                    <option
-                                        key={cat.id}
-                                        value={cat.id}
-                                        selected={item?.categoryId === cat.id}
-                                    >
-                                        {cat.name.toUpperCase()}
-                                    </option>
-                                ))}
-                        </select>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <h2>{isNew ? 'Nuevo producto' : 'Editar producto'}</h2>
 
-                        <div style={{ width: '45%' }}>
-                            <div style={{ marginBottom: 24 }}>
-                                <label style={{ display: 'block', marginBottom: 6 }}>
-                                    Precio:
-                                </label>
-                                <input
-                                    type="number"
-                                    min="0"
-                                    step="0.01"
-                                    style={{
-                                        width: '94%',
-                                        padding: '8px 12px',
-                                        borderRadius: 6,
-                                        border: '1px solid var(--border)',
-                                        background: 'var(--input)',
-                                        color: '#fff',
-                                        fontSize: 16,
-                                    }}
-                                    value={item?.price ?? 0}
-                                    onChange={(e) => {
-                                        const value = parseFloat(e.target.value);
-                                        if (!isNaN(value) && value >= 0) {
-                                            setItem(prev => prev ? { ...prev, price: value } : null);
-                                        } else {
-                                            console.error('Invalid price input:', e.target.value);
-                                            alert('Please enter a valid price.');
-                                            e.target.value = '0';
-                                            setItem(prev => prev ? { ...prev, price: 0 } : null);
-                                        }
-                                    }
-                                    }
-                                    name="price"
-                                    id="price"
-                                    required
-                                />
-                            </div>
-
-                            <div style={{ marginBottom: 24 }}>
-                                <label style={{ display: 'block', marginBottom: 6 }}>
-                                    Precio Neto:
-                                </label>
-                                <input
-                                    type="number"
-                                    min="0"
-                                    step="0.01"
-                                    style={{
-                                        width: '94%',
-                                        padding: '8px 12px',
-                                        borderRadius: 6,
-                                        border: '1px solid var(--border)',
-                                        background: 'var(--input)',
-                                        color: '#fff',
-                                        fontSize: 16,
-                                    }}
-                                    value={item?.net ?? 0}
-                                    onChange={(e) => {
-                                        const value = parseFloat(e.target.value);
-                                        if (!isNaN(value) && value >= 0) {
-                                            setItem(prev => prev ? { ...prev, net: value } : null);
-                                        } else {
-                                            console.error('Invalid price input:', e.target.value);
-                                            alert('Please enter a valid price.');
-                                            e.target.value = '0';
-                                            setItem(prev => prev ? { ...prev, net: 0 } : null);
-                                        }
-                                    }
-                                    }
-                                    name="net"
-                                    id="net"
-                                    required
-                                />
-                            </div>
+                <form onSubmit={onSubmit}>
+                    <div className="form-grid">
+                        <div className="field">
+                            <label htmlFor="code">Código</label>
+                            <input
+                                className="input"
+                                type="text"
+                                value={item.id.toString()}
+                                readOnly
+                                disabled={lockedCode}
+                                placeholder="Código del producto"
+                                name="code"
+                                id="code"
+                                required
+                            />
                         </div>
-                        <div style={{ marginLeft: 12, width: '45%' }}>
-                            <div style={{ marginBottom: 24 }}>
-                                <label style={{ display: 'block', marginBottom: 6 }}>
-                                    Stock Actual:
-                                </label>
-                                <input
-                                    type="number"
-                                    min="0"
-                                    step="1"
-                                    style={{
-                                        width: '94%',
-                                        padding: '8px 12px',
-                                        borderRadius: 6,
-                                        border: '1px solid var(--border)',
-                                        background: 'var(--input)',
-                                        color: '#fff',
-                                        fontSize: 16,
-                                    }}
-                                    value={item?.stock ?? 0}
-                                    onChange={(e) => {
-                                        const value = parseInt(e.target.value);
-                                        if (!isNaN(value) && value >= 0) {
-                                            setItem(prev => prev ? { ...prev, stock: value } : null);
-                                        }
-                                    }}
-                                    name="stock"
-                                    id="stock"
-                                    required
-                                />
-                            </div>
-                            <div style={{ marginBottom: 24 }}>
-                                <label style={{ display: 'block', marginBottom: 6 }}>
-                                    Stock Minimo Indispensable:
-                                </label>
-                                <input
-                                    type="number"
-                                    step="1"
-                                    style={{
-                                        width: '94%',
-                                        padding: '8px 12px',
-                                        borderRadius: 6,
-                                        border: '1px solid var(--border)',
-                                        background: 'var(--input)',
-                                        color: '#fff',
-                                        fontSize: 16,
-                                    }}
-                                    value={item?.bareMinimun ?? 0}
-                                    onChange={(e) => {
-                                        const value = parseInt(e.target.value);
-                                        if (!isNaN(value) && value >= 0) {
-                                            setItem(prev => prev ? { ...prev, bareMinimun: value } : null);
-                                        }
-                                    }}
-                                    name="bareMinimun"
-                                    id="bareMinimun"
-                                    required
-                                />
-                            </div>
-                            <div style={{ marginBottom: 24 }}>
-                                <label style={{ display: 'block', marginBottom: 6 }}>
-                                    Ignorar Stock:
-                                </label>
-                                <input
-                                    type="checkbox"
-                                    style={{
-                                        width: '20px',
-                                        height: '20px',
-                                        borderRadius: 6,
-                                        border: '1px solid var(--border)',
-                                        background: 'var(--input)',
-                                        color: '#fff',
-                                        fontSize: 16,
-                                    }}
-                                    checked={item?.ignoreStock ?? false}
-                                    onChange={(e) => {
-                                        const checked = e.target.checked;
-                                        setItem(prev => prev ? { ...prev, ignoreStock: checked } : null);
-                                    }}
-                                    name="ignoreStock"
-                                    id="ignoreStock"
-                                />
-                            </div>
+                        <div className="field">
+                            <label htmlFor="category">Categoría</label>
+                            <select
+                                className="select"
+                                style={{ textTransform: 'capitalize' }}
+                                name="category"
+                                id="category"
+                                value={item.categoryId}
+                                onChange={(e) => setItem(prev => prev ? { ...prev, categoryId: Number(e.target.value) } : null)}
+                            >
+                                {Array.isArray(categories) &&
+                                    categories.map((cat: Category) => (
+                                        <option key={cat.id} value={cat.id}>
+                                            {cat.name}
+                                        </option>
+                                    ))}
+                            </select>
                         </div>
-                    </div>
-                    <div style={{ marginBottom: 24 }}>
-                        <label style={{ display: 'block', marginBottom: 6 }}>
-                            Imagen:
+
+                        <div className="field span-2">
+                            <label htmlFor="name">Nombre</label>
+                            <input
+                                className="input"
+                                type="text"
+                                value={item.name ?? ''}
+                                placeholder="Nombre del producto"
+                                onChange={(e) => setItem(prev => prev ? { ...prev, name: e.target.value } : null)}
+                                name="name"
+                                id="name"
+                                required
+                            />
+                        </div>
+
+                        <div className="field">
+                            <label htmlFor="price">Precio de venta (€)</label>
+                            <input
+                                className="input"
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={item.price ?? 0}
+                                onChange={(e) => {
+                                    const value = parseFloat(e.target.value);
+                                    setItem(prev => prev ? { ...prev, price: isNaN(value) || value < 0 ? 0 : value } : null);
+                                }}
+                                name="price"
+                                id="price"
+                                required
+                            />
+                            <span className="field-hint">IGIC incluido</span>
+                        </div>
+                        <div className="field">
+                            <label htmlFor="net">Precio neto / coste (€)</label>
+                            <input
+                                className="input"
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={item.net ?? 0}
+                                onChange={(e) => {
+                                    const value = parseFloat(e.target.value);
+                                    setItem(prev => prev ? { ...prev, net: isNaN(value) || value < 0 ? 0 : value } : null);
+                                }}
+                                name="net"
+                                id="net"
+                                required
+                            />
+                        </div>
+
+                        <div className="field">
+                            <label htmlFor="stock">Stock actual</label>
+                            <input
+                                className="input"
+                                type="number"
+                                min="0"
+                                step="1"
+                                value={item.stock ?? 0}
+                                onChange={(e) => {
+                                    const value = parseInt(e.target.value);
+                                    if (!isNaN(value) && value >= 0) {
+                                        setItem(prev => prev ? { ...prev, stock: value } : null);
+                                    }
+                                }}
+                                name="stock"
+                                id="stock"
+                                required
+                            />
+                        </div>
+                        <div className="field">
+                            <label htmlFor="bareMinimun">Stock mínimo</label>
+                            <input
+                                className="input"
+                                type="number"
+                                step="1"
+                                value={item.bareMinimun ?? 0}
+                                onChange={(e) => {
+                                    const value = parseInt(e.target.value);
+                                    if (!isNaN(value) && value >= 0) {
+                                        setItem(prev => prev ? { ...prev, bareMinimun: value } : null);
+                                    }
+                                }}
+                                name="bareMinimun"
+                                id="bareMinimun"
+                                required
+                            />
+                        </div>
+
+                        <label className="check span-2">
+                            <input
+                                type="checkbox"
+                                checked={item.ignoreStock ?? false}
+                                onChange={(e) => {
+                                    const checked = e.target.checked;
+                                    setItem(prev => prev ? { ...prev, ignoreStock: checked } : null);
+                                }}
+                                name="ignoreStock"
+                                id="ignoreStock"
+                            />
+                            Ignorar el control de stock de este producto
                         </label>
-                        <input
-                            type="file"
-                            accept="image/*"
-                            onChange={async (e) => {
-                                const file = e.target.files?.[0];
-                                if (file) {
-                                    setCroppingImage(file);
-                                    setCrop({ x: 0, y: 0 });
-                                    setZoom(1);
-                                } else {
-                                    setCroppingImage(null);
-                                    setImageUrl(undefined);
-                                }
 
-                            }}
-                            style={{
-                                width: '94%',
-                                padding: '8px 12px',
-                                borderRadius: 6,
-                                border: '1px solid var(--border)',
-                                background: 'var(--input)',
-                                color: '#fff',
-                                fontSize: 16,
-                            }}
-                            name="image"
-                            id="image"
-                        />
-                        {croppingImage ? (
-                            <div style={{ marginTop: 12, textAlign: 'center' }}>
-                                <div style={{ marginTop: 12, color: '#fff', position: 'relative', zIndex: 1001, height: 300, width: '100%' }}>
-                                    <Cropper
-                                        image={URL.createObjectURL(croppingImage)}
-                                        crop={crop}
-                                        zoom={zoom}
-                                        aspect={1}
-                                        onCropChange={setCrop}
-                                        onZoomChange={setZoom}
-                                        onCropComplete={(croppedArea, croppedAreaPixels) => {
-                                            setCroppedAreaPixels(croppedAreaPixels);
-                                        }}
-
-                                        style={{
-                                            containerStyle: {
-                                                width: '100%',
-                                                height: 'auto',
-                                                borderRadius: 6,
-                                                overflow: 'hidden',
-                                            },
-                                            cropAreaStyle: {
-                                                border: '2px dashed var(--primary)',
-                                                borderRadius: 6,
-                                            },
-                                        }}
-                                    />
-
+                        <div className="field span-2">
+                            <label htmlFor="image">Imagen</label>
+                            <input
+                                className="input"
+                                type="file"
+                                accept="image/*"
+                                onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                        setCroppingImage(file);
+                                        setCrop({ x: 0, y: 0 });
+                                        setZoom(1);
+                                    } else {
+                                        setCroppingImage(null);
+                                        setImageUrl(undefined);
+                                    }
+                                }}
+                                name="image"
+                                id="image"
+                            />
+                            {croppingImage ? (
+                                <div>
+                                    <div className="crop-box" style={{ marginTop: 12 }}>
+                                        <Cropper
+                                            image={URL.createObjectURL(croppingImage)}
+                                            crop={crop}
+                                            zoom={zoom}
+                                            aspect={1}
+                                            onCropChange={setCrop}
+                                            onZoomChange={setZoom}
+                                            onCropComplete={(croppedArea, croppedAreaPixels) => {
+                                                setCroppedAreaPixels(croppedAreaPixels);
+                                            }}
+                                            style={{
+                                                cropAreaStyle: {
+                                                    border: '2px dashed var(--accent)',
+                                                    borderRadius: 6,
+                                                },
+                                            }}
+                                        />
+                                    </div>
+                                    <button type="button" className="btn btn-sm" style={{ marginTop: 12 }} onClick={handleCropImage}>
+                                        Aplicar recorte
+                                    </button>
                                 </div>
-
-                                <button
-                                    type="button"
-                                    onClick={handleCropImage}
-                                    style={{
-                                        marginTop: 12,
-                                        padding: '8px 16px',
-                                        borderRadius: 6,
-                                        border: 'none',
-                                        background: 'var(--primary)',
-                                        color: '#fff',
-                                        fontWeight: 600,
-                                        fontSize: 16,
-                                        cursor: 'pointer',
-                                        transition: 'background 0.2s',
-                                        zIndex: 1002
-                                    }}
-                                >
-                                    Aplicar Recorte
-                                </button>
-                            </div>
-
-                        ) :
-                            <div style={{ marginTop: 12 }}>
-                                <img
-                                    src={imageUrl}
-                                    alt="Vista previa"
-                                    style={{
-                                        width: '100%',
-                                        height: 'auto',
-                                        borderRadius: 6,
-                                        objectFit: 'cover',
-                                    }}
-                                />
-                            </div>}
+                            ) : (
+                                imageUrl && <img className="preview" src={imageUrl} alt="Vista previa" style={{ marginTop: 12 }} />
+                            )}
+                        </div>
                     </div>
-                    <button
-                        type="submit"
-                        style={{
-                            width: '100%',
-                            padding: '12px 0',
-                            borderRadius: 6,
-                            border: 'none',
-                            background: 'var(--primary)',
-                            color: '#fff',
-                            fontWeight: 600,
-                            fontSize: 18,
-                            cursor: 'pointer',
-                            transition: 'background 0.2s',
-                        }}
-                    >
-                        Guardar
-                    </button>
+
+                    <div className="modal-actions">
+                        <button type="button" className="btn" onClick={() => setOpenAddItemModal(null)}>
+                            Cancelar
+                        </button>
+                        <button type="submit" className="btn btn-primary">
+                            Guardar producto
+                        </button>
+                    </div>
                 </form>
             </div>
-        </div>
+        </div>,
+        document.body
     )
 }
 

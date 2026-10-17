@@ -2,71 +2,61 @@ import React, { useContext, useEffect, useState } from 'react'
 import { MainContext } from '../components/MainContextProvider';
 import { useNavigate } from 'react-router-dom';
 import ExportRepository from '../repositories/ExportRepository';
-
+import PageHeader from '../components/PageHeader';
+import { eur } from '../utils/format';
 
 type Props = {}
 
 const TodayCash = (props: Props) => {
     const { token } = useContext(MainContext);
     const navitigation = useNavigate();
-    const exportRepository = new ExportRepository();
     const [incomeByCategory, setIncomeByCategory] = useState<Record<string, number>>();
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         if (!token) {
             navitigation('/admin/login');
+            return;
         }
-        const fetchData = async () => {
-            if (token) {
-                const data = await exportRepository.getIncomeByCategory(token);
-                setIncomeByCategory(data);
-                console.log(data);
-            }
-
-        }
-        fetchData();
-
-
+        new ExportRepository().getIncomeByCategory(token)
+            .then(setIncomeByCategory)
+            .catch(() => setError('No se pudo cargar la caja del día.'));
     }, [token, navitigation]);
+
+    const entries = incomeByCategory ? Object.entries(incomeByCategory) : [];
+    const total = entries.reduce((sum, [, v]) => sum + v, 0);
+
     return (
-        <div
-            style={{
-                flex: 1,
-                background: 'var(--bg)',
-                width: '100%',
-                color: 'white',
-                padding: '20px',
-                fontSize: '20px',
-            }}
-        >
-            <h1 style={{ fontSize: '3rem', fontWeight: 'bold', textAlign: 'center' }}>CAJA DEL DÍA</h1>
-            <div style={{ padding: '20px', backgroundColor: 'var(--surface)', color: 'white', borderRadius: 8, height: '85vh', overflowY: 'scroll', margin: 10 }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 20 }}>
-                    <thead style={{ borderBottom: '2px solid white' }}>
-                        <tr>
-                            {incomeByCategory && Object.keys(incomeByCategory).map((key) => (
-                                <th key={key} style={{ padding: 10, textAlign: 'left' }}>{key.toUpperCase()}</th>
-                            ))}
-                            <th key="total" style={{ padding: 10, textAlign: 'left' }}>TOTAL</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-
-                            {incomeByCategory && Object.keys(incomeByCategory).map((key) => (
-                                <td key={key} style={{ padding: 10, textAlign: 'left', border: '1px solid white' }}>{incomeByCategory[key].toFixed(2)} €</td>
-                            ))}
-                            <td key="total" style={{ padding: 10, textAlign: 'left', fontWeight: 'bold', border: '1px solid white' }}>{incomeByCategory && Object.values(incomeByCategory).reduce((a, b) => a + b, 0).toFixed(2)} €</td>
-                        </tr>
-                    </tbody>
-
-                </table>
-
-                <div>
-
+        <>
+            <PageHeader
+                eyebrow="Día a día"
+                title="Caja del día"
+                sub="Ingresos de hoy por categoría. Las ventas anuladas no se incluyen."
+            />
+            {error ? (
+                <div className="cart-error" role="alert">{error}</div>
+            ) : !incomeByCategory ? (
+                <div className="skeleton" style={{ height: 200 }} aria-busy="true" />
+            ) : (
+                <div className="stat-grid">
+                    <div className="stat is-total">
+                        <small>Total de hoy</small>
+                        <strong>{eur(total)}</strong>
+                    </div>
+                    {entries.length === 0 && (
+                        <div className="empty" style={{ gridColumn: '1 / -1' }}>
+                            <strong>Todavía no hay ventas hoy</strong>
+                        </div>
+                    )}
+                    {entries.map(([name, value]) => (
+                        <div className="stat" key={name}>
+                            <small>{name}</small>
+                            <strong>{eur(value)}</strong>
+                        </div>
+                    ))}
                 </div>
-            </div>
-        </div>
+            )}
+        </>
     );
 }
 

@@ -1,10 +1,13 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
+import { Receipt } from 'lucide-react';
 import Page from '../models/Page';
 import Trade from '../models/Trade';
 import axios from 'axios';
-import {BaseInfoRepository} from '../utils/BaseInfoRepository';
+import { BaseInfoRepository } from '../utils/BaseInfoRepository';
 import TradeComponnet from './TradeComponent';
 import TradeRepository from '../repositories/TradeRepository';
+import CancelTradeModal from './CancelTradeModal';
+import Pager from './Pager';
 
 type Props = {
     token: string | null,
@@ -15,90 +18,79 @@ const TradePagination = (props: Props) => {
     const [page, setPage] = useState(0);
     const pageSize = 12;
     const [loading, setLoading] = useState(false);
-    const tradeRepository = new TradeRepository();
-    const fetchItems = async () => {
-        setLoading(true);
-        let url = `trade/${page}/${pageSize}`;
-        const res = await axios.get(BaseInfoRepository.BASE_URL + url, {
-            headers: {
-                Authorization: `Bearer ${props.token}`,
-            },
-        });
-        setPageData(res.data);
+    const [showCancelled, setShowCancelled] = useState(true);
+    const [toCancel, setToCancel] = useState<Trade | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
-        setLoading(false);
-    };
+    const fetchItems = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const res = await axios.get(BaseInfoRepository.BASE_URL + `trade/${page}/${pageSize}`, {
+                headers: { Authorization: `Bearer ${props.token}` },
+            });
+            setPageData(res.data);
+        } catch {
+            setError('No se pudieron cargar las ventas.');
+        } finally {
+            setLoading(false);
+        }
+    }, [page, props.token]);
 
     useEffect(() => {
         fetchItems();
-    }, [page, props.token]);
+    }, [fetchItems]);
 
-    const handleDelete = async (tradeId: number) => {
-        if (!window.confirm('¿Estás seguro de que deseas eliminar esta venta? Esta acción no se puede deshacer.')) {
-            return;
-        }
-        await tradeRepository.deleteTrade(tradeId, props.token);
-        fetchItems();
+    const confirmCancel = async (reason: string) => {
+        if (!toCancel) return;
+        await new TradeRepository().cancelTrade(toCancel.id, reason, props.token);
+        setToCancel(null);
+        await fetchItems();
     };
+
+    const trades = (pageData?.content ?? []).filter(t => showCancelled || t.status !== 'CANCELLED');
 
     return (
         <div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100%, 1fr))', gap: '20px', padding: '20px', backgroundColor: 'var(--surface)', color: 'white', borderRadius: 8, height: '85vh', overflowY: 'scroll', margin: 10 }}>
-                <div style={{ flex: 1, display: 'flex', justifyContent: 'space-around', alignItems: 'center', marginBottom: 10 }}>
-                    <h2 style={{ textAlign: 'center' }}>Identificador</h2>
-                    <h2 style={{ textAlign: 'center' }}>Fecha</h2>
-                    <h2 style={{ textAlign: 'center' }}>Total</h2>
-                    <h2 style={{ textAlign: 'center' }}>Acciones</h2>
+            <div className="toolbar">
+                <label className="check">
+                    <input type="checkbox" checked={showCancelled} onChange={e => setShowCancelled(e.target.checked)} />
+                    Mostrar ventas anuladas
+                </label>
+                {pageData && (
+                    <span style={{ marginLeft: 'auto', color: 'var(--muted)', fontSize: '0.88rem' }}>
+                        {pageData.totalElements} ventas en total
+                    </span>
+                )}
+            </div>
+
+            {error ? (
+                <div className="cart-error" role="alert">{error}</div>
+            ) : loading && !pageData ? (
+                <div className="skeleton" style={{ height: 320 }} aria-busy="true" />
+            ) : trades.length === 0 ? (
+                <div className="empty">
+                    <Receipt size={34} strokeWidth={1.4} />
+                    <strong>No hay ventas que mostrar</strong>
+                    <span>Las ventas que cobres aparecerán aquí.</span>
                 </div>
-                {(() => {
-                    if (loading) {
-                        return <div style={{ color: 'white', fontSize: 18 }}>Cargando...</div>;
-                    } else if (!pageData || pageData.content.length === 0) {
-                        return <div style={{ color: 'white', fontSize: 18 }}>No hay productos.</div>;
-                    } else {
-                        return pageData.content.map(item => (
-                            <TradeComponnet key={item.id} trade={item} onDelete={handleDelete} />
-                        ));
-                    }
-                })()}
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'center', marginTop: 24 }}>
-                <button
-                    onClick={() => setPage(p => Math.max(0, p - 1))}
-                    disabled={!pageData || pageData.first}
-                    style={{
-                        background: 'var(--surface)',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: 4,
-                        padding: '8px 16px',
-                        marginRight: 8,
-                        cursor: !pageData || pageData.first ? 'not-allowed' : 'pointer',
-                        opacity: !pageData || pageData.first ? 0.5 : 1,
-                    }}
-                >
-                    Anterior
-                </button>
-                <span style={{ color: 'white', fontSize: 16, margin: '0 12px' }}>
-                    Página {pageData ? pageData.number + 1 : 0} de {pageData ? pageData.totalPages : 0}
-                </span>
-                <button
-                    onClick={() => setPage(p => pageData ? Math.min(pageData.totalPages - 1, p + 1) : p)}
-                    disabled={!pageData || pageData.last || pageData.totalPages === 0}
-                    style={{
-                        background: 'var(--surface)',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: 4,
-                        padding: '8px 16px',
-                        marginLeft: 8,
-                        cursor: !pageData || pageData.last || pageData.totalPages === 0 ? 'not-allowed' : 'pointer',
-                        opacity: !pageData || pageData.last || pageData.totalPages === 0 ? 0.5 : 1,
-                    }}
-                >
-                    Siguiente
-                </button>
-            </div>
+            ) : (
+                <div style={{ opacity: loading ? 0.6 : 1, transition: 'opacity 0.2s' }}>
+                    {trades.map(trade => (
+                        <TradeComponnet key={trade.id} trade={trade} onCancel={setToCancel} />
+                    ))}
+                </div>
+            )}
+
+            <Pager
+                page={pageData}
+                onPrev={() => setPage(p => Math.max(0, p - 1))}
+                onNext={() => setPage(p => pageData ? Math.min(pageData.totalPages - 1, p + 1) : p)}
+            />
+
+            {toCancel && (
+                <CancelTradeModal trade={toCancel} onClose={() => setToCancel(null)} onConfirm={confirmCancel} />
+            )}
         </div>
     );
 }

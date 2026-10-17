@@ -1,72 +1,130 @@
 import React, { useState } from 'react'
-import { Trash2 } from 'lucide-react'
+import { Ban, ChevronRight, Info } from 'lucide-react'
 import Trade from '../models/Trade'
+import { eur, formatDateTime, isCancelled, tradeLabel, tradeTotal } from '../utils/format'
 
 type Props = {
     trade: Trade,
-    onDelete?: (tradeId: number) => void;
+    onCancel?: (trade: Trade) => void;
 }
+
+type Row = { key: string; name: string; qty: number; unit: number; rate: number | null; total: number };
+
+/** Líneas a mostrar: las congeladas de la venta o, en ventas antiguas, las agrupadas por producto. */
+const rowsOf = (trade: Trade): Row[] => {
+    if (trade.lines && trade.lines.length > 0) {
+        return trade.lines.map((l, i) => ({
+            key: `${l.itemId ?? 'x'}-${i}`,
+            name: l.description,
+            qty: l.quantity,
+            unit: l.unitPrice,
+            rate: l.taxRate,
+            total: l.lineTotal,
+        }));
+    }
+    const grouped: Record<string, Row> = {};
+    trade.items.forEach(item => {
+        const k = String(item.id);
+        if (grouped[k]) {
+            grouped[k].qty += 1;
+            grouped[k].total += item.price;
+        } else {
+            grouped[k] = { key: k, name: item.name, qty: 1, unit: item.price, rate: null, total: item.price };
+        }
+    });
+    return Object.values(grouped);
+};
 
 const TradeComponnet = (props: Props) => {
     const { trade } = props;
     const [open, setOpen] = useState(false);
+    const cancelled = isCancelled(trade);
+    const rows = rowsOf(trade);
 
     return (
-        <div style={{ textAlign: 'center', color: 'white', background: 'var(--surface-3)', padding: '10px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)', marginBottom: '10px' }}>
-            <div
-                style={{ cursor: 'pointer', display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center' }}
-                onClick={() => setOpen(o => !o)}
-            >
-                <h3 style={{ textTransform: 'capitalize', padding: 20 }}>{trade.id}</h3>
-                <h3 style={{ textTransform: 'capitalize', padding: 20 }}>
-                    {new Date(trade.date).toLocaleString('es-ES', {
-                        year: 'numeric',
-                        month: 'numeric',
-                        day: 'numeric',
-                        hour: 'numeric',
-                        minute: 'numeric',
-                    })}</h3>
-                <h3 style={{ textTransform: 'capitalize', padding: 20 }}>
-                    {trade.items.reduce((sum, item) => sum + item.price, 0).toFixed(2)}€
-                </h3>
-                <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                    <button aria-label="Eliminar venta" style={{ color: 'var(--danger)', border: 'none', cursor: 'pointer', backgroundColor: 'transparent', display: 'flex', padding: 20 }} onClick={() => props?.onDelete?.(trade.id)}><Trash2 size={28} strokeWidth={1.75} /></button>
-                </div>
-            </div>
-            <div
-                style={{
-                    maxHeight: open ? 200 : 0,
-                    overflow: 'hidden',
-                    transition: 'max-height 0.3s ease',
-                    opacity: open ? 1 : 0,
-                    transitionProperty: 'max-height, opacity',
-                    transitionDuration: '0.3s',
-                    display: 'flex',
-                    flexDirection: 'row',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    gap: '10px',
-                    marginTop: open ? 10 : 0,
+        <div className={`trade ${open ? 'is-open' : ''} ${cancelled ? 'is-cancelled' : ''}`}>
+            <button className="trade-head" onClick={() => setOpen(o => !o)} aria-expanded={open}>
+                <ChevronRight className="chev" size={18} />
+                <span className="trade-no">{tradeLabel(trade)}</span>
+                <span className="trade-date">{formatDateTime(trade.date)}</span>
+                <span className="trade-status">
+                    {cancelled ? <span className="badge badge-danger">Anulada</span> : <span className="badge badge-ok">Emitida</span>}
+                </span>
+                <span className="trade-total">{eur(tradeTotal(trade))}</span>
+                <span className="trade-act">
+                    {!cancelled && (
+                        <span
+                            role="button"
+                            tabIndex={0}
+                            className="btn btn-danger btn-sm"
+                            aria-label={`Anular venta ${tradeLabel(trade)}`}
+                            onClick={(e) => { e.stopPropagation(); props.onCancel?.(trade); }}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    props.onCancel?.(trade);
+                                }
+                            }}
+                        >
+                            <Ban size={14} /> Anular
+                        </span>
+                    )}
+                </span>
+            </button>
 
-                }}
-            >
-                {Object.values(
-                    trade.items.reduce<Record<string, { name: string; price: number; amount: number }>>((acc, item) => {
-                        if (acc[item.id]) {
-                            acc[item.id].amount += 1;
-                        } else {
-                            acc[item.id] = { name: item.name, price: item.price, amount: 1 };
-                        }
-                        return acc;
-                    }, {})
-                ).map((item, index) => (
-                    <div key={index} style={{ textAlign: 'center', padding: '10px', borderRadius: '8px', backgroundColor: 'var(--bg)' }}>
-                        <h4 style={{ textTransform: 'capitalize' }}>
-                            {item.name} {item.amount > 1 && <span style={{ color: 'var(--muted)' }}>x{item.amount}</span>}
-                        </h4>
-                        <p>{item.price.toFixed(2)} €</p>
+            <div className="trade-body">
+                <div>
+                    <div className="trade-detail">
+                        {cancelled && (
+                            <div className="trade-note">
+                                <Info size={16} />
+                                <span>
+                                    Anulada{trade.cancelledAt ? ` el ${formatDateTime(trade.cancelledAt)}` : ''}
+                                    {trade.cancellationReason ? ` — ${trade.cancellationReason}` : ''}. El stock se devolvió y no cuenta en caja ni en informes.
+                                </span>
+                            </div>
+                        )}
+                        <div className="table-wrap">
+                            <table className="table">
+                                <thead>
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th className="num">Cant.</th>
+                                        <th className="num">Precio</th>
+                                        <th className="num">IGIC</th>
+                                        <th className="num">Importe</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {rows.map(r => (
+                                        <tr key={r.key}>
+                                            <td className="name">{r.name}</td>
+                                            <td className="num">{r.qty}</td>
+                                            <td className="num">{eur(r.unit)}</td>
+                                            <td className="num">{r.rate != null ? `${r.rate}%` : '—'}</td>
+                                            <td className="num">{eur(r.total)}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                        {trade.total != null && (
+                            <div className="trade-sums">
+                                <span>Base <strong>{eur(trade.totalBase)}</strong></span>
+                                <span>IGIC <strong>{eur(trade.totalTax)}</strong></span>
+                                <span>Total <strong>{eur(trade.total)}</strong></span>
+                            </div>
+                        )}
+                        {!cancelled && (
+                            <div className="trade-actions">
+                                <button className="btn btn-danger btn-sm" onClick={() => props.onCancel?.(trade)}>
+                                    <Ban size={14} /> Anular venta
+                                </button>
+                            </div>
+                        )}
                     </div>
-                ))}
+                </div>
             </div>
         </div>
     )

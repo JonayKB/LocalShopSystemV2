@@ -1,5 +1,5 @@
 import React, { useContext, useRef, useState } from 'react'
-import { ChevronDown, ChevronUp } from 'lucide-react'
+import { ArrowDown, ArrowUp, Search } from 'lucide-react'
 import ItemPagination from './ItemPagination'
 import Item from '../models/Item';
 import { MainContext } from './MainContextProvider';
@@ -8,17 +8,23 @@ import AddItemComponent from './AddItemComponent';
 type Props = {
     onItemClickProp?: (item: Item) => void;
     onItemMenu?: (item: Item) => void;
+    /** Muestra todos los productos aunque no haya texto (pantalla de Productos). */
+    showAll?: boolean;
+    /** Se muestra solo cuando no hay búsqueda (p. ej. las categorías). */
+    children?: React.ReactNode;
 }
 
+const SORTS = [
+    { key: 'name', label: 'Nombre' },
+    { key: 'category', label: 'Categoría' },
+];
+
 const ItemSearcher = (props: Props) => {
-    const [text, setText] = useState<string>();
-    const { token, setOpenAddItemModal } = useContext(MainContext);
+    const [text, setText] = useState<string>('');
+    const { token } = useContext(MainContext);
     const [selectedSortBy, setSelectedSortBy] = useState<string>('name')
     const [ascending, setAscending] = useState<boolean>(true);
     const itemPaginationRef = useRef<{ fetchItems: () => void }>(null);
-
-
-
 
     function onClickSortBy(sortBy: string) {
         if (selectedSortBy === sortBy) {
@@ -36,77 +42,47 @@ const ItemSearcher = (props: Props) => {
         }
     }
 
+    const searching = text.trim().length > 0;
 
     return (
-
-        <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: 'var(--bg)',
-            color: 'white',
-            padding: '20px',
-            fontSize: '20px',
-            borderRadius: '8px'
-        }}>
+        <div>
             <AddItemComponent onComplete={() => itemPaginationRef.current?.fetchItems()} />
 
-            <input type="text"
-                placeholder="Buscar productos..."
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                style={{ padding: '10px', borderRadius: '4px', border: '1px solid var(--muted)', marginBottom: '20px', backgroundColor: 'var(--surface)', color: 'white', width: '80%' }}
-            />
+            <div className="search" style={{ marginBottom: 20 }}>
+                <Search size={18} />
+                <input
+                    type="text"
+                    className="input"
+                    placeholder="Buscar por nombre o código…"
+                    value={text}
+                    onChange={(e) => setText(e.target.value)}
+                    aria-label="Buscar productos"
+                />
+            </div>
 
-            {text && (
-                <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', width: '100%' }}>
-                    <div style={{ flex: 1, display: 'flex', justifyContent: 'start', flexDirection: 'column', alignItems: 'center', height: '65vh' }}>
-                        <button
-                            onClick={() => onClickSortBy('name')}
-                            style={{
-                                backgroundColor: selectedSortBy === 'name' ? 'var(--surface-3)' : 'var(--surface)',
-                                color: 'white',
-                                border: 'none',
-                                padding: '20px',
-                                width: '100%',
-                                cursor: 'pointer',
-                                fontWeight: selectedSortBy === 'name' ? 'bold' : 'normal'
-                            }}
-                        >
-                            Nombre
-                            {selectedSortBy === 'name' && (
-                                <span style={{ marginLeft: 8, display: 'inline-flex', verticalAlign: 'middle' }}>
-                                    {ascending ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                                </span>
-                            )}
-                        </button>
-                        <button
-                            onClick={() => onClickSortBy('category')}
-                            style={{
-                                backgroundColor: selectedSortBy === 'category' ? 'var(--surface-3)' : 'var(--surface)',
-                                color: 'white',
-                                border: 'none',
-                                padding: '20px',
-                                width: '100%',
-                                cursor: 'pointer',
-                                fontWeight: selectedSortBy === 'category' ? 'bold' : 'normal'
-                            }}
-                        >
-                            Categoria
-                            {selectedSortBy === 'category' && (
-                                <span style={{ marginLeft: 8, display: 'inline-flex', verticalAlign: 'middle' }}>
-                                    {ascending ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                                </span>
-                            )}
-                        </button>
+            {(searching || props.showAll) ? (
+                <>
+                    <div className="toolbar" style={{ marginBottom: 16 }}>
+                        <span className="label">Ordenar por</span>
+                        <div className="chips">
+                            {SORTS.map(s => (
+                                <button
+                                    key={s.key}
+                                    className={`chip ${selectedSortBy === s.key ? 'is-active' : ''}`}
+                                    onClick={() => onClickSortBy(s.key)}
+                                    type="button"
+                                >
+                                    {s.label}
+                                    {selectedSortBy === s.key && (ascending ? <ArrowUp size={14} /> : <ArrowDown size={14} />)}
+                                </button>
+                            ))}
+                        </div>
                     </div>
-                    <div style={{ flex: 13 }}>
-                        <ItemPagination token={token} onItemClick={onItemClick} text={text} sortBy={selectedSortBy} ascending={ascending} onItemMenu={props.onItemMenu} ref={itemPaginationRef} />
-                    </div>
-                </div>
+                    <ItemPagination token={token} onItemClick={props.onItemClickProp ? onItemClick : undefined} text={text} sortBy={selectedSortBy} ascending={ascending} onItemMenu={props.onItemMenu} ref={itemPaginationRef} />
+                </>
+            ) : (
+                props.children
             )}
-
         </div>
     )
 }

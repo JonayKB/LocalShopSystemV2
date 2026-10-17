@@ -1,10 +1,11 @@
-
 import React, { useContext, useEffect, useState } from 'react'
+import { ArrowLeft, ChevronRight } from 'lucide-react'
 import Category from '../models/Category'
 import ImageRespository from '../repositories/ImageRepository'
 import Item from '../models/Item'
 import ItemPagination from './ItemPagination'
 import { MainContext } from './MainContextProvider'
+import { PLACEHOLDER_IMG } from '../utils/placeholder'
 
 type Props = {
     categories: Category[],
@@ -12,31 +13,16 @@ type Props = {
 }
 
 const Selector = (props: Props) => {
-    const imageRepository = new ImageRespository();
-    const { basketItems, setOpenBasket, updateBasket } = useContext(MainContext);
-
-
-    function handleCategoryClick(categoryId: number) {
-        setSelectedCategory(categoryId);
-    }
-
+    const { setOpenBasket, addItemToBasket } = useContext(MainContext);
     const [imageUrls, setImageUrls] = useState<{ [key: string]: string }>({});
     const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
 
     function onItemClick(item: Item) {
-        if (basketItems.has(item)) {
-            const currentQuantity = basketItems.get(item) ?? 0;
-            updateBasket(item, currentQuantity + 1);
-        } else {
-            updateBasket(item, 1);
-
-        }
-        setOpenBasket(true);
-
+        addItemToBasket(item);
     }
 
-
     useEffect(() => {
+        const imageRepository = new ImageRespository();
         const fetchImages = async () => {
             const urls: { [key: string]: string } = {};
             await Promise.all(
@@ -44,7 +30,7 @@ const Selector = (props: Props) => {
                     try {
                         urls[category.id] = await imageRepository.getImageById(category.image, props.token);
                     } catch (error) {
-                        urls[category.id] = 'https://static.vecteezy.com/system/resources/previews/008/695/917/non_2x/no-image-available-icon-simple-two-colors-template-for-no-image-or-picture-coming-soon-and-placeholder-illustration-isolated-on-white-background-vector.jpg'; // Fallback image
+                        urls[category.id] = PLACEHOLDER_IMG;
                     }
                 })
             );
@@ -53,113 +39,44 @@ const Selector = (props: Props) => {
         fetchImages();
     }, [props.categories, props.token]);
 
-    return (
-            <div
-                style={{
-                    width: '100%',
-                    fontSize: '16px',
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(17%, 2fr))',
-                    gap: '20px',
-                    height: '94.5vh',
-                    justifyItems: 'center',
-                    alignItems: 'start',
-                    background: 'var(--bg)',
-                    color: 'white',
-                    fontFamily: `'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif`,
-                    overflowY: 'auto',
-                    marginTop: 25,
-                    overflowX: 'hidden',
-                }}
-            >
-                {selectedCategory !== null && selectedCategory >= 0 ? (
-                    <div style={{ width: '70%' }}>
-                        <button
-                            style={{
-                                textAlign: 'center',
-                                width: 'fit-content',
-                                background: 'var(--surface-2)',
-                                border: '1px solid var(--border)',
-                                padding: '12px 28px',
-                                cursor: 'pointer',
-                                color: '#fff',
-                                borderRadius: '6px',
-                                boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
-                                transition: 'background 0.2s, transform 0.2s',
-                                marginBottom: '24px',
-                                fontWeight: 500,
-                                fontSize: '1rem',
-                                marginLeft: 'auto',
-                                marginRight: 'auto',
-                                position:'absolute'
-                            }}
-                            onClick={() => setSelectedCategory(null)}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.background = 'var(--surface-hover)';
-                                e.currentTarget.style.transform = 'scale(1.06)';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.background = 'var(--surface-2)';
-                                e.currentTarget.style.transform = 'scale(1)';
-                            }}
-                            tabIndex={0}
-                            aria-label="Back to categories"
-                            type="button"
-                        >
-                            Back to Categories
-                        </button>
-                        <h2 style={{ textAlign: 'center',textTransform: 'capitalize', marginBottom: '20px' }}>
-                            {props.categories.find(cat => cat.id === selectedCategory)?.name}
-                        </h2>
-                        <ItemPagination categoryId={selectedCategory} token={props.token} onItemClick={onItemClick} />
-
-                    </div>
-                ) : props.categories.map((category) => (
-                    <button
-                        key={category.id}
-                        style={{
-                            textAlign: 'center',
-                            width: '100%',
-                            background: 'none',
-                            border: 'none',
-                            padding: 20,
-                            cursor: 'pointer',
-                            backgroundColor: 'var(--bg)',
-                            color: 'white',
-                            borderRadius: '8px',
-                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                            transition: 'transform 0.2s ease-in-out',
-                            textTransform: 'capitalize'
-                        }}
-                        onClick={() => handleCategoryClick(category.id)}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.transform = 'scale(1.05)';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.transform = 'scale(1)';
-                        }}
-                        tabIndex={0}
-                        aria-label={`Select category ${category.name}`}
-                        type="button"
-                    >
-                        <img
-                            src={imageUrls[category.id]}
-                            alt={category.name}
-                            style={{
-                                width: '100%',
-                                height: 'auto',
-                                borderRadius: '8px',
-                                marginBottom: '10px'
-                            }}
-                            onError={(e) => {
-                                e.currentTarget.src =
-                                    'https://static.vecteezy.com/system/resources/previews/008/695/917/non_2x/no-image-available-icon-simple-two-colors-template-for-no-image-or-picture-coming-soon-and-placeholder-illustration-isolated-on-white-background-vector.jpg';
-                            }}
-                        />
-                        <h2>{category.name}</h2>
+    if (selectedCategory !== null && selectedCategory >= 0) {
+        return (
+            <div>
+                <div className="crumbs">
+                    <button className="btn btn-sm" onClick={() => setSelectedCategory(null)} type="button">
+                        <ArrowLeft size={16} /> Categorías
                     </button>
-                ))}
+                    <h2>{props.categories.find(cat => cat.id === selectedCategory)?.name}</h2>
+                </div>
+                <ItemPagination categoryId={selectedCategory} token={props.token} onItemClick={onItemClick} />
             </div>
+        );
+    }
+
+    return (
+        <div className="cat-grid">
+            {props.categories.map((category) => (
+                <button
+                    key={category.id}
+                    className="cat-card"
+                    onClick={() => setSelectedCategory(category.id)}
+                    aria-label={`Categoría ${category.name}`}
+                    type="button"
+                >
+                    <div className="cat-img">
+                        <img
+                            src={imageUrls[category.id] ?? PLACEHOLDER_IMG}
+                            alt=""
+                            onError={(e) => { e.currentTarget.src = PLACEHOLDER_IMG; }}
+                        />
+                    </div>
+                    <div className="cat-name">
+                        {category.name}
+                        <ChevronRight size={18} />
+                    </div>
+                </button>
+            ))}
+        </div>
     )
 }
 

@@ -2,6 +2,7 @@ package es.jonay.kb.shopsystem.services;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.logging.Logger;
 
@@ -68,7 +69,12 @@ public class TradeService {
             @RequestParam(name = "print", defaultValue = "false") boolean print,
             HttpServletRequest request) throws Exception {
 
-        TradeDto trade = tradeController.saveList(items);
+        TradeDto trade;
+        try {
+            trade = tradeController.saveList(items);
+        } catch (IllegalArgumentException | NoSuchElementException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
         String clientIp = request.getHeader("X-Forwarded-For");
         if (clientIp == null || clientIp.isEmpty()) {
             clientIp = request.getRemoteAddr();
@@ -94,12 +100,28 @@ public class TradeService {
         return tradeController.findTradesInRange(startDate, endDate);
     }
 
+    /** Anula la venta (no la borra). Devuelve la venta con estado CANCELLED. */
+    @PostMapping("/{id}/cancel")
+    public ResponseEntity<TradeDto> cancel(@PathVariable(name = "id") final Long id,
+            @RequestParam(name = "reason", required = false) String reason) {
+        try {
+            return ResponseEntity.ok(tradeController.cancel(id, reason));
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    /**
+     * Compatibilidad con el panel actual: DELETE ya no borra, anula.
+     * Cuando el frontend use POST /{id}/cancel se puede retirar.
+     */
+    @Deprecated
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteById(@PathVariable(name = "id") final Long id) {
         try {
-            tradeController.deleteById(id);
+            tradeController.cancel(id, null);
             return ResponseEntity.noContent().build();
-        } catch (RuntimeException e) {
+        } catch (NoSuchElementException e) {
             return ResponseEntity.notFound().build();
         }
     }
