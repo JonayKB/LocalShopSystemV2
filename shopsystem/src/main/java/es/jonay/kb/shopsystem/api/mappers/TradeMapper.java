@@ -7,13 +7,14 @@ import java.util.List;
 import java.util.SortedMap;
 
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 import es.jonay.kb.shopsystem.api.dto.ItemDto;
 import es.jonay.kb.shopsystem.api.dto.TradeDto;
+import es.jonay.kb.shopsystem.api.dto.TradeLineDto;
 import es.jonay.kb.shopsystem.model.entities.Item;
 import es.jonay.kb.shopsystem.model.entities.Trade;
+import es.jonay.kb.shopsystem.model.entities.TradeLine;
 
 @Mapper(uses = ItemMapper.class, componentModel = "spring")
 public interface TradeMapper {
@@ -23,6 +24,20 @@ public interface TradeMapper {
         TradeDto dto = new TradeDto();
         dto.setId(trade.getId());
         dto.setDate(trade.getDate());
+        dto.setSeries(trade.getSeries());
+        dto.setNumber(trade.getNumber());
+        if (trade.getSeries() != null && trade.getNumber() != null) {
+            dto.setInvoiceNumber(String.format("%s-%06d", trade.getSeries(), trade.getNumber()));
+        }
+        dto.setStatus(trade.getStatus() != null ? trade.getStatus().name() : null);
+        dto.setCancelledAt(trade.getCancelledAt());
+        dto.setCancellationReason(trade.getCancellationReason());
+        dto.setTotalBase(trade.getTotalBase());
+        dto.setTotalTax(trade.getTotalTax());
+        dto.setTotal(trade.getTotal());
+        for (TradeLine line : trade.getLines()) {
+            dto.getLines().add(toLineDto(line));
+        }
 
         List<ItemDto> itemDtos = new ArrayList<>();
         LocalDateTime date = trade.getDate().toInstant()
@@ -69,7 +84,17 @@ public interface TradeMapper {
         return dto;
     }
 
-    @Mapping(target = "id", ignore = true)
-    public Trade toTrade(TradeDto tradeDto);
+    default TradeLineDto toLineDto(TradeLine line) {
+        TradeLineDto dto = new TradeLineDto();
+        dto.setItemId(line.getItemId());
+        dto.setDescription(line.getDescription());
+        dto.setQuantity(line.getQuantity());
+        dto.setUnitPrice(line.getUnitPrice());
+        dto.setTaxRate(line.getTaxRate());
+        dto.setTaxBase(line.getTaxBase());
+        dto.setTaxAmount(line.getTaxAmount());
+        dto.setLineTotal(line.getLineTotal());
+        return dto;
+    }
 
 }

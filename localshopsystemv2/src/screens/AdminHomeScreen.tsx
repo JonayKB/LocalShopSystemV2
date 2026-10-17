@@ -5,13 +5,14 @@ import CategoryRepository from '../repositories/CategoryRepository';
 import Selector from '../components/Selector';
 import ItemSearcher from '../components/ItemSearcher';
 import BarcodeListener from '../components/BarcodeListener';
+import PageHeader from '../components/PageHeader';
 import Item from '../models/Item';
 import ItemRepository from '../repositories/ItemRepository';
 
 type Props = {}
 
 const AdminHomeScreen = (props: Props) => {
-  const { token, categories, setCategories, updateBasket, setOpenBasket, addItemToBasket, setOpenAddItemModal, basketItems } = useContext(MainContext);
+  const { token, categories, setCategories, setOpenBasket, addItemToBasket, setOpenAddItemModal } = useContext(MainContext);
   const navigate = useNavigate();
   const categoryRepository = new CategoryRepository();
   const itemRepository = new ItemRepository();
@@ -28,6 +29,7 @@ const AdminHomeScreen = (props: Props) => {
     } else {
       fetchCategories();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, navigate]);
 
   const handleBarcodeScan = async (code: string) => {
@@ -47,30 +49,19 @@ const AdminHomeScreen = (props: Props) => {
 
   function onItemClick(item: Item) {
     addItemToBasket(item);
-    setOpenBasket(true);
-
   }
 
-
-
-
-
   return (
-    <div
-      style={{
-        flex: 1,
-        background: 'var(--bg)',
-        width: '100%',
-        color: 'white',
-        padding: '20px',
-        fontSize: '20px',
-        overflowY: 'hidden',
-      }}
-    >
+    <>
+      <PageHeader
+        title="Nueva venta"
+        sub="Escanea un código de barras, busca un producto o navega por categorías."
+      />
       <BarcodeListener handleBarcodeScan={handleBarcodeScan} />
-      <ItemSearcher onItemClickProp={onItemClick} />
-      <Selector categories={categories} token={token} />
-    </div>
+      <ItemSearcher onItemClickProp={onItemClick}>
+        <Selector categories={categories} token={token} />
+      </ItemSearcher>
+    </>
   );
 };
 

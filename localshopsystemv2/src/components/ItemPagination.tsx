@@ -1,5 +1,7 @@
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
+import { PackageOpen } from 'lucide-react';
 import ItemComponent from './ItemComponent';
+import Pager from './Pager';
 import Item from '../models/Item';
 import Page from '../models/Page';
 import axios from 'axios';
@@ -92,57 +94,38 @@ const ItemPagination = forwardRef((props: Props, ref) => {
 
     return (
         <div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(15%, 1fr))', gap: '20px', padding: '20px', backgroundColor: 'var(--surface)', color: 'white', borderRadius: 8, height: '65vh', overflowY: 'scroll' }}>
-                {(() => {
-                    if (loading) {
-                        return <div style={{ color: 'white', fontSize: 18 }}>Cargando...</div>;
-                    } else if (!pageData || pageData.content.length === 0) {
-                        return <div style={{ color: 'white', fontSize: 18 }}>No hay productos.</div>;
-                    } else {
-                        return pageData.content.map(item => (
-                            <ItemComponent key={item.id} item={item} token={token} onClick={props.onItemClick} onContextMenu={props.onItemMenu} />
-                        ));
-                    }
-                })()}
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'center', marginTop: 24 }}>
-                <button
-                    onClick={() => setPage(p => Math.max(0, p - 1))}
-                    disabled={!pageData || pageData.first}
-                    style={{
-                        background: 'var(--surface)',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: 4,
-                        padding: '8px 16px',
-                        marginRight: 8,
-                        cursor: !pageData || pageData.first ? 'not-allowed' : 'pointer',
-                        opacity: !pageData || pageData.first ? 0.5 : 1,
-                    }}
-                >
-                    Anterior
-                </button>
-                <span style={{ color: 'white', fontSize: 16, margin: '0 12px' }}>
-                    Página {pageData ? pageData.number + 1 : 0} de {pageData ? pageData.totalPages : 0}
-                </span>
-                <button
-                    onClick={() => setPage(p => pageData ? Math.min(pageData.totalPages - 1, p + 1) : p)}
-                    disabled={!pageData || pageData.last || pageData.totalPages === 0}
-                    style={{
-                        background: 'var(--surface)',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: 4,
-                        padding: '8px 16px',
-                        marginLeft: 8,
-                        cursor: !pageData || pageData.last || pageData.totalPages === 0 ? 'not-allowed' : 'pointer',
-                        opacity: !pageData || pageData.last || pageData.totalPages === 0 ? 0.5 : 1,
-                    }}
-                >
-                    Siguiente
-                </button>
-            </div>
-
+            {(() => {
+                if (loading && !pageData) {
+                    return (
+                        <div className="item-grid" aria-busy="true">
+                            {Array.from({ length: 8 }).map((_, i) => (
+                                <div key={i} className="skeleton" style={{ height: 250 }} />
+                            ))}
+                        </div>
+                    );
+                } else if (!pageData || pageData.content.length === 0) {
+                    return (
+                        <div className="empty">
+                            <PackageOpen size={34} strokeWidth={1.4} />
+                            <strong>No hay productos</strong>
+                            <span>Prueba con otra búsqueda o categoría.</span>
+                        </div>
+                    );
+                } else {
+                    return (
+                        <div className="item-grid" style={{ opacity: loading ? 0.6 : 1, transition: 'opacity 0.2s' }}>
+                            {pageData.content.map(item => (
+                                <ItemComponent key={item.id} item={item} token={token} onClick={props.onItemClick} onContextMenu={props.onItemMenu} />
+                            ))}
+                        </div>
+                    );
+                }
+            })()}
+            <Pager
+                page={pageData}
+                onPrev={() => setPage(p => Math.max(0, p - 1))}
+                onNext={() => setPage(p => pageData ? Math.min(pageData.totalPages - 1, p + 1) : p)}
+            />
         </div>
     );
 })

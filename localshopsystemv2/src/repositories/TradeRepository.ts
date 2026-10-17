@@ -1,7 +1,6 @@
 import axios from "axios";
 import Item from "../models/Item";
 import { BaseInfoRepository } from "../utils/BaseInfoRepository";
-import { start } from "repl";
 
 
 
@@ -45,19 +44,22 @@ class TradeRepository {
 
     return response.data;
   }
-  async deleteTrade(tradeId: number, token: string | null) {
-    if (!token) {
+  /**
+   * Anula una venta (no la borra): conserva el registro, la marca como
+   * anulada y el servidor devuelve el stock.
+   */
+  async cancelTrade(tradeId: number, reason: string, token: string | null) {
+    if (!token || !tradeId) {
       return;
     }
-    if (!tradeId) {
-      return;
-    }
-    const response = await axios.delete(
-      BaseInfoRepository.BASE_URL + `trade/${tradeId}`,
+    const response = await axios.post(
+      BaseInfoRepository.BASE_URL + `trade/${tradeId}/cancel`,
+      null,
       {
         headers: {
           Authorization: `Bearer ${token}`,
         },
+        params: reason.trim() ? { reason: reason.trim() } : undefined,
       }
     );
     return response.data;

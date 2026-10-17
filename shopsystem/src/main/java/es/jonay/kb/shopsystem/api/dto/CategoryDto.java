@@ -1,5 +1,6 @@
 package es.jonay.kb.shopsystem.api.dto;
 
+import java.math.BigDecimal;
 import java.util.Objects;
 
 public class CategoryDto {
@@ -7,6 +8,7 @@ public class CategoryDto {
     private Long id;
     private String name;
     private String image;
+    private BigDecimal igicRate;
 
 
     public CategoryDto() {
@@ -31,6 +33,12 @@ public class CategoryDto {
 
     public void setName(String name) {
         this.name = name;
+    }
+    public BigDecimal getIgicRate() {
+        return this.igicRate;
+    }
+    public void setIgicRate(BigDecimal igicRate) {
+        this.igicRate = igicRate;
     }
     public String getImage() {
         return this.image;

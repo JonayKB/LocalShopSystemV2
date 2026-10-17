@@ -18,6 +18,7 @@ public interface IGraphsRepository extends JpaRepository<Trade, Long> {
                         SELECT i.name, COUNT(tr)
                         FROM Trade tr
                         JOIN tr.items i
+                        WHERE tr.status = es.jonay.kb.shopsystem.model.entities.TradeStatus.ISSUED
                         GROUP BY i.name
                         ORDER BY COUNT(tr) DESC
                         """)
@@ -27,6 +28,7 @@ public interface IGraphsRepository extends JpaRepository<Trade, Long> {
         @Query("""
                         SELECT DATE(tr.date), COUNT(tr)
                         FROM Trade tr
+                        WHERE tr.status = es.jonay.kb.shopsystem.model.entities.TradeStatus.ISSUED
                         GROUP BY DATE(tr.date)
                         ORDER BY DATE(tr.date)
                         """)
@@ -38,7 +40,8 @@ public interface IGraphsRepository extends JpaRepository<Trade, Long> {
                         FROM Trade tr
                         JOIN tr.items i
                         JOIN i.priceHistory ph
-                        WHERE KEY(ph) <= tr.date
+                        WHERE tr.status = es.jonay.kb.shopsystem.model.entities.TradeStatus.ISSUED
+                        AND KEY(ph) <= tr.date
                         """)
         Double averageTradeValue();
 
@@ -48,7 +51,8 @@ public interface IGraphsRepository extends JpaRepository<Trade, Long> {
                         JOIN tr.items i
                         JOIN i.category c
                         JOIN i.priceHistory ph
-                        WHERE KEY(ph) <= tr.date
+                        WHERE tr.status = es.jonay.kb.shopsystem.model.entities.TradeStatus.ISSUED
+                        AND KEY(ph) <= tr.date
                         GROUP BY c.name
                         """)
         List<Object[]> incomeByCategory();
@@ -81,7 +85,8 @@ public interface IGraphsRepository extends JpaRepository<Trade, Long> {
                         JOIN tr.items i
                         JOIN i.netHistory nh
                         JOIN i.priceHistory ph
-                        WHERE KEY(nh) <= tr.date
+                        WHERE tr.status = es.jonay.kb.shopsystem.model.entities.TradeStatus.ISSUED
+                        AND KEY(nh) <= tr.date
                         AND KEY(ph) <= tr.date
                         AND nh <> 0
                         GROUP BY i.name

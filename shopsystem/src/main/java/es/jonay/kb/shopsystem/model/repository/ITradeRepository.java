@@ -18,13 +18,12 @@ import es.jonay.kb.shopsystem.model.entities.Trade;
 public interface ITradeRepository extends JpaRepository<Trade, Long> {
     List<Trade> findAll();
 
-    void deleteById(Long id);
-
     Optional<Trade> findById(Long id);
 
     Trade save(Trade entity);
 
-    @Query("SELECT t FROM Trade t WHERE t.date >= :startDate AND t.date < :endDate")
+    @Query("SELECT t FROM Trade t WHERE t.date >= :startDate AND t.date < :endDate "
+            + "AND t.status = es.jonay.kb.shopsystem.model.entities.TradeStatus.ISSUED")
     List<Trade> findAllTradesInRange(@Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate);
 

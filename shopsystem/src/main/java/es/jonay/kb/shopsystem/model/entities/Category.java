@@ -1,5 +1,6 @@
 package es.jonay.kb.shopsystem.model.entities;
 
+import java.math.BigDecimal;
 import java.util.Set;
 
 import jakarta.persistence.Entity;
@@ -20,6 +21,10 @@ public class Category {
     private Set<Item> items;
 
     private String image;
+
+    /** Tipo de IGIC (%) de la categoría. Null = tipo por defecto configurado. */
+    @jakarta.persistence.Column(precision = 5, scale = 2)
+    private BigDecimal igicRate;
 
     public Category() {
     }
@@ -56,6 +61,14 @@ public class Category {
 
     public void setItems(Set<Item> items) {
         this.items = items;
+    }
+
+    public BigDecimal getIgicRate() {
+        return this.igicRate;
+    }
+
+    public void setIgicRate(BigDecimal igicRate) {
+        this.igicRate = igicRate;
     }
 
     public String getImage() {

@@ -20,6 +20,7 @@ import org.springframework.stereotype.Controller;
 import es.jonay.kb.shopsystem.api.config.TicketPrinterConfigurationProperties;
 import es.jonay.kb.shopsystem.api.dto.ItemDto;
 import es.jonay.kb.shopsystem.api.dto.TradeDto;
+import es.jonay.kb.shopsystem.api.dto.TradeLineDto;
 
 @Controller
 public class TicketPrinterService {
@@ -89,48 +90,83 @@ public class TicketPrinterService {
         buffer.write((businessName + "\n").getBytes("CP437"));
         buffer.write((street + "\n").getBytes("CP437"));
         buffer.write(("NIF : " + nif + "\n").getBytes("CP437"));
-        buffer.write("TICKET\n\n".getBytes("CP437"));
+        buffer.write("FACTURA SIMPLIFICADA\n\n".getBytes("CP437"));
 
         // Alineación izquierda
         buffer.write(new byte[] { 0x1B, 0x61, 0x00, 0x1B, 0x45, 0x00 });
 
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
-        buffer.write(("Nro : " + tradeDto.getId() + "\n").getBytes("CP437"));
+        String numero = tradeDto.getInvoiceNumber() != null ? tradeDto.getInvoiceNumber() : String.valueOf(tradeDto.getId());
+        buffer.write(("Nro : " + numero + "\n").getBytes("CP437"));
         buffer.write(("Fecha : " + sdf.format(tradeDto.getDate()) + "\n\n").getBytes("CP437"));
 
         buffer.write("------------------------------------------------\n".getBytes("CP437"));
         buffer.write("DESCRIPCION                   PRECIO CANT  TOTAL\n".getBytes("CP437"));
         buffer.write("------------------------------------------------\n".getBytes("CP437"));
 
-        // Productos
-        Map<ItemDto, Integer> itemCountMap = new HashMap<>();
-        for (ItemDto item : tradeDto.getItems())
-            itemCountMap.put(item, itemCountMap.getOrDefault(item, 0) + 1);
+        // Productos: las ventas nuevas usan sus líneas congeladas (precio e IGIC al vender)
+        if (tradeDto.getLines() != null && !tradeDto.getLines().isEmpty()) {
+            for (TradeLineDto line : tradeDto.getLines()) {
+                String nombre = line.getDescription();
+                if (nombre.length() > 16)
+                    nombre = nombre.substring(0, 16);
 
-        double subtotal = 0.0;
-        for (Map.Entry<ItemDto, Integer> entry : itemCountMap.entrySet()) {
-            ItemDto item = entry.getKey();
-            int cantidad = entry.getValue();
-            double precio = item.getPrice();
-            double totalLinea = precio * cantidad;
-            subtotal += totalLinea;
+                String rightPart = String.format(java.util.Locale.US, "%6.2f x%-2d  %6.2f",
+                        line.getUnitPrice(), line.getQuantity(), line.getLineTotal());
+                int spaces = TOTAL_WIDTH - nombre.length() - rightPart.length();
+                if (spaces < 1)
+                    spaces = 1;
+                buffer.write((nombre.toUpperCase() + " ".repeat(spaces) + rightPart + "\n")
+                        .getBytes(StandardCharsets.US_ASCII));
+            }
 
-            String nombre = item.getName();
-            if (nombre.length() > 16)
-                nombre = nombre.substring(0, 16);
+            // Desglose de IGIC por tipo
+            Map<java.math.BigDecimal, java.math.BigDecimal[]> byRate = new java.util.TreeMap<>();
+            for (TradeLineDto line : tradeDto.getLines()) {
+                java.math.BigDecimal[] acc = byRate.computeIfAbsent(line.getTaxRate(),
+                        k -> new java.math.BigDecimal[] { java.math.BigDecimal.ZERO, java.math.BigDecimal.ZERO });
+                acc[0] = acc[0].add(line.getTaxBase());
+                acc[1] = acc[1].add(line.getTaxAmount());
+            }
+            buffer.write("\n".getBytes("CP437"));
+            for (Map.Entry<java.math.BigDecimal, java.math.BigDecimal[]> e : byRate.entrySet()) {
+                buffer.write(String.format(java.util.Locale.US, "Base %5.2f%%: %9.2f   IGIC: %9.2f\n",
+                        e.getKey(), e.getValue()[0], e.getValue()[1]).getBytes(StandardCharsets.US_ASCII));
+            }
+            buffer.write("\n".getBytes("CP437"));
+            buffer.write(String.format(java.util.Locale.US, "TOTAL:        %33.2f\n", tradeDto.getTotal())
+                    .getBytes(StandardCharsets.US_ASCII));
+        } else {
+            // Venta anterior a Verifactu: se imprime como antes
+            Map<ItemDto, Integer> itemCountMap = new HashMap<>();
+            for (ItemDto item : tradeDto.getItems())
+                itemCountMap.put(item, itemCountMap.getOrDefault(item, 0) + 1);
 
-            String rightPart = String.format("%6.2f x%-2d  %6.2f", precio, cantidad, totalLinea);
-            int spaces = TOTAL_WIDTH - nombre.length() - rightPart.length();
-            if (spaces < 1)
-                spaces = 1;
+            double subtotal = 0.0;
+            for (Map.Entry<ItemDto, Integer> entry : itemCountMap.entrySet()) {
+                ItemDto item = entry.getKey();
+                int cantidad = entry.getValue();
+                double precio = item.getPrice();
+                double totalLinea = precio * cantidad;
+                subtotal += totalLinea;
 
-            buffer.write(
-                    (nombre.toUpperCase() + " ".repeat(spaces) + rightPart + "\n").getBytes(StandardCharsets.US_ASCII));
+                String nombre = item.getName();
+                if (nombre.length() > 16)
+                    nombre = nombre.substring(0, 16);
+
+                String rightPart = String.format("%6.2f x%-2d  %6.2f", precio, cantidad, totalLinea);
+                int spaces = TOTAL_WIDTH - nombre.length() - rightPart.length();
+                if (spaces < 1)
+                    spaces = 1;
+
+                buffer.write((nombre.toUpperCase() + " ".repeat(spaces) + rightPart + "\n")
+                        .getBytes(StandardCharsets.US_ASCII));
+            }
+
+            buffer.write("\n".getBytes("CP437"));
+            buffer.write(String.format("Subtotal:        %30.2f\n", subtotal).getBytes(StandardCharsets.US_ASCII));
+            buffer.write(String.format("TOTAL:        %33.2f\n", subtotal).getBytes(StandardCharsets.US_ASCII));
         }
-
-        buffer.write("\n".getBytes("CP437"));
-        buffer.write(String.format("Subtotal:        %30.2f\n", subtotal).getBytes(StandardCharsets.US_ASCII));
-        buffer.write(String.format("TOTAL:        %33.2f\n", subtotal).getBytes(StandardCharsets.US_ASCII));
 
         buffer.write("\n\n".getBytes("CP437"));
         buffer.write(HEADER);

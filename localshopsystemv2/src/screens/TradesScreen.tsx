@@ -2,6 +2,7 @@ import React, { useContext, useEffect } from 'react';
 import { MainContext } from '../components/MainContextProvider';
 import { useNavigate } from 'react-router-dom';
 import TradePagination from '../components/TradePagination';
+import PageHeader from '../components/PageHeader';
 
 type Props = {}
 
@@ -15,18 +16,14 @@ const TradesScreen = (props: Props) => {
   }, [token, navitigation]);
 
   return (
-    <div
-      style={{
-        flex: 1,
-        background: 'var(--bg)',
-        width: '100%',
-        color: 'white',
-        padding: '20px',
-        fontSize: '20px',
-      }}
-    >
+    <>
+      <PageHeader
+        eyebrow="Día a día"
+        title="Ventas"
+        sub="Cada venta tiene un número correlativo. Una venta no se borra: si te equivocas, anúlala y quedará registrada."
+      />
       <TradePagination token={token} />
-    </div>
+    </>
   );
 };
 
