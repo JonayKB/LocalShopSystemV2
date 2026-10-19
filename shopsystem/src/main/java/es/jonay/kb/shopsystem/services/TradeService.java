@@ -87,7 +87,8 @@ public class TradeService {
                 ticketPrinterService.openCashDrawer(clientIp, PORT);
             }
         } catch (Exception e) {
-            logger.severe("Error printing ticket or opening cash drawer: " + e.getMessage());
+            // La venta ya está guardada: un fallo de la impresora nunca debe afectarla.
+            logger.warning("Impresora no disponible (la venta se ha guardado igualmente): " + e.getMessage());
         }
 
         return ResponseEntity.ok(trade);

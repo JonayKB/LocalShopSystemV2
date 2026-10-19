@@ -5,7 +5,9 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,16 +26,22 @@ import org.springframework.transaction.annotation.Transactional;
 import es.jonay.kb.shopsystem.api.dto.ItemDto;
 import es.jonay.kb.shopsystem.api.dto.TradeDto;
 import es.jonay.kb.shopsystem.api.mappers.TradeMapper;
+import es.jonay.kb.shopsystem.model.entities.BillingRecord;
+import es.jonay.kb.shopsystem.model.entities.BillingRecordType;
 import es.jonay.kb.shopsystem.model.entities.Category;
 import es.jonay.kb.shopsystem.model.entities.InvoiceCounter;
 import es.jonay.kb.shopsystem.model.entities.Item;
 import es.jonay.kb.shopsystem.model.entities.Trade;
 import es.jonay.kb.shopsystem.model.entities.TradeLine;
 import es.jonay.kb.shopsystem.model.entities.TradeStatus;
+import es.jonay.kb.shopsystem.model.repository.IBillingRecordRepository;
 import es.jonay.kb.shopsystem.model.repository.ICategoryRepository;
 import es.jonay.kb.shopsystem.model.repository.IInvoiceCounterRepository;
 import es.jonay.kb.shopsystem.model.repository.IItemRepository;
 import es.jonay.kb.shopsystem.model.repository.ITradeRepository;
+import es.jonay.kb.shopsystem.verifactu.BillingRecordService;
+import es.jonay.kb.shopsystem.verifactu.VerifactuProperties;
+import es.jonay.kb.shopsystem.verifactu.VerifactuQr;
 
 @Controller
 public class TradeController {
@@ -45,6 +53,9 @@ public class TradeController {
     private ItemController itemController;
     private IItemRepository itemRepository;
     private TradeMapper tradeMapper;
+    private BillingRecordService billingRecordService;
+    private IBillingRecordRepository billingRecordRepository;
+    private VerifactuProperties verifactuProperties;
 
     /** Serie de las facturas simplificadas (tickets). */
     @Value("${shop.invoice.series:T}")
@@ -56,6 +67,21 @@ public class TradeController {
      */
     @Value("${shop.tax.default-igic-rate:7.00}")
     private BigDecimal defaultIgicRate;
+
+    @Autowired
+    public void setBillingRecordService(BillingRecordService billingRecordService) {
+        this.billingRecordService = billingRecordService;
+    }
+
+    @Autowired
+    public void setBillingRecordRepository(IBillingRecordRepository billingRecordRepository) {
+        this.billingRecordRepository = billingRecordRepository;
+    }
+
+    @Autowired
+    public void setVerifactuProperties(VerifactuProperties verifactuProperties) {
+        this.verifactuProperties = verifactuProperties;
+    }
 
     @Autowired
     public void setTradeMapper(TradeMapper tradeMapper) {
@@ -102,19 +128,23 @@ public class TradeController {
         for (Trade trade : trades) {
             result.add(tradeMapper.toTradeDto(trade));
         }
+        enrich(result);
         return result;
     }
 
     @Transactional(readOnly = true)
     public Optional<TradeDto> findById(Long id) {
         Optional<Trade> trade = tradeRepository.findById(id);
-        return trade.map(tradeMapper::toTradeDto);
+        Optional<TradeDto> dto = trade.map(tradeMapper::toTradeDto);
+        dto.ifPresent(d -> enrich(List.of(d)));
+        return dto;
     }
 
     /**
      * Emite una venta nueva. Siempre pasa por {@link #saveList(List)}: la fecha,
      * el número y los importes los fija el servidor, nunca el cliente.
      */
+    @Transactional
     public TradeDto save(TradeDto tradeDto) {
         return saveList(tradeDto.getItems());
     }
@@ -192,20 +222,28 @@ public class TradeController {
         trade.setTotal(total);
 
         counterRepository.save(counter);
-        return tradeMapper.toTradeDto(tradeRepository.save(trade));
+        Trade saved = tradeRepository.save(trade);
+        // Registro de alta VERI*FACTU en la MISMA transacción: si falla, la venta no se emite
+        // y no se consume número. (No hace nada si verifactu.enabled=false.)
+        billingRecordService.createAlta(saved);
+        TradeDto dto = tradeMapper.toTradeDto(saved);
+        enrich(List.of(dto));
+        return dto;
     }
 
     /**
      * Anula una venta (no la borra): conserva el registro, marca el estado y
-     * devuelve el stock. Más adelante aquí se generará el registro de anulación
-     * de Verifactu.
+     * devuelve el stock y genera el registro de anulación de VERI*FACTU (misma
+     * transacción).
      */
     @Transactional
     public TradeDto cancel(Long id, String reason) {
         Trade trade = tradeRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Venta no encontrada: " + id));
         if (trade.getStatus() == TradeStatus.CANCELLED) {
-            return tradeMapper.toTradeDto(trade);
+            TradeDto already = tradeMapper.toTradeDto(trade);
+            enrich(List.of(already));
+            return already;
         }
         trade.setStatus(TradeStatus.CANCELLED);
         trade.setCancelledAt(new Date());
@@ -213,7 +251,11 @@ public class TradeController {
         for (Item item : trade.getItems()) {
             itemController.addStock(item.getId(), 1);
         }
-        return tradeMapper.toTradeDto(tradeRepository.save(trade));
+        Trade saved = tradeRepository.save(trade);
+        billingRecordService.createAnulacion(saved);
+        TradeDto dto = tradeMapper.toTradeDto(saved);
+        enrich(List.of(dto));
+        return dto;
     }
 
     @Transactional(readOnly = true)
@@ -232,6 +274,7 @@ public class TradeController {
         for (Trade trade : tradeRepository.findAllTradesInRange(startDate, endDate)) {
             tradesDtoList.add(tradeMapper.toTradeDto(trade));
         }
+        enrich(tradesDtoList);
         return tradesDtoList;
     }
 
@@ -239,7 +282,42 @@ public class TradeController {
     @Transactional(readOnly = true)
     public Page<TradeDto> getPage(int page, int size) {
         Page<Trade> trades = tradeRepository.findAll(PageRequest.of(page, size).withSort(Sort.by("date").descending()));
-        return trades.map(tradeMapper::toTradeDto);
+        Page<TradeDto> dtos = trades.map(tradeMapper::toTradeDto);
+        enrich(dtos.getContent());
+        return dtos;
+    }
+
+    /**
+     * Añade a cada venta el estado de envío a la AEAT y la URL del QR. Una sola consulta
+     * para toda la lista. No hace nada si VERI*FACTU está desactivado.
+     */
+    private void enrich(Collection<TradeDto> dtos) {
+        if (!verifactuProperties.isEnabled() || dtos.isEmpty()) {
+            return;
+        }
+        List<Long> ids = new ArrayList<>();
+        for (TradeDto d : dtos) {
+            ids.add(d.getId());
+        }
+        Map<Long, BillingRecord> latest = new HashMap<>();
+        Map<Long, BillingRecord> alta = new HashMap<>();
+        for (BillingRecord r : billingRecordRepository.findByTradeIdIn(ids)) {
+            latest.merge(r.getTradeId(), r, (a, b) -> a.getId() > b.getId() ? a : b);
+            if (r.getType() == BillingRecordType.ALTA) {
+                alta.put(r.getTradeId(), r);
+            }
+        }
+        for (TradeDto d : dtos) {
+            BillingRecord l = latest.get(d.getId());
+            if (l != null) {
+                d.setVerifactuStatus(l.getStatus().name());
+            }
+            BillingRecord a = alta.get(d.getId());
+            if (a != null) {
+                d.setVerifactuQrUrl(VerifactuQr.url(verifactuProperties.qrBaseUrl(), a.getNif(), a.getNumSerie(),
+                        a.getFechaExpedicion(), a.getImporteTotal()));
+            }
+        }
     }
 
     private BigDecimal latestPrice(Item item) {

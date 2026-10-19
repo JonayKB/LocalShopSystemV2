@@ -11,6 +11,8 @@ export type TradeLine = {
   lineTotal: number;
 };
 
+export type VerifactuStatus = 'PENDING' | 'ACCEPTED' | 'ACCEPTED_WITH_ERRORS' | 'REJECTED';
+
 type Trade = {
   id: number;
   items: Item[];
@@ -27,5 +29,8 @@ type Trade = {
   totalBase?: number | null;
   totalTax?: number | null;
   total?: number | null;
+  /** Estado de envío a la AEAT del último registro de la venta (null si VERI*FACTU está desactivado). */
+  verifactuStatus?: VerifactuStatus | null;
+  verifactuQrUrl?: string | null;
 };
 export default Trade;

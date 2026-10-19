@@ -21,6 +21,8 @@ import es.jonay.kb.shopsystem.api.config.TicketPrinterConfigurationProperties;
 import es.jonay.kb.shopsystem.api.dto.ItemDto;
 import es.jonay.kb.shopsystem.api.dto.TradeDto;
 import es.jonay.kb.shopsystem.api.dto.TradeLineDto;
+import es.jonay.kb.shopsystem.verifactu.VerifactuProperties;
+import es.jonay.kb.shopsystem.verifactu.VerifactuQr;
 
 @Controller
 public class TicketPrinterService {
@@ -29,6 +31,7 @@ public class TicketPrinterService {
     private String street;
     private String nif;
     private String businessName;
+    private int qrModuleSize = 6;
     private Socket socket;
     private OutputStream outputStream;
     private static final int TOTAL_WIDTH = 48; // Ancho total del ticket en caracteres
@@ -40,31 +43,52 @@ public class TicketPrinterService {
     private static final byte[] OPEN_DRAWER = new byte[] { 0x1B, 0x70, 0x00, 0x19, (byte) 0xFA };
     private static final byte[] CUT = new byte[] { 0x1D, 0x56, 0x00 }; // Full cut
 
-    public TicketPrinterService(TicketPrinterConfigurationProperties config) throws Exception {
+    public TicketPrinterService(TicketPrinterConfigurationProperties config, VerifactuProperties verifactu)
+            throws Exception {
 
         this.street = config.getStreet();
         this.businessName = config.getBusinessName();
         this.nif = config.getNif();
+        this.qrModuleSize = Math.max(1, Math.min(16, verifactu.getQr().getModuleSize()));
+    }
 
-        this.street = config.getStreet();
-        this.businessName = config.getBusinessName();
-        this.nif = config.getNif();
-
+    /**
+     * QR tributario VERI*FACTU (ESC/POS, GS ( k): modelo 2, corrección de errores M, centrado, con el
+     * texto "QR tributario:" encima y la leyenda de verificable debajo. Debe medir entre 30 y 40 mm:
+     * ajusta verifactu.qr.module-size midiendo un ticket impreso.
+     */
+    private void writeQr(ByteArrayOutputStream buffer, String url) throws IOException {
+        byte[] data = url.getBytes(StandardCharsets.US_ASCII);
+        int len = data.length + 3;
+        buffer.write(new byte[] { 0x1B, 0x61, 0x01, 0x1B, 0x45, 0x00 }); // centrado, sin negrita
+        buffer.write((VerifactuQr.TEXTO_ENCIMA + "\n").getBytes("CP437"));
+        buffer.write(new byte[] { 0x1D, 0x28, 0x6B, 0x04, 0x00, 0x31, 0x41, 0x32, 0x00 }); // modelo 2
+        buffer.write(new byte[] { 0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x43, (byte) qrModuleSize }); // tamaño módulo
+        buffer.write(new byte[] { 0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x45, 0x31 }); // corrección nivel M
+        buffer.write(new byte[] { 0x1D, 0x28, 0x6B, (byte) (len & 0xFF), (byte) ((len >> 8) & 0xFF), 0x31, 0x50,
+                0x30 }); // guardar datos
+        buffer.write(data);
+        buffer.write(new byte[] { 0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x51, 0x30 }); // imprimir
+        buffer.write(("\n" + VerifactuQr.TEXTO_DEBAJO + "\n\n").getBytes("CP437"));
     }
 
     public void connect(String ip, int port) throws IOException {
         if (socket == null || !socket.isConnected()) {
             try {
-                socket = new Socket(ip, port);
+                // Timeout corto: si no hay impresora, la venta no debe quedarse esperando.
+                Socket s = new Socket();
+                s.connect(new java.net.InetSocketAddress(ip, port), 2000);
+                socket = s;
                 outputStream = socket.getOutputStream();
                 logger.info("Connected to printer at " + ip + ":" + port);
-                if (!socket.isConnected()) {
-                    logger.severe("Not is connected Could not connect to printer at " + ip + ":" + port);
-                }
             } catch (UnknownHostException e) {
-                logger.severe("Not Host Could not connect to printer at " + ip + ":" + port);
+                socket = null;
+                outputStream = null;
+                throw new IOException("Impresora no encontrada en " + ip + ":" + port, e);
             } catch (IOException e) {
-                logger.severe("IOException Could not connect to printer at " + ip + ":" + port);
+                socket = null;
+                outputStream = null;
+                throw new IOException("No se pudo conectar con la impresora en " + ip + ":" + port, e);
             }
         }
     }
@@ -85,6 +109,12 @@ public class TicketPrinterService {
 
         // Inicializar impresora
         buffer.write(INITIALIZE);
+
+        // El QR tributario va al principio de la factura, antes del resto del contenido.
+        if (tradeDto.getVerifactuQrUrl() != null) {
+            writeQr(buffer, tradeDto.getVerifactuQrUrl());
+        }
+
         buffer.write(HEADER); // centrado + negrita
 
         buffer.write((businessName + "\n").getBytes("CP437"));

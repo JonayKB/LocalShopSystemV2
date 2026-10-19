@@ -24,3 +24,19 @@ export const formatDateTime = (iso: string | null | undefined): string =>
         minute: '2-digit',
       })
     : '';
+
+/** Texto y tono del estado de envío a la AEAT de una venta. */
+export const verifactuInfo = (status?: string | null): { label: string; tone: 'ok' | 'warn' | 'danger'; hint: string } | null => {
+    switch (status) {
+        case 'ACCEPTED':
+            return { label: 'AEAT ✓', tone: 'ok', hint: 'Registro aceptado por la Agencia Tributaria' };
+        case 'PENDING':
+            return { label: 'AEAT ⏳', tone: 'warn', hint: 'Pendiente de enviar a la Agencia Tributaria (se reintenta solo)' };
+        case 'ACCEPTED_WITH_ERRORS':
+            return { label: 'AEAT !', tone: 'warn', hint: 'Aceptado con errores: revisa el registro' };
+        case 'REJECTED':
+            return { label: 'AEAT ✕', tone: 'danger', hint: 'Rechazado por la Agencia Tributaria: hay que corregirlo' };
+        default:
+            return null;
+    }
+};

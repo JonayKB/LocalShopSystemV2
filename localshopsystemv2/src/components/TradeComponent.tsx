@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Ban, ChevronRight, Info } from 'lucide-react'
 import Trade from '../models/Trade'
-import { eur, formatDateTime, isCancelled, tradeLabel, tradeTotal } from '../utils/format'
+import { eur, formatDateTime, isCancelled, tradeLabel, tradeTotal, verifactuInfo } from '../utils/format'
 
 type Props = {
     trade: Trade,
@@ -40,6 +40,7 @@ const TradeComponnet = (props: Props) => {
     const [open, setOpen] = useState(false);
     const cancelled = isCancelled(trade);
     const rows = rowsOf(trade);
+    const aeat = verifactuInfo(trade.verifactuStatus);
 
     return (
         <div className={`trade ${open ? 'is-open' : ''} ${cancelled ? 'is-cancelled' : ''}`}>
@@ -49,6 +50,7 @@ const TradeComponnet = (props: Props) => {
                 <span className="trade-date">{formatDateTime(trade.date)}</span>
                 <span className="trade-status">
                     {cancelled ? <span className="badge badge-danger">Anulada</span> : <span className="badge badge-ok">Emitida</span>}
+                    {aeat && <span className={`badge badge-${aeat.tone}`} title={aeat.hint}>{aeat.label}</span>}
                 </span>
                 <span className="trade-total">{eur(tradeTotal(trade))}</span>
                 <span className="trade-act">

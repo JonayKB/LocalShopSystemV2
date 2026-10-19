@@ -1440,3 +1440,52 @@
     display: none;
   }
 }
+
+/* ---------- VERI*FACTU ---------- */
+.trade-head .trade-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.verifactu-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  color: var(--ok);
+  background: var(--ok-bg);
+  border-radius: 14px;
+}
+
+.verifactu-banner.is-attention {
+  color: var(--warn);
+  background: var(--warn-bg);
+}
+
+.verifactu-banner svg {
+  flex: none;
+}
+
+.verifactu-text {
+  display: flex;
+  flex: 1 1 220px;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  font-size: 0.85rem;
+  color: var(--text);
+}
+
+.verifactu-error {
+  color: var(--danger);
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 560px) {
+  .verifactu-banner {
+    flex-wrap: wrap;
+  }
+}
