@@ -1489,3 +1489,13 @@
     flex-wrap: wrap;
   }
 }
+.print-msg {
+  margin-bottom: 14px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+}
+.print-msg.is-ok {
+  background: rgba(34, 139, 94, 0.12);
+  color: #1f7a54;
+}

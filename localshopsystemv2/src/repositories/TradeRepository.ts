@@ -64,6 +64,20 @@ class TradeRepository {
     );
     return response.data;
   }
+  /**
+   * Imprime en la impresora de tickets el resumen de hoy: todos los productos
+   * ('products') o agrupados por categoría ('categories').
+   */
+  async printDaily(mode: 'products' | 'categories', token: string | null) {
+    if (!token) {
+      return;
+    }
+    await axios.post(BaseInfoRepository.BASE_URL + 'trade/print-daily', null, {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { mode },
+    });
+  }
+
   async getTradesByDate(token: string | null, startDate?: Date, endDate?: Date) {
     if (!token) {
       return;
