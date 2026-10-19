@@ -24,6 +24,11 @@ public class TradeDto {
     private BigDecimal totalTax;
     private BigDecimal total;
 
+    /** Estado de envío a la AEAT del último registro de la venta: PENDING, ACCEPTED, ACCEPTED_WITH_ERRORS o REJECTED. Null si no hay registro. */
+    private String verifactuStatus;
+    /** URL que lleva el QR tributario del ticket. Null si VERI*FACTU está desactivado o no hay alta. */
+    private String verifactuQrUrl;
+
     public TradeDto() {
     }
 
@@ -140,6 +145,22 @@ public class TradeDto {
 
     public void setTotal(BigDecimal total) {
         this.total = total;
+    }
+
+    public String getVerifactuStatus() {
+        return verifactuStatus;
+    }
+
+    public void setVerifactuStatus(String verifactuStatus) {
+        this.verifactuStatus = verifactuStatus;
+    }
+
+    public String getVerifactuQrUrl() {
+        return verifactuQrUrl;
+    }
+
+    public void setVerifactuQrUrl(String verifactuQrUrl) {
+        this.verifactuQrUrl = verifactuQrUrl;
     }
 
     @Override
