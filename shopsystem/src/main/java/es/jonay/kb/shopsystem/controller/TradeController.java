@@ -2,6 +2,7 @@ package es.jonay.kb.shopsystem.controller;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -23,6 +24,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 
+import es.jonay.kb.shopsystem.api.dto.DailyReportDto;
 import es.jonay.kb.shopsystem.api.dto.ItemDto;
 import es.jonay.kb.shopsystem.api.dto.TradeDto;
 import es.jonay.kb.shopsystem.api.mappers.TradeMapper;
@@ -285,6 +287,70 @@ public class TradeController {
         Page<TradeDto> dtos = trades.map(tradeMapper::toTradeDto);
         enrich(dtos.getContent());
         return dtos;
+    }
+
+    /**
+     * Resumen de lo vendido en un día: todos los productos con unidades e importe, y
+     * los mismos agrupados por categoría. Solo ventas emitidas (las anuladas no cuentan).
+     */
+    @Transactional(readOnly = true)
+    public DailyReportDto dailyReport(LocalDate day) {
+        LocalDate d = day != null ? day : LocalDate.now();
+        List<Trade> trades = tradeRepository.findAllTradesInRange(d.atStartOfDay(), d.plusDays(1).atStartOfDay());
+
+        // clave = id de producto; guarda nombre, unidades, importe y categoría
+        Map<Long, Object[]> byItem = new LinkedHashMap<>();
+        for (Trade trade : trades) {
+            if (trade.getLines() != null && !trade.getLines().isEmpty()) {
+                for (TradeLine l : trade.getLines()) {
+                    addToReport(byItem, l.getItemId(), l.getDescription(), l.getQuantity(), l.getLineTotal());
+                }
+            } else {
+                // Venta anterior a las líneas congeladas: se cuenta por producto al precio actual.
+                for (Item item : trade.getItems()) {
+                    addToReport(byItem, item.getId(), item.getName(), 1, latestPrice(item));
+                }
+            }
+        }
+
+        Map<Long, String> categoryOf = new HashMap<>();
+        List<DailyReportDto.Row> products = new ArrayList<>();
+        Map<String, List<DailyReportDto.Row>> byCategory = new java.util.TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+        BigDecimal total = BigDecimal.ZERO;
+        for (Map.Entry<Long, Object[]> e : byItem.entrySet()) {
+            Object[] v = e.getValue();
+            DailyReportDto.Row row = new DailyReportDto.Row((String) v[0], (Integer) v[1], (BigDecimal) v[2]);
+            products.add(row);
+            total = total.add(row.getTotal());
+            String cat = categoryOf.computeIfAbsent(e.getKey() == null ? -1L : e.getKey(), id -> {
+                if (id < 0) {
+                    return "Sin categoría";
+                }
+                return itemRepository.findById(id)
+                        .map(i -> i.getCategory() != null ? i.getCategory().getName() : "Sin categoría")
+                        .orElse("Sin categoría");
+            });
+            byCategory.computeIfAbsent(cat, k -> new ArrayList<>()).add(row);
+        }
+        products.sort((a, b) -> a.getName().compareToIgnoreCase(b.getName()));
+
+        DailyReportDto report = new DailyReportDto();
+        report.setDate(d);
+        report.setTradeCount(trades.size());
+        report.setTotal(total);
+        report.setProducts(products);
+        for (Map.Entry<String, List<DailyReportDto.Row>> e : byCategory.entrySet()) {
+            e.getValue().sort((a, b) -> a.getName().compareToIgnoreCase(b.getName()));
+            report.getCategories().add(new DailyReportDto.CategoryBlock(e.getKey(), e.getValue()));
+        }
+        return report;
+    }
+
+    private static void addToReport(Map<Long, Object[]> byItem, Long itemId, String name, int quantity,
+            BigDecimal total) {
+        Object[] acc = byItem.computeIfAbsent(itemId, k -> new Object[] { name, 0, BigDecimal.ZERO });
+        acc[1] = (Integer) acc[1] + quantity;
+        acc[2] = ((BigDecimal) acc[2]).add(total);
     }
 
     /**

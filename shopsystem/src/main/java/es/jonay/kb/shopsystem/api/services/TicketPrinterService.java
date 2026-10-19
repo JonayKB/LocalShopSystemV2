@@ -18,6 +18,7 @@ import java.util.logging.Logger;
 import org.springframework.stereotype.Controller;
 
 import es.jonay.kb.shopsystem.api.config.TicketPrinterConfigurationProperties;
+import es.jonay.kb.shopsystem.api.dto.DailyReportDto;
 import es.jonay.kb.shopsystem.api.dto.ItemDto;
 import es.jonay.kb.shopsystem.api.dto.TradeDto;
 import es.jonay.kb.shopsystem.api.dto.TradeLineDto;
@@ -210,6 +211,67 @@ public class TicketPrinterService {
         outputStream.flush();
 
         close();
+    }
+
+    /**
+     * Imprime el resumen del día. byCategory=false: lista de todos los productos vendidos;
+     * byCategory=true: los mismos agrupados por categoría con subtotal. No es una factura.
+     */
+    public void printDailyReport(DailyReportDto report, boolean byCategory, String ip, int port) throws Exception {
+        connect(ip, port);
+
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        buffer.write(INITIALIZE);
+        buffer.write(HEADER);
+        buffer.write((businessName + "\n").getBytes("CP437"));
+        buffer.write((byCategory ? "VENTAS DEL DIA POR CATEGORIA\n" : "PRODUCTOS VENDIDOS DEL DIA\n")
+                .getBytes("CP437"));
+        buffer.write(("Fecha: " + report.getDate().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                + "\n").getBytes("CP437"));
+        buffer.write("DOCUMENTO NO FISCAL - NO ES UNA FACTURA\n\n".getBytes("CP437"));
+        buffer.write(new byte[] { 0x1B, 0x61, 0x00, 0x1B, 0x45, 0x00 }); // izquierda, sin negrita
+
+        if (report.getProducts().isEmpty()) {
+            buffer.write("No hay ventas en este dia.\n".getBytes("CP437"));
+        } else if (byCategory) {
+            for (DailyReportDto.CategoryBlock block : report.getCategories()) {
+                buffer.write(new byte[] { 0x1B, 0x45, 0x01 }); // negrita
+                buffer.write(reportLine(block.getName().toUpperCase(), block.getQuantity(), block.getTotal()));
+                buffer.write(new byte[] { 0x1B, 0x45, 0x00 });
+                for (DailyReportDto.Row row : block.getRows()) {
+                    buffer.write(reportLine("  " + row.getName(), row.getQuantity(), row.getTotal()));
+                }
+                buffer.write("\n".getBytes("CP437"));
+            }
+        } else {
+            buffer.write("------------------------------------------------\n".getBytes("CP437"));
+            for (DailyReportDto.Row row : report.getProducts()) {
+                buffer.write(reportLine(row.getName(), row.getQuantity(), row.getTotal()));
+            }
+        }
+
+        int units = report.getProducts().stream().mapToInt(DailyReportDto.Row::getQuantity).sum();
+        buffer.write("------------------------------------------------\n".getBytes("CP437"));
+        buffer.write(new byte[] { 0x1B, 0x45, 0x01 });
+        buffer.write(String.format(java.util.Locale.US, "Ventas: %d   Unidades: %d\n", report.getTradeCount(), units)
+                .getBytes("CP437"));
+        buffer.write(String.format(java.util.Locale.US, "TOTAL: %41.2f\n", report.getTotal()).getBytes("CP437"));
+        buffer.write(new byte[] { 0x1B, 0x45, 0x00 });
+        buffer.write("\n\n\n\n".getBytes("CP437"));
+        buffer.write(CUT);
+
+        outputStream.write(buffer.toByteArray());
+        outputStream.flush();
+        close();
+    }
+
+    /** Línea "nombre ............ xN  importe" ajustada al ancho del ticket. */
+    private byte[] reportLine(String name, int quantity, java.math.BigDecimal total) throws IOException {
+        String right = String.format(java.util.Locale.US, "x%-3d %9.2f", quantity, total);
+        int maxName = TOTAL_WIDTH - right.length() - 1;
+        String n = name.length() > maxName ? name.substring(0, maxName) : name;
+        String line = n + " ".repeat(TOTAL_WIDTH - n.length() - right.length()) + right + "\n";
+        return line.getBytes("CP437");
     }
 
     public void openCashDrawer(String ip, int port) throws Exception {
