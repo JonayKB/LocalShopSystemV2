@@ -3,6 +3,7 @@ package es.jonay.kb.shopsystem.api.security;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -40,6 +41,8 @@ public class SecurityConfiguration {
 						.requestMatchers("/graphiql/**","/graphql/schema", "/graphql").permitAll()
 						.requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
 						.requestMatchers("/auth/**","/services/**").permitAll()
+						// Las imágenes de productos y categorías son públicas (solo lectura) para que el navegador las cachee.
+						.requestMatchers(HttpMethod.GET, "/images/**").permitAll()
 						.anyRequest().authenticated())
 				.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
 				.headers(headers -> headers.frameOptions(FrameOptionsConfig::sameOrigin));

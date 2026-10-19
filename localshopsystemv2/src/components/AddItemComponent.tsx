@@ -1,5 +1,4 @@
 import React, { useContext, useEffect, useState } from 'react'
-import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { MainContext } from './MainContextProvider';
 import Category from '../models/Category';
@@ -8,7 +7,6 @@ import ItemRepository from '../repositories/ItemRepository';
 import ImageRespository from '../repositories/ImageRepository';
 import Cropper, { Area } from 'react-easy-crop';
 import getCroppedImg from '../utils/CropImage';
-import { PLACEHOLDER_IMG } from '../utils/placeholder';
 
 
 
@@ -35,9 +33,7 @@ const AddItemComponent = (props: Props) => {
         setCrop({ x: 0, y: 0 });
         setZoom(0.5);
         if (openAddItemModal?.image) {
-            imageRepository.getImageById(openAddItemModal.image, token)
-                .then(url => setImageUrl(url))
-                .catch(() => setImageUrl(PLACEHOLDER_IMG));
+            setImageUrl(ImageRespository.url(openAddItemModal.image, 640));
         }
     }, [openAddItemModal]);
 
@@ -115,7 +111,7 @@ const AddItemComponent = (props: Props) => {
     const isNew = !openAddItemModal?.name;
     const lockedCode = !!item.id || item.id === 0;
 
-    return createPortal(
+    return (
         <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label={isNew ? 'Nuevo producto' : 'Editar producto'}>
             <div className="modal-card" style={{ maxWidth: 580 }}>
                 <button
@@ -326,8 +322,7 @@ const AddItemComponent = (props: Props) => {
                     </div>
                 </form>
             </div>
-        </div>,
-        document.body
+        </div>
     )
 }
 

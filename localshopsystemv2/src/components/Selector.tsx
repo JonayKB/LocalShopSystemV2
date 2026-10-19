@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useContext, useState } from 'react'
 import { ArrowLeft, ChevronRight } from 'lucide-react'
 import Category from '../models/Category'
 import ImageRespository from '../repositories/ImageRepository'
@@ -14,30 +14,12 @@ type Props = {
 
 const Selector = (props: Props) => {
     const { setOpenBasket, addItemToBasket } = useContext(MainContext);
-    const [imageUrls, setImageUrls] = useState<{ [key: string]: string }>({});
     const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
 
     function onItemClick(item: Item) {
         addItemToBasket(item);
+        setOpenBasket(true);
     }
-
-    useEffect(() => {
-        const imageRepository = new ImageRespository();
-        const fetchImages = async () => {
-            const urls: { [key: string]: string } = {};
-            await Promise.all(
-                props.categories.map(async (category) => {
-                    try {
-                        urls[category.id] = await imageRepository.getImageById(category.image, props.token);
-                    } catch (error) {
-                        urls[category.id] = PLACEHOLDER_IMG;
-                    }
-                })
-            );
-            setImageUrls(urls);
-        };
-        fetchImages();
-    }, [props.categories, props.token]);
 
     if (selectedCategory !== null && selectedCategory >= 0) {
         return (
@@ -65,9 +47,11 @@ const Selector = (props: Props) => {
                 >
                     <div className="cat-img">
                         <img
-                            src={imageUrls[category.id] ?? PLACEHOLDER_IMG}
+                            src={ImageRespository.url(category.image, 320)}
                             alt=""
-                            onError={(e) => { e.currentTarget.src = PLACEHOLDER_IMG; }}
+                            loading="lazy"
+                            decoding="async"
+                            onError={(e) => { if (e.currentTarget.src !== PLACEHOLDER_IMG) e.currentTarget.src = PLACEHOLDER_IMG; }}
                         />
                     </div>
                     <div className="cat-name">

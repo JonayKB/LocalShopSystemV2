@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import Item from '../models/Item'
 import ImageRespository from '../repositories/ImageRepository'
 import { eur } from '../utils/format'
@@ -13,17 +13,6 @@ type Props = {
 
 const ItemComponent = (props: Props) => {
     const { item } = props;
-    const imageRepository = new ImageRespository();
-    const [imageUrl, setImageUrl] = useState<string>(PLACEHOLDER_IMG);
-
-    useEffect(() => {
-        let cancelled = false;
-        imageRepository.getImageById(item.image, props.token)
-            .then(url => { if (!cancelled) setImageUrl(url); })
-            .catch(() => { if (!cancelled) setImageUrl(PLACEHOLDER_IMG); });
-        return () => { cancelled = true; };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [item.image, props.token]);
 
     const out = !item.ignoreStock && item.stock <= 0;
     const low = !item.ignoreStock && !out && item.stock < item.bareMinimun;
@@ -38,7 +27,13 @@ const ItemComponent = (props: Props) => {
             }}
         >
             <div className="item-img">
-                <img src={imageUrl} alt={item.name} onError={() => setImageUrl(PLACEHOLDER_IMG)} />
+                <img
+                    src={ImageRespository.url(item.image, 320)}
+                    alt={item.name}
+                    loading="lazy"
+                    decoding="async"
+                    onError={(e) => { if (e.currentTarget.src !== PLACEHOLDER_IMG) e.currentTarget.src = PLACEHOLDER_IMG; }}
+                />
             </div>
             <div className="item-name">{item.name}</div>
             <div className="item-foot">

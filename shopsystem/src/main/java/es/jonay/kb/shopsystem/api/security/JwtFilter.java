@@ -56,6 +56,11 @@ public class JwtFilter extends OncePerRequestFilter {
                 return;
             }
         }
+        // Imágenes: lectura pública (un <img> no puede enviar token). Subir y borrar siguen exigiéndolo.
+        if ("GET".equals(request.getMethod()) && path.startsWith("/kiosco/images/")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
         if (header == null && path.startsWith("/graphql")) {
             filterChain.doFilter(request, response);
             return;
