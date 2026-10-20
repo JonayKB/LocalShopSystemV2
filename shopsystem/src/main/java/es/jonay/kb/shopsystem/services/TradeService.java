@@ -1,5 +1,6 @@
 package es.jonay.kb.shopsystem.services;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -9,6 +10,7 @@ import java.util.logging.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import es.jonay.kb.shopsystem.api.dto.DailyReportDto;
 import es.jonay.kb.shopsystem.api.dto.ItemDto;
 import es.jonay.kb.shopsystem.api.dto.TradeDto;
 import es.jonay.kb.shopsystem.api.services.TicketPrinterService;
@@ -92,6 +95,34 @@ public class TradeService {
         }
 
         return ResponseEntity.ok(trade);
+    }
+
+    /**
+     * Imprime en la impresora de tickets el resumen del día (hoy si no se indica fecha).
+     * mode=products: todos los productos vendidos; mode=categories: agrupados por categoría.
+     * A diferencia del ticket de venta, aquí imprimir es el objetivo: si no hay impresora se avisa.
+     */
+    @PostMapping("/print-daily")
+    public ResponseEntity<?> printDaily(
+            @RequestParam(name = "mode", defaultValue = "products") String mode,
+            @RequestParam(name = "date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            HttpServletRequest request) {
+        if (!"products".equals(mode) && !"categories".equals(mode)) {
+            return ResponseEntity.badRequest().body("mode debe ser 'products' o 'categories'");
+        }
+        DailyReportDto report = tradeController.dailyReport(date);
+        String clientIp = request.getHeader("X-Forwarded-For");
+        if (clientIp == null || clientIp.isEmpty()) {
+            clientIp = request.getRemoteAddr();
+        }
+        try {
+            ticketPrinterService.printDailyReport(report, "categories".equals(mode), clientIp, PORT);
+        } catch (Exception e) {
+            logger.warning("No se pudo imprimir el resumen del día: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                    .body("No se pudo imprimir: " + e.getMessage());
+        }
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/range")
