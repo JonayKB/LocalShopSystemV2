@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import Item from '../models/Item'
 import ImageRespository from '../repositories/ImageRepository'
 import { eur } from '../utils/format'
@@ -13,9 +13,14 @@ type Props = {
 
 const ItemComponent = (props: Props) => {
     const { item } = props;
+    const [loaded, setLoaded] = useState(false);
+    const [failed, setFailed] = useState(false);
 
     const out = !item.ignoreStock && item.stock <= 0;
     const low = !item.ignoreStock && !out && item.stock < item.bareMinimun;
+
+    const realSrc = ImageRespository.url(item.image, 320);
+    const showReal = !!realSrc && !failed;
 
     return (
         <div
@@ -26,14 +31,21 @@ const ItemComponent = (props: Props) => {
                 props.onContextMenu?.(item);
             }}
         >
-            <div className="item-img">
-                <img
-                    src={ImageRespository.url(item.image, 320) ?? PLACEHOLDER_IMG}
-                    alt={item.name}
-                    loading="lazy"
-                    decoding="async"
-                    onError={(e) => { if (e.currentTarget.src !== PLACEHOLDER_IMG) e.currentTarget.src = PLACEHOLDER_IMG; }}
-                />
+            <div
+                className="item-img"
+                style={{ backgroundImage: `url(${PLACEHOLDER_IMG})` }}
+            >
+                {showReal && (
+                    <img
+                        src={realSrc!}
+                        alt={item.name}
+                        loading="lazy"
+                        decoding="async"
+                        className={loaded ? 'is-loaded' : ''}
+                        onLoad={() => setLoaded(true)}
+                        onError={() => setFailed(true)}
+                    />
+                )}
             </div>
             <div className="item-name">{item.name}</div>
             <div className="item-foot">
