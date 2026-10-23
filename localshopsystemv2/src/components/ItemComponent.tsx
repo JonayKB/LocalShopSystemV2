@@ -28,7 +28,7 @@ const ItemComponent = (props: Props) => {
         >
             <div className="item-img">
                 <img
-                    src={ImageRespository.url(item.image, 320)}
+                    src={ImageRespository.url(item.image, 320) ?? PLACEHOLDER_IMG}
                     alt={item.name}
                     loading="lazy"
                     decoding="async"
