@@ -13,14 +13,17 @@ type Props = {
 
 const ItemComponent = (props: Props) => {
     const { item } = props;
-    const [loaded, setLoaded] = useState(false);
+
+    const realSrc = ImageRespository.url(item.image, 320) || null;
+
+    // Si no hay imagen real, ya se considera "cargada" (se muestra el placeholder directamente)
+    const [loaded, setLoaded] = useState(!realSrc);
     const [failed, setFailed] = useState(false);
 
     const out = !item.ignoreStock && item.stock <= 0;
     const low = !item.ignoreStock && !out && item.stock < item.bareMinimun;
 
-    const realSrc = ImageRespository.url(item.image, 320);
-    const showReal = !!realSrc && !failed;
+    const src = failed || !realSrc ? PLACEHOLDER_IMG : realSrc;
 
     return (
         <div
@@ -33,19 +36,24 @@ const ItemComponent = (props: Props) => {
         >
             <div
                 className="item-img"
-                style={{ backgroundImage: `url(${PLACEHOLDER_IMG})` }}
+                style={{ backgroundImage: `url("${PLACEHOLDER_IMG}")` }}
             >
-                {showReal && (
-                    <img
-                        src={realSrc!}
-                        alt={item.name}
-                        loading="lazy"
-                        decoding="async"
-                        className={loaded ? 'is-loaded' : ''}
-                        onLoad={() => setLoaded(true)}
-                        onError={() => setFailed(true)}
-                    />
-                )}
+                <img
+                    key={src}
+                    src={src}
+                    alt={item.name}
+                    loading="lazy"
+                    decoding="async"
+                    className={loaded ? 'is-loaded' : ''}
+                    ref={(el) => {
+                        if (el && el.complete && el.naturalWidth > 0) setLoaded(true);
+                    }}
+                    onLoad={() => setLoaded(true)}
+                    onError={() => {
+                        setFailed(true);
+                        setLoaded(true);
+                    }}
+                />
             </div>
             <div className="item-name">{item.name}</div>
             <div className="item-foot">
