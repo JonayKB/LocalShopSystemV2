@@ -5,7 +5,8 @@ import ExportRepository from '../repositories/ExportRepository';
 import TradeRepository from '../repositories/TradeRepository';
 import { Printer, LayoutList } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
-import { eur } from '../utils/format';
+import { eur, isCancelled, tradeTotal } from '../utils/format';
+import Trade from '../models/Trade';
 
 type Props = {}
 
@@ -14,6 +15,7 @@ const TodayCash = (props: Props) => {
     const navitigation = useNavigate();
     const [incomeByCategory, setIncomeByCategory] = useState<Record<string, number>>();
     const [error, setError] = useState<string | null>(null);
+    const [byPayment, setByPayment] = useState<{ cash: number; card: number; cashCount: number; cardCount: number }>();
     const [printing, setPrinting] = useState<'products' | 'categories' | null>(null);
     const [printMsg, setPrintMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
@@ -39,6 +41,21 @@ const TodayCash = (props: Props) => {
         new ExportRepository().getIncomeByCategory(token)
             .then(setIncomeByCategory)
             .catch(() => setError('No se pudo cargar la caja del día.'));
+        new TradeRepository().getTradesByDate(token)
+            .then((trades: Trade[] | undefined) => {
+                const acc = { cash: 0, card: 0, cashCount: 0, cardCount: 0 };
+                (trades ?? []).filter(t => !isCancelled(t)).forEach(t => {
+                    if (t.paymentMethod === 'CARD') {
+                        acc.card += tradeTotal(t);
+                        acc.cardCount++;
+                    } else {
+                        acc.cash += tradeTotal(t);
+                        acc.cashCount++;
+                    }
+                });
+                setByPayment(acc);
+            })
+            .catch(() => setByPayment(undefined));
     }, [token, navitigation]);
 
     const entries = incomeByCategory ? Object.entries(incomeByCategory) : [];
@@ -49,7 +66,7 @@ const TodayCash = (props: Props) => {
             <PageHeader
                 eyebrow="Día a día"
                 title="Caja del día"
-                sub="Ingresos de hoy por categoría. Las ventas anuladas no se incluyen."
+                sub="Ingresos de hoy por forma de pago y por categoría. Las ventas anuladas no se incluyen."
                 actions={
                     <>
                         <button type="button" className="btn" disabled={printing !== null}
@@ -80,6 +97,18 @@ const TodayCash = (props: Props) => {
                         <small>Total de hoy</small>
                         <strong>{eur(total)}</strong>
                     </div>
+                    {byPayment && (
+                        <>
+                            <div className="stat">
+                                <small>Efectivo ({byPayment.cashCount} {byPayment.cashCount === 1 ? 'venta' : 'ventas'})</small>
+                                <strong>{eur(byPayment.cash)}</strong>
+                            </div>
+                            <div className="stat">
+                                <small>Tarjeta ({byPayment.cardCount} {byPayment.cardCount === 1 ? 'venta' : 'ventas'})</small>
+                                <strong>{eur(byPayment.card)}</strong>
+                            </div>
+                        </>
+                    )}
                     {entries.length === 0 && (
                         <div className="empty" style={{ gridColumn: '1 / -1' }}>
                             <strong>Todavía no hay ventas hoy</strong>

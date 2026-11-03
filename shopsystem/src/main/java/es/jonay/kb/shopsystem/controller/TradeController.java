@@ -33,6 +33,7 @@ import es.jonay.kb.shopsystem.model.entities.BillingRecordType;
 import es.jonay.kb.shopsystem.model.entities.Category;
 import es.jonay.kb.shopsystem.model.entities.InvoiceCounter;
 import es.jonay.kb.shopsystem.model.entities.Item;
+import es.jonay.kb.shopsystem.model.entities.PaymentMethod;
 import es.jonay.kb.shopsystem.model.entities.Trade;
 import es.jonay.kb.shopsystem.model.entities.TradeLine;
 import es.jonay.kb.shopsystem.model.entities.TradeStatus;
@@ -143,12 +144,12 @@ public class TradeController {
     }
 
     /**
-     * Emite una venta nueva. Siempre pasa por {@link #saveList(List)}: la fecha,
+     * Emite una venta nueva. Siempre pasa por {@link #saveList(List, PaymentMethod)}: la fecha,
      * el número y los importes los fija el servidor, nunca el cliente.
      */
     @Transactional
     public TradeDto save(TradeDto tradeDto) {
-        return saveList(tradeDto.getItems());
+        return saveList(tradeDto.getItems(), PaymentMethod.parse(tradeDto.getPaymentMethod()));
     }
 
     /**
@@ -157,7 +158,7 @@ public class TradeController {
      * Todo en una única transacción: si algo falla, no se consume número.
      */
     @Transactional
-    public TradeDto saveList(List<ItemDto> items) {
+    public TradeDto saveList(List<ItemDto> items, PaymentMethod paymentMethod) {
         if (items == null || items.isEmpty()) {
             throw new IllegalArgumentException("La venta no tiene productos");
         }
@@ -219,6 +220,7 @@ public class TradeController {
         trade.setSeries(invoiceSeries);
         trade.setNumber(counter.next());
         trade.setStatus(TradeStatus.ISSUED);
+        trade.setPaymentMethod(paymentMethod != null ? paymentMethod : PaymentMethod.CASH);
         trade.setTotalBase(totalBase);
         trade.setTotalTax(totalTax);
         trade.setTotal(total);
@@ -300,16 +302,29 @@ public class TradeController {
 
         // clave = id de producto; guarda nombre, unidades, importe y categoría
         Map<Long, Object[]> byItem = new LinkedHashMap<>();
+        BigDecimal cashTotal = BigDecimal.ZERO;
+        BigDecimal cardTotal = BigDecimal.ZERO;
+        int cardCount = 0;
         for (Trade trade : trades) {
+            BigDecimal tradeTotal = BigDecimal.ZERO;
             if (trade.getLines() != null && !trade.getLines().isEmpty()) {
                 for (TradeLine l : trade.getLines()) {
                     addToReport(byItem, l.getItemId(), l.getDescription(), l.getQuantity(), l.getLineTotal());
+                    tradeTotal = tradeTotal.add(l.getLineTotal());
                 }
             } else {
                 // Venta anterior a las líneas congeladas: se cuenta por producto al precio actual.
                 for (Item item : trade.getItems()) {
-                    addToReport(byItem, item.getId(), item.getName(), 1, latestPrice(item));
+                    BigDecimal price = latestPrice(item);
+                    addToReport(byItem, item.getId(), item.getName(), 1, price);
+                    tradeTotal = tradeTotal.add(price);
                 }
+            }
+            if (trade.getPaymentMethod() == PaymentMethod.CARD) {
+                cardTotal = cardTotal.add(tradeTotal);
+                cardCount++;
+            } else {
+                cashTotal = cashTotal.add(tradeTotal);
             }
         }
 
@@ -338,6 +353,10 @@ public class TradeController {
         report.setDate(d);
         report.setTradeCount(trades.size());
         report.setTotal(total);
+        report.setCashTotal(cashTotal);
+        report.setCardTotal(cardTotal);
+        report.setCashCount(trades.size() - cardCount);
+        report.setCardCount(cardCount);
         report.setProducts(products);
         for (Map.Entry<String, List<DailyReportDto.Row>> e : byCategory.entrySet()) {
             e.getValue().sort((a, b) -> a.getName().compareToIgnoreCase(b.getName()));

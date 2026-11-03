@@ -24,6 +24,12 @@ import es.jonay.kb.shopsystem.model.repository.IItemRepository;
 public class ItemController {
     private IItemRepository itemRepository;
     private ICategoryRepository categoryRepository;
+    private ImageUsageGuard imageUsageGuard;
+
+    @Autowired
+    public void setImageUsageGuard(ImageUsageGuard imageUsageGuard) {
+        this.imageUsageGuard = imageUsageGuard;
+    }
 
     public IItemRepository getIItemRepository() {
         return this.itemRepository;
@@ -74,6 +80,9 @@ public class ItemController {
     }
 
     public ItemDto save(ItemDto itemDto) {
+        String currentImage = itemDto.getId() == null ? null
+                : itemRepository.findById(itemDto.getId()).map(Item::getImage).orElse(null);
+        imageUsageGuard.checkForItem(itemDto.getId(), currentImage, itemDto.getImage());
         Item item = ItemMapper.INSTANCE.toItem(itemDto);
         item.setCategory(categoryRepository.findById(itemDto.getCategoryId()).orElse(null));
         SortedMap<LocalDateTime, Double> priceHistory = new TreeMap<>();
@@ -95,6 +104,7 @@ public class ItemController {
             return itemDto;
         }
         Item item = itemRepository.findById(itemDto.getId()).get();
+        imageUsageGuard.checkForItem(item.getId(), item.getImage(), itemDto.getImage());
         item.setCategory(categoryRepository.findById(itemDto.getCategoryId()).orElse(null));
         item.setBareMinimun(itemDto.getBareMinimun());
         item.setIgnoreStock(itemDto.getIgnoreStock());

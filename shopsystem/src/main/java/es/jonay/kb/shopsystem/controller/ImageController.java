@@ -11,6 +11,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 import java.util.logging.Logger;
 
 import javax.imageio.ImageIO;
@@ -156,7 +157,7 @@ public class ImageController {
             throw new RuntimeException("Filename is null");
         }
         // Solo el nombre del fichero: nunca rutas que vengan del cliente.
-        filename = Paths.get(filename).getFileName().toString();
+        filename = uniqueName(Paths.get(filename).getFileName().toString());
         Path filePath = this.uploads.resolve(filename);
         filePath = getFreePath(filename, filePath);
         try {
@@ -165,6 +166,26 @@ public class ImageController {
         } catch (IOException e) {
             throw new RuntimeException("Could not store the file. Error: " + e.getMessage());
         }
+    }
+
+    /**
+     * Cada subida recibe un nombre nuevo (sufijo aleatorio): dos fotos nunca comparten
+     * fichero y un nombre nunca se reutiliza, aunque se borre (las imágenes se cachean
+     * en el navegador como inmutables).
+     */
+    private static String uniqueName(String original) {
+        int dot = original.lastIndexOf('.');
+        String base = dot > 0 ? original.substring(0, dot) : original;
+        String ext = dot > 0 ? original.substring(dot).toLowerCase(Locale.ROOT) : "";
+        base = base.replaceAll("[^A-Za-z0-9_-]", "_");
+        if (base.length() > 60) {
+            base = base.substring(0, 60);
+        }
+        if (base.isEmpty()) {
+            base = "img";
+        }
+        ext = ext.replaceAll("[^a-z0-9.]", "");
+        return base + "_" + UUID.randomUUID().toString().replace("-", "").substring(0, 12) + ext;
     }
 
     public void delete(String imageName) {

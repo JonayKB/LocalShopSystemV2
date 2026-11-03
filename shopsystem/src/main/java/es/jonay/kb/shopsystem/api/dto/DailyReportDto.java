@@ -67,6 +67,11 @@ public class DailyReportDto {
     private LocalDate date;
     private int tradeCount;
     private BigDecimal total = BigDecimal.ZERO;
+    /** Desglose por forma de pago (importe y número de ventas). */
+    private BigDecimal cashTotal = BigDecimal.ZERO;
+    private BigDecimal cardTotal = BigDecimal.ZERO;
+    private int cashCount;
+    private int cardCount;
     private List<Row> products = new ArrayList<>();
     private List<CategoryBlock> categories = new ArrayList<>();
 
@@ -108,5 +113,37 @@ public class DailyReportDto {
 
     public void setCategories(List<CategoryBlock> categories) {
         this.categories = categories;
+    }
+
+    public BigDecimal getCashTotal() {
+        return cashTotal;
+    }
+
+    public void setCashTotal(BigDecimal cashTotal) {
+        this.cashTotal = cashTotal;
+    }
+
+    public BigDecimal getCardTotal() {
+        return cardTotal;
+    }
+
+    public void setCardTotal(BigDecimal cardTotal) {
+        this.cardTotal = cardTotal;
+    }
+
+    public int getCashCount() {
+        return cashCount;
+    }
+
+    public void setCashCount(int cashCount) {
+        this.cashCount = cashCount;
+    }
+
+    public int getCardCount() {
+        return cardCount;
+    }
+
+    public void setCardCount(int cardCount) {
+        this.cardCount = cardCount;
     }
 }

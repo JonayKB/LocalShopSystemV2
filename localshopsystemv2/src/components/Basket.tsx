@@ -1,13 +1,15 @@
 import React, { useContext, useState } from 'react';
-import { Minus, Plus, ShoppingBag, X } from 'lucide-react';
+import { Banknote, CreditCard, Minus, Plus, ShoppingBag, X } from 'lucide-react';
 import { MainContext } from './MainContextProvider';
 import TradeRepository from '../repositories/TradeRepository';
 import { eur } from '../utils/format';
+import { PaymentMethod } from '../models/Trade';
 
 const Basket: React.FC = () => {
     const { basketItems, openBasket, setOpenBasket, updateBasket, token, setBasketItems } = useContext(MainContext);
     const tradeRepository = new TradeRepository();
     const [printTicket, setPrintTicket] = useState(false);
+    const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('CASH');
     const [error, setError] = useState<string | null>(null);
     const [busy, setBusy] = useState(false);
 
@@ -27,11 +29,12 @@ const Basket: React.FC = () => {
         setError(null);
         setBusy(true);
         try {
-            const result = await tradeRepository.createTrade(basketItems, token, printTicket);
+            const result = await tradeRepository.createTrade(basketItems, token, printTicket, paymentMethod);
             if (result) {
                 playSound('/success_sound.mp3');
                 setBasketItems(new Map());
                 setPrintTicket(false);
+                setPaymentMethod('CASH');
                 setOpenBasket(false);
                 document.activeElement instanceof HTMLElement && document.activeElement.blur();
             }
@@ -109,6 +112,20 @@ const Basket: React.FC = () => {
                         <strong>{eur(total)}</strong>
                     </div>
                     {error && <div className="cart-error" role="alert">{error}</div>}
+                    <div className="seg cart-pay" role="radiogroup" aria-label="Forma de pago">
+                        {([['CASH', 'Efectivo', Banknote], ['CARD', 'Tarjeta', CreditCard]] as const).map(([value, label, Icon]) => (
+                            <button
+                                key={value}
+                                type="button"
+                                role="radio"
+                                aria-checked={paymentMethod === value}
+                                className={paymentMethod === value ? 'is-active' : ''}
+                                onClick={() => setPaymentMethod(value)}
+                            >
+                                <Icon size={16} aria-hidden="true" /> {label}
+                            </button>
+                        ))}
+                    </div>
                     <label className="check">
                         <input type="checkbox" checked={printTicket} onChange={e => setPrintTicket(e.target.checked)} />
                         Imprimir ticket
@@ -119,7 +136,7 @@ const Basket: React.FC = () => {
                         disabled={entries.length === 0 || busy}
                         aria-label="Cobrar"
                     >
-                        {busy ? 'Registrando…' : `Cobrar ${eur(total)}`}
+                        {busy ? 'Registrando…' : `Cobrar ${eur(total)} · ${paymentMethod === 'CARD' ? 'Tarjeta' : 'Efectivo'}`}
                     </button>
                 </div>
             </aside>

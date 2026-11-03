@@ -23,6 +23,10 @@ public interface IItemRepository extends JpaRepository<Item, Long> {
 
     List<Item> findByCategoryId(Long categoryId);
 
+    boolean existsByImage(String image);
+
+    boolean existsByImageAndIdNot(String image, Long id);
+
     List<Item> findByTradesId(Long tradesId);
 
     Page<Item> findByNameContainingIgnoreCase(String name, Pageable pageable);

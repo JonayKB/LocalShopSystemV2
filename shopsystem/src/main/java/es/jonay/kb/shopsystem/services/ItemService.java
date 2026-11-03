@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import es.jonay.kb.shopsystem.api.dto.ItemDto;
+import es.jonay.kb.shopsystem.api.exceptions.ImageInUseException;
 import es.jonay.kb.shopsystem.api.mappers.ItemMapper;
 import es.jonay.kb.shopsystem.controller.ItemController;
 
@@ -56,14 +58,21 @@ public class ItemService {
     }
 
     @PostMapping("/")
-    public ItemDto save(@RequestBody ItemDto entity) {
-        return iItemController.save(entity);
-
+    public ResponseEntity<?> save(@RequestBody ItemDto entity) {
+        try {
+            return ResponseEntity.ok(iItemController.save(entity));
+        } catch (ImageInUseException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        }
     }
 
     @PutMapping("/")
-    public ItemDto update(@RequestBody ItemDto entity) {
-        return iItemController.update(entity);
+    public ResponseEntity<?> update(@RequestBody ItemDto entity) {
+        try {
+            return ResponseEntity.ok(iItemController.update(entity));
+        } catch (ImageInUseException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        }
     }
 
     @DeleteMapping("/{id}")

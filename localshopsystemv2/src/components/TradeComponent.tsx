@@ -50,6 +50,7 @@ const TradeComponnet = (props: Props) => {
                 <span className="trade-date">{formatDateTime(trade.date)}</span>
                 <span className="trade-status">
                     {cancelled ? <span className="badge badge-danger">Anulada</span> : <span className="badge badge-ok">Emitida</span>}
+                    <span className="badge badge-muted">{trade.paymentMethod === 'CARD' ? 'Tarjeta' : 'Efectivo'}</span>
                     {aeat && <span className={`badge badge-${aeat.tone}`} title={aeat.hint}>{aeat.label}</span>}
                 </span>
                 <span className="trade-total">{eur(tradeTotal(trade))}</span>

@@ -13,6 +13,7 @@ import es.jonay.kb.shopsystem.api.dto.ItemDto;
 import es.jonay.kb.shopsystem.api.dto.TradeDto;
 import es.jonay.kb.shopsystem.api.dto.TradeLineDto;
 import es.jonay.kb.shopsystem.model.entities.Item;
+import es.jonay.kb.shopsystem.model.entities.PaymentMethod;
 import es.jonay.kb.shopsystem.model.entities.Trade;
 import es.jonay.kb.shopsystem.model.entities.TradeLine;
 
@@ -30,6 +31,7 @@ public interface TradeMapper {
             dto.setInvoiceNumber(String.format("%s-%06d", trade.getSeries(), trade.getNumber()));
         }
         dto.setStatus(trade.getStatus() != null ? trade.getStatus().name() : null);
+        dto.setPaymentMethod(trade.getPaymentMethod() != null ? trade.getPaymentMethod().name() : PaymentMethod.CASH.name());
         dto.setCancelledAt(trade.getCancelledAt());
         dto.setCancellationReason(trade.getCancellationReason());
         dto.setTotalBase(trade.getTotalBase());

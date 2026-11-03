@@ -32,9 +32,9 @@ const AddItemComponent = (props: Props) => {
         setCroppedAreaPixels(undefined);
         setCrop({ x: 0, y: 0 });
         setZoom(0.5);
-        if (openAddItemModal?.image) {
-            setImageUrl(ImageRespository.url(openAddItemModal.image, 640));
-        }
+        // Al abrir otro producto se descarta la foto anterior: nunca se reutiliza por error.
+        setCroppedImage(null);
+        setImageUrl(openAddItemModal?.image ? ImageRespository.url(openAddItemModal.image, 640) : undefined);
     }, [openAddItemModal]);
 
     const handleCropImage = async () => {
@@ -61,18 +61,14 @@ const AddItemComponent = (props: Props) => {
         const name = formData.get('name') as string;
         let imageName = item?.image ?? '';
         if (croppedImage) {
-            await imageRepository.uploadImage(croppedImage, token)
-                .then((name) => {
-                    imageName = name;
-                    setCroppedImage(null);
-
-                })
-                .catch((error) => {
-                    console.error('Error uploading image:', error);
-                    alert('Error al subir la imagen. Por favor, inténtalo de nuevo.');
-                });
-
-
+            try {
+                imageName = await imageRepository.uploadImage(croppedImage, token);
+                setCroppedImage(null);
+            } catch (error) {
+                console.error('Error uploading image:', error);
+                alert('Error al subir la imagen. Por favor, inténtalo de nuevo.');
+                return;
+            }
         }
 
         const newItem: Item = {
@@ -99,7 +95,8 @@ const AddItemComponent = (props: Props) => {
             })
             .catch((error) => {
                 console.error('Error adding item:', error);
-                alert('Error al agregar el producto. Por favor, inténtalo de nuevo.');
+                const msg = typeof error?.response?.data === 'string' && error.response.data ? error.response.data : null;
+                alert(msg ?? 'Error al agregar el producto. Por favor, inténtalo de nuevo.');
             });
 
 

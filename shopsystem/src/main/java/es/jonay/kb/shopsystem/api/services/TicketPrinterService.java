@@ -21,6 +21,7 @@ import es.jonay.kb.shopsystem.api.config.TicketPrinterConfigurationProperties;
 import es.jonay.kb.shopsystem.api.dto.DailyReportDto;
 import es.jonay.kb.shopsystem.api.dto.ItemDto;
 import es.jonay.kb.shopsystem.api.dto.TradeDto;
+import es.jonay.kb.shopsystem.model.entities.PaymentMethod;
 import es.jonay.kb.shopsystem.api.dto.TradeLineDto;
 import es.jonay.kb.shopsystem.verifactu.VerifactuProperties;
 import es.jonay.kb.shopsystem.verifactu.VerifactuQr;
@@ -104,6 +105,10 @@ public class TicketPrinterService {
     }
 
     public void print(TradeDto tradeDto, String ip, int port) throws Exception {
+        print(tradeDto, ip, port, true);
+    }
+
+    public void print(TradeDto tradeDto, String ip, int port, boolean openDrawer) throws Exception {
         connect(ip, port);
 
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
@@ -199,12 +204,17 @@ public class TicketPrinterService {
             buffer.write(String.format("TOTAL:        %33.2f\n", subtotal).getBytes(StandardCharsets.US_ASCII));
         }
 
+        buffer.write(("Forma de pago: " + PaymentMethod.parse(tradeDto.getPaymentMethod()).label() + "\n")
+                .getBytes("CP437"));
+
         buffer.write("\n\n".getBytes("CP437"));
         buffer.write(HEADER);
         buffer.write("Gracias por su compra!\n".getBytes("CP437"));
         buffer.write("\n\n\n\n".getBytes("CP437"));
         buffer.write(CUT);
-        buffer.write(OPEN_DRAWER);
+        if (openDrawer) {
+            buffer.write(OPEN_DRAWER);
+        }
 
         // Enviar a la impresora
         outputStream.write(buffer.toByteArray());
@@ -257,6 +267,12 @@ public class TicketPrinterService {
                 .getBytes("CP437"));
         buffer.write(String.format(java.util.Locale.US, "TOTAL: %41.2f\n", report.getTotal()).getBytes("CP437"));
         buffer.write(new byte[] { 0x1B, 0x45, 0x00 });
+        buffer.write(String.format(java.util.Locale.US, "Efectivo (%d): %*.2f\n", report.getCashCount(),
+                TOTAL_WIDTH - 13 - String.valueOf(report.getCashCount()).length(), report.getCashTotal())
+                .getBytes("CP437"));
+        buffer.write(String.format(java.util.Locale.US, "Tarjeta (%d): %*.2f\n", report.getCardCount(),
+                TOTAL_WIDTH - 12 - String.valueOf(report.getCardCount()).length(), report.getCardTotal())
+                .getBytes("CP437"));
         buffer.write("\n\n\n\n".getBytes("CP437"));
         buffer.write(CUT);
 

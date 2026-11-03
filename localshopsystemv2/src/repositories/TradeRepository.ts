@@ -1,12 +1,13 @@
 import axios from "axios";
 import Item from "../models/Item";
+import { PaymentMethod } from "../models/Trade";
 import { BaseInfoRepository } from "../utils/BaseInfoRepository";
 
 
 
 class TradeRepository {
 
-  async createTrade(itemMap: Map<Item, number>, token: string | null, print: boolean) {
+  async createTrade(itemMap: Map<Item, number>, token: string | null, print: boolean, paymentMethod: PaymentMethod = 'CASH') {
     let items: Item[] = [];
     if (!token) {
       return;
@@ -38,7 +39,7 @@ class TradeRepository {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        params: { print },
+        params: { print, paymentMethod },
       }
     );
 

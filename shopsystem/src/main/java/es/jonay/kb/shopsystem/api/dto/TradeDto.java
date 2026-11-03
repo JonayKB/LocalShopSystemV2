@@ -17,6 +17,8 @@ public class TradeDto {
     private String invoiceNumber;
     /** ISSUED o CANCELLED. */
     private String status;
+    /** CASH o CARD. */
+    private String paymentMethod;
     private Date cancelledAt;
     private String cancellationReason;
     private List<TradeLineDto> lines = new ArrayList<>();
@@ -97,6 +99,14 @@ public class TradeDto {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(String paymentMethod) {
+        this.paymentMethod = paymentMethod;
     }
 
     public Date getCancelledAt() {

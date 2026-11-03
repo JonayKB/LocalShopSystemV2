@@ -27,6 +27,7 @@ import es.jonay.kb.shopsystem.api.dto.ItemDto;
 import es.jonay.kb.shopsystem.api.dto.TradeDto;
 import es.jonay.kb.shopsystem.api.services.TicketPrinterService;
 import es.jonay.kb.shopsystem.controller.TradeController;
+import es.jonay.kb.shopsystem.model.entities.PaymentMethod;
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
@@ -70,11 +71,14 @@ public class TradeService {
     @PostMapping("/newTrade")
     public ResponseEntity<?> saveList(@RequestBody List<ItemDto> items,
             @RequestParam(name = "print", defaultValue = "false") boolean print,
+            @RequestParam(name = "paymentMethod", defaultValue = "CASH") String paymentMethod,
             HttpServletRequest request) throws Exception {
 
         TradeDto trade;
+        PaymentMethod method;
         try {
-            trade = tradeController.saveList(items);
+            method = PaymentMethod.parse(paymentMethod);
+            trade = tradeController.saveList(items, method);
         } catch (IllegalArgumentException | NoSuchElementException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -84,9 +88,11 @@ public class TradeService {
         }
         System.out.println("Client IP: " + clientIp);
         try {
+            // Con tarjeta no entra dinero en el cajón: no se abre.
+            boolean openDrawer = method == PaymentMethod.CASH;
             if (print) {
-                ticketPrinterService.print(trade, clientIp, PORT); // Usa la IP pública del cliente
-            } else {
+                ticketPrinterService.print(trade, clientIp, PORT, openDrawer); // Usa la IP pública del cliente
+            } else if (openDrawer) {
                 ticketPrinterService.openCashDrawer(clientIp, PORT);
             }
         } catch (Exception e) {

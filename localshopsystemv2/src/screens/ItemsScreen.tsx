@@ -4,7 +4,7 @@ import { MainContext } from '../components/MainContextProvider';
 import { useNavigate } from 'react-router-dom';
 import ItemSearcher from '../components/ItemSearcher';
 import PageHeader from '../components/PageHeader';
-import CategoryTaxes from '../components/CategoryTaxes';
+import CategoryManager from '../components/CategoryManager';
 import CategoryRepository from '../repositories/CategoryRepository';
 
 type Props = {}
@@ -27,7 +27,7 @@ const ItemsScreen = (props: Props) => {
       <PageHeader
         eyebrow="Gestión"
         title="Productos"
-        sub="Busca un producto y pulsa sobre él para editar su precio, stock o imagen."
+        sub="Busca un producto y pulsa sobre él para editar su precio, stock o imagen. Más abajo puedes crear y editar categorías."
         actions={
           <button
             className="btn btn-primary"
@@ -48,7 +48,7 @@ const ItemsScreen = (props: Props) => {
         }
       />
       <ItemSearcher showAll onItemClickProp={(item) => setOpenAddItemModal(item)} onItemMenu={(item) => setOpenAddItemModal(item)} />
-      <CategoryTaxes />
+      <CategoryManager />
     </>
   );
 };

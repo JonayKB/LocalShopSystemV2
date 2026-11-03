@@ -11,6 +11,8 @@ export type TradeLine = {
   lineTotal: number;
 };
 
+export type PaymentMethod = 'CASH' | 'CARD';
+
 export type VerifactuStatus = 'PENDING' | 'ACCEPTED' | 'ACCEPTED_WITH_ERRORS' | 'REJECTED';
 
 type Trade = {
@@ -23,6 +25,8 @@ type Trade = {
   /** Número legible, p. ej. "T-000123". */
   invoiceNumber?: string | null;
   status?: 'ISSUED' | 'CANCELLED';
+  /** Forma de pago. Las ventas antiguas son efectivo. */
+  paymentMethod?: PaymentMethod;
   cancelledAt?: string | null;
   cancellationReason?: string | null;
   lines?: TradeLine[];

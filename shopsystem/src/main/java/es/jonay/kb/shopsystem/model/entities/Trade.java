@@ -53,6 +53,11 @@ public class Trade {
     @Column(nullable = false, length = 20, columnDefinition = "varchar(20) not null default 'ISSUED'")
     private TradeStatus status = TradeStatus.ISSUED;
 
+    /** Forma de pago. Las ventas anteriores a este campo se consideran en efectivo. */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10, columnDefinition = "varchar(10) not null default 'CASH'")
+    private PaymentMethod paymentMethod = PaymentMethod.CASH;
+
     private Date cancelledAt;
 
     @Column(length = 255)
@@ -136,6 +141,14 @@ public class Trade {
 
     public void setStatus(TradeStatus status) {
         this.status = status;
+    }
+
+    public PaymentMethod getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(PaymentMethod paymentMethod) {
+        this.paymentMethod = paymentMethod;
     }
 
     public Date getCancelledAt() {
