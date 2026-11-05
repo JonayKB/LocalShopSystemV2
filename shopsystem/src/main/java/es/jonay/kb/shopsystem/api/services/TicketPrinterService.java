@@ -228,8 +228,6 @@ public class TicketPrinterService {
      * byCategory=true: los mismos agrupados por categoría con subtotal. No es una factura.
      */
     public void printDailyReport(DailyReportDto report, boolean byCategory, String ip, int port) throws Exception {
-        connect(ip, port);
-
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         buffer.write(INITIALIZE);
         buffer.write(HEADER);
@@ -267,18 +265,23 @@ public class TicketPrinterService {
                 .getBytes("CP437"));
         buffer.write(String.format(java.util.Locale.US, "TOTAL: %41.2f\n", report.getTotal()).getBytes("CP437"));
         buffer.write(new byte[] { 0x1B, 0x45, 0x00 });
-        buffer.write(String.format(java.util.Locale.US, "Efectivo (%d): %*.2f\n", report.getCashCount(),
-                TOTAL_WIDTH - 13 - String.valueOf(report.getCashCount()).length(), report.getCashTotal())
-                .getBytes("CP437"));
-        buffer.write(String.format(java.util.Locale.US, "Tarjeta (%d): %*.2f\n", report.getCardCount(),
-                TOTAL_WIDTH - 12 - String.valueOf(report.getCardCount()).length(), report.getCardTotal())
-                .getBytes("CP437"));
+        buffer.write(amountLine("Efectivo (" + report.getCashCount() + "):", report.getCashTotal()));
+        buffer.write(amountLine("Tarjeta (" + report.getCardCount() + "):", report.getCardTotal()));
         buffer.write("\n\n\n\n".getBytes("CP437"));
         buffer.write(CUT);
 
+        connect(ip, port);
         outputStream.write(buffer.toByteArray());
         outputStream.flush();
         close();
+    }
+
+    /** Línea "etiqueta ............ importe" con el importe alineado a la derecha. */
+    private byte[] amountLine(String label, java.math.BigDecimal amount) throws IOException {
+        String value = String.format(java.util.Locale.US, "%.2f",
+                amount != null ? amount : java.math.BigDecimal.ZERO);
+        int spaces = Math.max(1, TOTAL_WIDTH - label.length() - value.length());
+        return (label + " ".repeat(spaces) + value + "\n").getBytes("CP437");
     }
 
     /** Línea "nombre ............ xN  importe" ajustada al ancho del ticket. */
