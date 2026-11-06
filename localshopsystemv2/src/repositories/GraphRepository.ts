@@ -1,5 +1,4 @@
-import axios from "axios";
-import { BaseInfoRepository } from "../utils/BaseInfoRepository";
+import { api } from "../utils/api";
 import {
   Bucket,
   CategoryShare,
@@ -18,11 +17,8 @@ export type DateRange = { from: string; to: string };
 class GraphRepository {
   private static readonly PREFIX = "graphs/";
 
-  private async get<T>(path: string, token: string | null, params: Record<string, unknown> = {}): Promise<T> {
-    const response = await axios.get<T>(BaseInfoRepository.BASE_URL + GraphRepository.PREFIX + path, {
-      headers: { Authorization: `Bearer ${token}` },
-      params,
-    });
+  private async get<T>(path: string, _token: string | null, params: Record<string, unknown> = {}): Promise<T> {
+    const response = await api.get<T>(GraphRepository.PREFIX + path, { params });
     return response.data;
   }
 

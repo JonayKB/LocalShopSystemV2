@@ -1,5 +1,4 @@
-import axios from "axios";
-import { BaseInfoRepository } from "../utils/BaseInfoRepository";
+import { api } from "../utils/api";
 import { AuthTokens } from "../utils/authStorage";
 
 class AuthRepository {
@@ -8,7 +7,7 @@ class AuthRepository {
     if (!username || !password) {
       return;
     }
-    const response = await axios.post<AuthTokens>(`${BaseInfoRepository.BASE_URL}auth/login`, {
+    const response = await api.post<AuthTokens>(`auth/login`, {
       email: username,
       password,
     });
@@ -17,7 +16,7 @@ class AuthRepository {
 
   /** Cambia el refresh token por un par nuevo (el usado queda revocado). */
   async refresh(refreshToken: string): Promise<AuthTokens> {
-    const response = await axios.post<AuthTokens>(`${BaseInfoRepository.BASE_URL}auth/refresh`, {
+    const response = await api.post<AuthTokens>(`auth/refresh`, {
       refreshToken,
     });
     return response.data;
@@ -28,7 +27,7 @@ class AuthRepository {
     if (!refreshToken) {
       return;
     }
-    await axios.post(`${BaseInfoRepository.BASE_URL}auth/logout`, { refreshToken });
+    await api.post(`auth/logout`, { refreshToken });
   }
 }
 export default AuthRepository;

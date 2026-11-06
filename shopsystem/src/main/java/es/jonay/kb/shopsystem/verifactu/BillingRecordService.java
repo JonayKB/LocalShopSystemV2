@@ -12,9 +12,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,20 +46,17 @@ public class BillingRecordService {
 
     private static final String TIPO_FACTURA = "F2"; // factura simplificada
 
-    private final Logger logger = Logger.getLogger(BillingRecordService.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(BillingRecordService.class);
 
-    private IBillingRecordRepository records;
-    private IBillingChainRepository chains;
-    private VerifactuProperties props;
+    private final IBillingRecordRepository records;
+    private final IBillingChainRepository chains;
+    private final VerifactuProperties props;
 
-    @Autowired
-    public void setRecords(IBillingRecordRepository records) { this.records = records; }
-
-    @Autowired
-    public void setChains(IBillingChainRepository chains) { this.chains = chains; }
-
-    @Autowired
-    public void setProps(VerifactuProperties props) { this.props = props; }
+    public BillingRecordService(IBillingRecordRepository records, IBillingChainRepository chains, VerifactuProperties props) {
+        this.records = records;
+        this.chains = chains;
+        this.props = props;
+    }
 
     public boolean isEnabled() {
         return props.isEnabled();
@@ -143,7 +140,7 @@ public class BillingRecordService {
         Optional<BillingRecord> alta = records.findFirstByTradeIdAndTypeOrderByIdDesc(trade.getId(),
                 BillingRecordType.ALTA);
         if (alta.isEmpty()) {
-            logger.warning("Venta " + trade.getId() + " anulada sin registro de alta previo: no se genera anulación");
+            logger.warn("Venta " + trade.getId() + " anulada sin registro de alta previo: no se genera anulación");
             return null;
         }
         if (records.existsByTradeIdAndType(trade.getId(), BillingRecordType.ANULACION)) {
@@ -188,6 +185,7 @@ public class BillingRecordService {
     /** Falla pronto y claro si falta configuración, en vez de generar registros que la AEAT rechazaría. */
     private void requireConfigured() {
         VerifactuProperties.Software s = props.getSoftware();
+
         require(props.getNif() != null && props.getNif().length() == 9, "verifactu.nif (9 caracteres)");
         require(notBlank(props.getBusinessName()), "verifactu.business-name");
         require(notBlank(s.getProducerName()), "verifactu.software.producer-name");

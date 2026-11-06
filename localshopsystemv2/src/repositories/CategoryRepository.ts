@@ -1,31 +1,15 @@
-import axios from "axios";
-import {BaseInfoRepository} from "../utils/BaseInfoRepository";
+import { api } from "../utils/api";
 import Category from "../models/Category";
 
 class CategoryRepository {
-  async getCategories(token: string|null) {
-    const response = await axios.get(
-      BaseInfoRepository.BASE_URL + "categories/",
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    return response.data as Category[];
+  async getCategories(_token?: string | null) {
+    const response = await api.get<Category[]>("categories/");
+    return response.data;
   }
 
-  async saveCategory(category: Category, token: string | null) {
-    const response = await axios.post(
-      BaseInfoRepository.BASE_URL + "categories/",
-      category,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    return response.data as Category;
+  async saveCategory(category: Category, _token?: string | null) {
+    const response = await api.post<Category>("categories/", category);
+    return response.data;
   }
 }
 export default CategoryRepository;

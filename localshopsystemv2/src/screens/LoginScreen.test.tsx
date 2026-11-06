@@ -1,3 +1,4 @@
+import { vi, MockInstance } from 'vitest';
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
@@ -26,11 +27,11 @@ function submit(user: string, pass: string) {
 }
 
 describe('LoginScreen', () => {
-  let login: jest.SpyInstance;
+  let login: MockInstance;
 
   beforeEach(() => {
     localStorage.clear();
-    login = jest.spyOn(AuthRepository.prototype, 'login');
+    login = vi.spyOn(AuthRepository.prototype, 'login');
   });
   afterEach(() => login.mockRestore());
 

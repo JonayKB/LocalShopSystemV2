@@ -13,7 +13,7 @@ import com.auth0.jwt.interfaces.Claim;
 
 /**
  * Tokens de acceso (JWT, vida corta). Los refresh tokens no son JWT: son valores
- * aleatorios guardados en base de datos (ver {@code AuthController}).
+ * aleatorios guardados en base de datos (ver {@code AuthService}).
  */
 @Service
 public class JwtService {

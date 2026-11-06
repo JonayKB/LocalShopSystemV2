@@ -2,8 +2,8 @@ package es.jonay.kb.shopsystem.api.exceptions;
 
 import java.util.NoSuchElementException;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -26,7 +26,7 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    private final Logger logger = Logger.getLogger(GlobalExceptionHandler.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     private static ResponseEntity<String> body(HttpStatus status, String message) {
         return ResponseEntity.status(status).contentType(new MediaType(MediaType.TEXT_PLAIN, java.nio.charset.StandardCharsets.UTF_8))
@@ -69,7 +69,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<String> integrity(DataIntegrityViolationException e) {
-        logger.log(Level.WARNING, "Violación de integridad", e);
+        logger.warn("Violación de integridad", e);
         return body(HttpStatus.CONFLICT, "La operación choca con datos existentes (código o nombre repetido, o datos relacionados)");
     }
 
@@ -94,7 +94,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> unexpected(Exception e) {
         String id = UUID.randomUUID().toString().substring(0, 8);
-        logger.log(Level.SEVERE, "Error inesperado [" + id + "]", e);
+        logger.error("Error inesperado [" + id + "]", e);
         return body(HttpStatus.INTERNAL_SERVER_ERROR, "Error interno del servidor (código " + id + ")");
     }
 }

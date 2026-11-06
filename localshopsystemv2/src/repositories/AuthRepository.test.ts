@@ -1,13 +1,13 @@
-import axios from 'axios';
+import { vi, MockInstance } from 'vitest';
 import AuthRepository from './AuthRepository';
-import { BaseInfoRepository } from '../utils/BaseInfoRepository';
+import { api } from '../utils/api';
 
 describe('AuthRepository', () => {
-  let post: jest.SpyInstance;
+  let post: MockInstance;
   const repo = new AuthRepository();
 
   beforeEach(() => {
-    post = jest.spyOn(axios, 'post').mockResolvedValue({
+    post = vi.spyOn(api, 'post').mockResolvedValue({
       data: { accessToken: 'a', refreshToken: 'r', expiresIn: 900 },
     });
   });
@@ -17,7 +17,7 @@ describe('AuthRepository', () => {
     const tokens = await repo.login('admin@test', 'clave&rara?=');
 
     const [url, body] = post.mock.calls[0];
-    expect(url).toBe(`${BaseInfoRepository.BASE_URL}auth/login`);
+    expect(url).toBe('auth/login');
     expect(url).not.toContain('password');
     expect(url).not.toContain('?');
     expect(body).toEqual({ email: 'admin@test', password: 'clave&rara?=' });
@@ -34,8 +34,8 @@ describe('AuthRepository', () => {
     await repo.logout('r2');
     await repo.logout(null);
 
-    expect(post).toHaveBeenNthCalledWith(1, `${BaseInfoRepository.BASE_URL}auth/refresh`, { refreshToken: 'r1' });
-    expect(post).toHaveBeenNthCalledWith(2, `${BaseInfoRepository.BASE_URL}auth/logout`, { refreshToken: 'r2' });
+    expect(post).toHaveBeenNthCalledWith(1, 'auth/refresh', { refreshToken: 'r1' });
+    expect(post).toHaveBeenNthCalledWith(2, 'auth/logout', { refreshToken: 'r2' });
     expect(post).toHaveBeenCalledTimes(2);
   });
 });

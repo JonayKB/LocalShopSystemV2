@@ -28,11 +28,11 @@ import es.jonay.kb.shopsystem.api.dto.StockMovementRequest;
 import es.jonay.kb.shopsystem.api.dto.TradeDto;
 import es.jonay.kb.shopsystem.api.dto.TradeLineDto;
 import es.jonay.kb.shopsystem.api.exceptions.ConflictException;
-import es.jonay.kb.shopsystem.controller.CategoryController;
-import es.jonay.kb.shopsystem.controller.InventoryController;
-import es.jonay.kb.shopsystem.controller.ItemController;
-import es.jonay.kb.shopsystem.controller.PricingController;
-import es.jonay.kb.shopsystem.controller.TradeController;
+import es.jonay.kb.shopsystem.service.CategoryService;
+import es.jonay.kb.shopsystem.service.InventoryService;
+import es.jonay.kb.shopsystem.service.ItemService;
+import es.jonay.kb.shopsystem.service.PricingService;
+import es.jonay.kb.shopsystem.service.TradeService;
 import es.jonay.kb.shopsystem.model.entities.PaymentMethod;
 
 @SpringBootTest
@@ -43,15 +43,15 @@ class InventoryIntegrationTest {
     private static final long PAN = 8410000000002L;
 
     @Autowired
-    private ItemController items;
+    private ItemService items;
     @Autowired
-    private CategoryController categories;
+    private CategoryService categories;
     @Autowired
-    private InventoryController inventory;
+    private InventoryService inventory;
     @Autowired
-    private PricingController pricing;
+    private PricingService pricing;
     @Autowired
-    private TradeController trades;
+    private TradeService trades;
     @Autowired
     private JdbcTemplate jdbc;
 

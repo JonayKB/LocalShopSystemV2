@@ -159,6 +159,24 @@ class ApiIntegrationTest {
     }
 
     @Test
+    void ventaConLineasYCantidades() throws Exception {
+        String body = json(post(CTX + "/trade/sale"),
+                "{\"lines\":[{\"itemId\":1001,\"quantity\":3},{\"itemId\":1001,\"quantity\":1}],\"paymentMethod\":\"CARD\",\"print\":false}");
+        assertThat(body).contains("\"paymentMethod\":\"CARD\"");
+        mvc.perform(at(get(CTX + "/items/1001"))).andExpect(jsonPath("$.stock").value(6));
+        mvc.perform(at(get(CTX + "/trade/0/1"))).andExpect(jsonPath("$.content[0].lines[0].quantity").value(4))
+                .andExpect(jsonPath("$.content[0].total").value(4.80));
+
+        mvc.perform(at(post(CTX + "/trade/sale")).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"lines\":[{\"itemId\":1001,\"quantity\":0}]}")).andExpect(status().isBadRequest());
+        mvc.perform(at(post(CTX + "/trade/sale")).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"lines\":[]}")).andExpect(status().isBadRequest());
+        mvc.perform(at(post(CTX + "/trade/sale")).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"lines\":[{\"itemId\":999,\"quantity\":1}]}")).andExpect(status().isNotFound());
+        mvc.perform(at(get(CTX + "/items/1001"))).andExpect(jsonPath("$.stock").value(6)); // nada a medias
+    }
+
+    @Test
     void informeMensualEnExcel() throws Exception {
         json(post(CTX + "/trade/newTrade?print=false"), "[{\"id\":1001}]");
         java.time.LocalDate today = java.time.LocalDate.now(java.time.ZoneId.of("Atlantic/Canary"));

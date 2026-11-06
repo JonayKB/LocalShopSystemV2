@@ -59,6 +59,11 @@
 			<artifactId>spring-security-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<!-- /actuator/health para el healthcheck de Docker (nada más expuesto) -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
 		<!-- Migraciones de base de datos -->
 		<dependency>
 			<groupId>org.flywaydb</groupId>

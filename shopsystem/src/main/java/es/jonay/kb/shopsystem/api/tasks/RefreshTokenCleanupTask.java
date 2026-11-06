@@ -1,19 +1,20 @@
 package es.jonay.kb.shopsystem.api.tasks;
 
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import es.jonay.kb.shopsystem.controller.AuthController;
+import es.jonay.kb.shopsystem.service.AuthService;
 
 /** Borra cada noche los refresh tokens caducados para que la tabla no crezca sin límite. */
 @Component
 public class RefreshTokenCleanupTask {
-    private final Logger logger = Logger.getLogger(RefreshTokenCleanupTask.class.getName());
-    private final AuthController authController;
+    private static final Logger logger = LoggerFactory.getLogger(RefreshTokenCleanupTask.class);
+    private final AuthService authController;
 
-    public RefreshTokenCleanupTask(AuthController authController) {
+    public RefreshTokenCleanupTask(AuthService authController) {
         this.authController = authController;
     }
 

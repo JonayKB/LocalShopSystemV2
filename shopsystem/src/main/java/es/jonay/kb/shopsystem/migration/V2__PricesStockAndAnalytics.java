@@ -1,7 +1,8 @@
 package es.jonay.kb.shopsystem.migration;
 
 import java.math.BigDecimal;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
@@ -28,7 +29,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class V2__PricesStockAndAnalytics extends BaseJavaMigration {
 
-    private final Logger logger = Logger.getLogger(V2__PricesStockAndAnalytics.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(V2__PricesStockAndAnalytics.class);
     private final BigDecimal defaultIgicRate;
 
     public V2__PricesStockAndAnalytics(@Value("${shop.tax.default-igic-rate:7.00}") BigDecimal defaultIgicRate) {

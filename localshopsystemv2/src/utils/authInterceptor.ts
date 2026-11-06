@@ -1,5 +1,6 @@
-import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
+import { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 import AuthRepository from '../repositories/AuthRepository';
+import { api } from './api';
 import { AuthTokens, clearTokens, getAccessToken, getRefreshToken, setTokens } from './authStorage';
 
 type RetriableConfig = InternalAxiosRequestConfig & { _retried?: boolean };
@@ -22,7 +23,7 @@ function goToLogin(): void {
   }
 }
 
-let registered = false;
+const registered = new WeakSet<AxiosInstance>();
 /** Un único refresco en vuelo: si fallan varias peticiones a la vez, todas esperan al mismo. */
 let refreshing: Promise<string> | null = null;
 
@@ -45,21 +46,19 @@ export function refreshAccessToken(authRepository: AuthRepository = new AuthRepo
 }
 
 /**
- * - Petición con token: siempre se envía el token más reciente (el del contexto puede
- *   haberse quedado viejo tras un refresco).
+ * - Cada petición (salvo login/refresh/logout) lleva el token de acceso más reciente si hay
+ *   sesión. Los repositorios no tocan cabeceras.
  * - Respuesta 401 de una petición con token: se renueva con el refresh token y se repite
  *   una vez. Si el refresco falla (caducado, revocado...), se cierra la sesión.
  */
-export function registerAuthInterceptor(instance: AxiosInstance = axios): void {
-  if (instance === axios) {
-    if (registered) {
-      return;
-    }
-    registered = true;
+export function registerAuthInterceptor(instance: AxiosInstance = api): void {
+  if (registered.has(instance)) {
+    return;
   }
+  registered.add(instance);
 
   instance.interceptors.request.use((config) => {
-    if (hasAuthHeader(config) && !isAuthCall(config.url)) {
+    if (!isAuthCall(config.url)) {
       const latest = getAccessToken();
       if (latest) {
         config.headers.Authorization = `Bearer ${latest}`;

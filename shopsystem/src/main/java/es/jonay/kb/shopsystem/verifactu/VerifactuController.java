@@ -3,7 +3,6 @@ package es.jonay.kb.shopsystem.verifactu;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,18 +17,15 @@ import es.jonay.kb.shopsystem.model.repository.IBillingRecordRepository;
 @RequestMapping("verifactu")
 public class VerifactuController {
 
-    private IBillingRecordRepository records;
-    private VerifactuProperties props;
-    private VerifactuSender sender;
+    private final IBillingRecordRepository records;
+    private final VerifactuProperties props;
+    private final VerifactuSender sender;
 
-    @Autowired
-    public void setRecords(IBillingRecordRepository records) { this.records = records; }
-
-    @Autowired
-    public void setProps(VerifactuProperties props) { this.props = props; }
-
-    @Autowired
-    public void setSender(VerifactuSender sender) { this.sender = sender; }
+    public VerifactuController(IBillingRecordRepository records, VerifactuProperties props, VerifactuSender sender) {
+        this.records = records;
+        this.props = props;
+        this.sender = sender;
+    }
 
     @GetMapping("/status")
     public Map<String, Object> status() {
@@ -53,6 +49,7 @@ public class VerifactuController {
     @PostMapping("/send-now")
     public ResponseEntity<Map<String, Object>> sendNow() {
         Map<String, Object> out = new LinkedHashMap<>();
+
         if (!props.isEnabled()) {
             out.put("error", "VERI*FACTU está desactivado");
             return ResponseEntity.badRequest().body(out);

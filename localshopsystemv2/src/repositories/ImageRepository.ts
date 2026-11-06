@@ -1,5 +1,5 @@
-import axios from "axios";
-import {BaseInfoRepository} from "../utils/BaseInfoRepository";
+import { api } from "../utils/api";
+import { BaseInfoRepository } from "../utils/BaseInfoRepository";
 import { PLACEHOLDER_IMG } from "../utils/placeholder";
 
 class ImageRespository {
@@ -16,20 +16,11 @@ class ImageRespository {
     return BaseInfoRepository.BASE_URL + `images/${encodeURIComponent(name)}${w}`;
   }
 
-  async uploadImage(file: File, token: string | null) {
+  /** Sube la imagen (PNG, JPG, GIF o WEBP, máx. 10 MB) y devuelve su nombre en el servidor. */
+  async uploadImage(file: File, _token?: string | null): Promise<string> {
     const formData = new FormData();
-    formData.append("file", file); 
-
-    const response = await axios.post(
-      BaseInfoRepository.BASE_URL + "images/",
-      formData,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
+    formData.append("file", file);
+    const response = await api.post<string>("images/", formData);
     return response.data;
   }
 }

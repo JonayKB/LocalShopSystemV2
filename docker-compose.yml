@@ -29,7 +29,8 @@ services:
       - shopnet
 
   app:
-    image: jonaykb/shop-app
+    # IMAGE_TAG lo fija el despliegue (commit); a mano, latest
+    image: jonaykb/shop-app:${IMAGE_TAG:-latest}
     container_name: shop-app
     restart: always
     env_file: ".env"
@@ -45,7 +46,7 @@ services:
       - /etc/letsencrypt:/etc/letsencrypt:ro
 
   web:
-    image: jonaykb/shop-web
+    image: jonaykb/shop-web:${IMAGE_TAG:-latest}
     container_name: shop-web
     restart: always
     environment:

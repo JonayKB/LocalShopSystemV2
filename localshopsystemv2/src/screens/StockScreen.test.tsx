@@ -1,3 +1,4 @@
+import { vi, MockInstance } from 'vitest';
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
@@ -9,9 +10,9 @@ import Item from '../models/Item';
 const agua: Item = { id: 1001, name: 'Agua', price: 1.2, categoryId: 1, image: '', stock: 10, bareMinimun: 2, net: 0.5, ignoreStock: false };
 
 // El buscador real llama a la API: aquí basta con un botón que "elige" el producto.
-jest.mock('../components/ItemSearcher', () => (props: any) => (
-  <button onClick={() => props.onItemClickProp(agua)}>elegir agua</button>
-));
+vi.mock('../components/ItemSearcher', () => ({
+  default: (props: any) => <button onClick={() => props.onItemClickProp(agua)}>elegir agua</button>,
+}));
 
 function renderScreen() {
   return render(
@@ -24,18 +25,18 @@ function renderScreen() {
 }
 
 describe('StockScreen', () => {
-  let register: jest.SpyInstance;
-  let movements: jest.SpyInstance;
+  let register: MockInstance;
+  let movements: MockInstance;
 
   beforeEach(() => {
-    register = jest.spyOn(StockRepository.prototype, 'registerMovements').mockResolvedValue([{ id: 1 } as any]);
-    movements = jest.spyOn(StockRepository.prototype, 'getMovements').mockResolvedValue({
+    register = vi.spyOn(StockRepository.prototype, 'registerMovements').mockResolvedValue([{ id: 1 } as any]);
+    movements = vi.spyOn(StockRepository.prototype, 'getMovements').mockResolvedValue({
       content: [{ id: 9, itemId: 1001, itemName: 'Agua', type: 'SALE', typeLabel: 'Venta', quantity: -2, stockAfter: 8,
         unitCost: 0.5, tradeId: 3, note: 'Venta T-000003', createdBy: 'admin', createdAt: '2025-06-02T10:00:00Z' }],
       totalElements: 1, totalPages: 1, number: 0, size: 20,
     });
   });
-  afterEach(() => jest.restoreAllMocks());
+  afterEach(() => vi.restoreAllMocks());
 
   test('entrada de mercancía con coste del albarán y nota', async () => {
     renderScreen();

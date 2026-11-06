@@ -1,3 +1,4 @@
+import { vi, MockInstance } from 'vitest';
 import axios, { AxiosAdapter, AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import AuthRepository from '../repositories/AuthRepository';
 import { registerAuthInterceptor } from './authInterceptor';
@@ -25,8 +26,8 @@ function fakeServer(validToken: () => string) {
 }
 
 describe('authInterceptor', () => {
-  const replace = jest.fn();
-  let refreshSpy: jest.SpyInstance;
+  const replace = vi.fn();
+  let refreshSpy: MockInstance;
 
   beforeAll(() => {
     Object.defineProperty(window, 'location', {
@@ -38,7 +39,7 @@ describe('authInterceptor', () => {
   beforeEach(() => {
     localStorage.clear();
     replace.mockReset();
-    refreshSpy = jest.spyOn(AuthRepository.prototype, 'refresh');
+    refreshSpy = vi.spyOn(AuthRepository.prototype, 'refresh');
   });
 
   afterEach(() => refreshSpy.mockRestore());
@@ -121,17 +122,28 @@ describe('authInterceptor', () => {
     expect(replace).toHaveBeenCalledWith('/admin/login');
   });
 
-  test('un 401 de una petición pública (sin token) no toca la sesión', async () => {
-    setTokens({ accessToken: 'a', refreshToken: 'r' });
-    const { adapter } = fakeServer(() => 'nunca');
+  test('sin sesión no se envía token y un 401 no intenta refrescar', async () => {
+    const { adapter, calls } = fakeServer(() => 'nunca');
     const api = axios.create({ adapter });
     registerAuthInterceptor(api);
 
     await expect(api.get('/publica')).rejects.toBeTruthy();
 
+    expect(calls).toEqual(['']);
     expect(refreshSpy).not.toHaveBeenCalled();
-    expect(getAccessToken()).toBe('a');
     expect(replace).not.toHaveBeenCalled();
+  });
+
+  test('con sesión, el token se añade solo (los repositorios no ponen cabeceras)', async () => {
+    setTokens({ accessToken: 'mio', refreshToken: 'r' });
+    const { adapter, calls } = fakeServer(() => 'mio');
+    const api = axios.create({ adapter });
+    registerAuthInterceptor(api);
+
+    await api.get('/items');
+    await api.post('/kiosco/auth/login', {}).catch(() => undefined); // el login no lleva token
+
+    expect(calls).toEqual(['Bearer mio', '']);
   });
 
   test('un 401 del login (credenciales malas) no intenta refrescar', async () => {

@@ -1,16 +1,11 @@
-import axios from "axios";
-import { BaseInfoRepository } from "../utils/BaseInfoRepository";
+import { api } from "../utils/api";
 
 class ExportRepository {
   /** Informe mensual: ventas por día y categoría + hoja de base, IGIC, coste y beneficio. */
   async getExcel(token: string | null, month?: number, year?: number) {
-    const file = await axios.get(
-      BaseInfoRepository.BASE_URL + "generate-report",
+    const file = await api.get("generate-report",
       {
         responseType: "blob",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
         params: { month, year },
       }
     );

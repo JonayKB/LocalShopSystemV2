@@ -1,3 +1,4 @@
+import { vi, MockInstance } from 'vitest';
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
@@ -7,7 +8,7 @@ import GraphRepository from '../repositories/GraphRepository';
 import { Totals } from '../models/Analytics';
 
 // Los gráficos SVG de MUI necesitan medidas reales del navegador: en jsdom se sustituyen.
-jest.mock('@mui/x-charts', () => ({
+vi.mock('@mui/x-charts', () => ({
   LineChart: (p: any) => <div data-testid="line">{p.series.map((s: any) => s.label).join('|')}</div>,
   BarChart: (p: any) => <div data-testid="bar">{p.xAxis[0].data.join('|')}</div>,
 }));
@@ -19,36 +20,36 @@ const totals = (over: Partial<Totals> = {}): Totals => ({
 });
 
 describe('GraphScreen', () => {
-  let summary: jest.SpyInstance;
+  let summary: MockInstance;
 
   beforeEach(() => {
     const P = GraphRepository.prototype;
-    summary = jest.spyOn(P, 'summary').mockResolvedValue({
+    summary = vi.spyOn(P, 'summary').mockResolvedValue({
       from: '2025-06-01', to: '2025-06-30', current: totals(), previousFrom: '2025-05-02', previousTo: '2025-05-31',
       previous: totals({ revenue: 100, profit: 0, trades: 10 }),
     });
-    jest.spyOn(P, 'salesOverTime').mockResolvedValue([{ period: '2025-06-01', revenue: 120, profit: 62, trades: 10, units: 25 }]);
-    jest.spyOn(P, 'byCategory').mockResolvedValue([{ category: 'Bebidas', revenue: 120, profit: 62.15, units: 25, sharePct: 100 }]);
-    jest.spyOn(P, 'byPaymentMethod').mockResolvedValue([
+    vi.spyOn(P, 'salesOverTime').mockResolvedValue([{ period: '2025-06-01', revenue: 120, profit: 62, trades: 10, units: 25 }]);
+    vi.spyOn(P, 'byCategory').mockResolvedValue([{ category: 'Bebidas', revenue: 120, profit: 62.15, units: 25, sharePct: 100 }]);
+    vi.spyOn(P, 'byPaymentMethod').mockResolvedValue([
       { method: 'CASH', label: 'Efectivo', revenue: 70, trades: 6, sharePct: 58.3 },
       { method: 'CARD', label: 'Tarjeta', revenue: 50, trades: 4, sharePct: 41.7 },
     ]);
-    jest.spyOn(P, 'byHour').mockResolvedValue(
+    vi.spyOn(P, 'byHour').mockResolvedValue(
       Array.from({ length: 24 }, (_, h) => ({ bucket: h, label: `${String(h).padStart(2, '0')}:00`, revenue: h === 9 || h === 12 ? 60 : 0, trades: h === 9 || h === 12 ? 5 : 0, avgTicket: 12 }))
     );
-    jest.spyOn(P, 'byWeekday').mockResolvedValue([{ bucket: 1, label: 'Lunes', revenue: 120, trades: 10, avgTicket: 12 }]);
-    jest.spyOn(P, 'topItems').mockResolvedValue([
+    vi.spyOn(P, 'byWeekday').mockResolvedValue([{ bucket: 1, label: 'Lunes', revenue: 120, trades: 10, avgTicket: 12 }]);
+    vi.spyOn(P, 'topItems').mockResolvedValue([
       { itemId: 1, name: 'Agua', category: 'Bebidas', units: 20, revenue: 24, profit: 12.4, marginPct: 55.4, trades: 8 },
       { itemId: 2, name: 'Pan', category: 'Panadería', units: 5, revenue: 4, profit: null, marginPct: null, trades: 3 },
     ]);
-    jest.spyOn(P, 'inventory').mockResolvedValue({
+    vi.spyOn(P, 'inventory').mockResolvedValue({
       items: 3, units: 40, valueAtCost: 20, valueAtPrice: 48, potentialProfit: 22.8, itemsWithoutCost: 1,
       outOfStock: 1, belowMinimum: 0, ignoringStock: 0,
       byCategory: [{ category: 'Bebidas', items: 2, units: 40, valueAtCost: 20, valueAtPrice: 48 }],
       alerts: [{ itemId: 2, name: 'Pan', category: 'Panadería', stock: 0, bareMinimun: 2 }],
     });
   });
-  afterEach(() => jest.restoreAllMocks());
+  afterEach(() => vi.restoreAllMocks());
 
   const renderScreen = () =>
     render(

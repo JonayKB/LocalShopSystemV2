@@ -1,10 +1,11 @@
+import { vi } from 'vitest';
 import { clearTokens, getAccessToken, getRefreshToken, setTokens, TOKENS_CHANGED_EVENT } from './authStorage';
 
 describe('authStorage', () => {
   beforeEach(() => localStorage.clear());
 
   test('guarda, lee y borra ambos tokens avisando del cambio', () => {
-    const listener = jest.fn();
+    const listener = vi.fn();
     window.addEventListener(TOKENS_CHANGED_EVENT, listener);
 
     setTokens({ accessToken: 'a', refreshToken: 'r' });
@@ -20,7 +21,7 @@ describe('authStorage', () => {
   });
 
   test('sin localStorage disponible no rompe', () => {
-    const spy = jest.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+    const spy = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
       throw new Error('bloqueado');
     });
     expect(getAccessToken()).toBeNull();

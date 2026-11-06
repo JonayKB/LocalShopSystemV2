@@ -134,6 +134,14 @@ class SecurityIntegrationTest {
     }
 
     @Test
+    void elHealthCheckEsPublicoYNoDaDetalles() throws Exception {
+        mvc.perform(at(get(CTX + "/actuator/health"))).andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("UP"))
+                .andExpect(jsonPath("$.components").doesNotExist());
+        mvc.perform(at(get(CTX + "/actuator/env"))).andExpect(status().is4xxClientError());
+    }
+
+    @Test
     void lasImagenesSonPublicasEnLectura() throws Exception {
         // No existe: 404, pero no 401 (no pide token).
         mvc.perform(at(get(CTX + "/images/no-existe.png"))).andExpect(status().isNotFound());
