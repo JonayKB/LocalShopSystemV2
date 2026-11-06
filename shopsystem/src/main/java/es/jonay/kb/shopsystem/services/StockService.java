@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,7 +23,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("stock")
-@CrossOrigin
 @Tag(name = "STOCK", description = "Stock management endpoints")
 public class StockService {
 

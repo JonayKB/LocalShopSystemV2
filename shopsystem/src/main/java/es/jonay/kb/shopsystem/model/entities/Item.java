@@ -146,7 +146,7 @@ public class Item {
             return false;
         }
         Item item = (Item) o;
-        return id == item.id;
+        return Objects.equals(id, item.id);
     }
 
     @Override

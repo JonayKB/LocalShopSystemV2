@@ -92,20 +92,16 @@ public class JwtAuthenticationHelper {
     }
 
     /**
-     * Sets the authentication in the SecurityContext.
+     * Sets the authentication in the SecurityContext (does not continue the filter chain).
      */
-    public void setAuthentication(UserDetails userDetails, HttpServletRequest request,
-            FilterChain filterChain, HttpServletResponse response) throws IOException, ServletException {
+    public void authenticate(UserDetails userDetails, HttpServletRequest request) {
         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                 userDetails,
                 null,
                 userDetails.getAuthorities());
-        SecurityContextHolder.getContext().setAuthentication(authToken);
-
         if (request != null) {
             authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-            filterChain.doFilter(request, response);
-
         }
+        SecurityContextHolder.getContext().setAuthentication(authToken);
     }
 }

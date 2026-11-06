@@ -1,4 +1,10 @@
-version: "3.9"
+# docker-compose de producción (el que se usa en el servidor).
+# Todos los puertos escuchan solo en 127.0.0.1: delante hay un proxy inverso del host.
+# Los secretos van en el fichero .env junto a este fichero (ver shopsystem/.env.example).
+#
+# OJO: MYSQL_ROOT_PASSWORD / DB_USERNAME / DB_PASSWORD solo se aplican la primera vez que
+# MySQL inicializa el volumen db_data. Con la base ya creada, en .env deben ir los valores
+# que ya tiene (los antiguos eran root / shopuser / shoppass).
 
 services:
   db:
@@ -6,49 +12,47 @@ services:
     container_name: mysql-db
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Falta MYSQL_ROOT_PASSWORD en .env}
       MYSQL_DATABASE: shopdb
-      MYSQL_USER: shopuser
-      MYSQL_PASSWORD: shoppass
+      MYSQL_USER: ${DB_USERNAME:?Falta DB_USERNAME en .env}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?Falta DB_PASSWORD en .env}
     volumes:
       - db_data:/var/lib/mysql
       - ./database.sql:/docker-entrypoint-initdb.d/database.sql
-    ports:
-      - "3306:3306"
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
     networks:
       - shopnet
 
   app:
-    image: jonaykb/shop-app:2.31
+    image: jonaykb/shop-app
     container_name: shop-app
     restart: always
     env_file: ".env"
     depends_on:
-      - db
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/shopdb
-      SPRING_DATASOURCE_USERNAME: shopuser
-      SPRING_DATASOURCE_PASSWORD: shoppass
-      SENDGRID_API_KEY: YOUR_SECRET_KEY
+      db:
+        condition: service_healthy
     ports:
-      - "56784:56784"
+      - "127.0.0.1:56784:56784"
     networks:
       - shopnet
     volumes:
-      - ./uploads:/uploads
-       - /etc/letsencrypt:/etc/letsencrypt:ro
+      - ./uploads:/app/uploads
+      - /etc/letsencrypt:/etc/letsencrypt:ro
 
   web:
-    image: jonaykb/shop-web:2.31
+    image: jonaykb/shop-web
     container_name: shop-web
     restart: always
     environment:
-      HOST: kioscobotanico.es
+      HOST: kioscobotanico.com
     depends_on:
       - app
     ports:
-      - "80:80"
-      - "443:443"
+      - "127.0.0.1:765:443"
     networks:
       - shopnet
     volumes:

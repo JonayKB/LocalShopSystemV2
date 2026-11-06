@@ -1,4 +1,5 @@
-import React, { Dispatch, ReactNode, SetStateAction, useState, createContext } from 'react'
+import React, { Dispatch, ReactNode, SetStateAction, useEffect, useState, createContext } from 'react'
+import { getAccessToken, TOKENS_CHANGED_EVENT } from '../utils/authStorage';
 import Category from '../models/Category';
 import Item from '../models/Item';
 
@@ -24,7 +25,13 @@ export const MainContext = createContext<MainContextType>({} as MainContextType)
 
 const MainContextProvider = (props: Props) => {
     const [categories, setCategories] = useState<Category[]>([]);
-    const [token, setToken] = useState<string | null>(null);
+    const [token, setToken] = useState<string | null>(() => getAccessToken());
+    // Si el interceptor renueva el token (o cierra la sesión), el contexto se entera.
+    useEffect(() => {
+        const sync = () => setToken(getAccessToken());
+        window.addEventListener(TOKENS_CHANGED_EVENT, sync);
+        return () => window.removeEventListener(TOKENS_CHANGED_EVENT, sync);
+    }, []);
     const [basketItems, setBasketItems] = useState<Map<Item, number>>(new Map<Item, number>());
     const [openBasket, setOpenBasket] = useState(false);
     const [openAddItemModal, setOpenAddItemModal] = useState<Item | null>(null);

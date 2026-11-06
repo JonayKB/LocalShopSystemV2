@@ -4,6 +4,7 @@ import { MainContext } from '../components/MainContextProvider';
 import AuthRepository from '../repositories/AuthRepository';
 import { Lock } from 'lucide-react';
 import '../styles/login.css';
+import { getAccessToken, setTokens } from '../utils/authStorage';
 
 type Props = {}
 
@@ -13,8 +14,8 @@ const LoginScreen = (props: Props) => {
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const authRepository = new AuthRepository();
     useEffect(() => {
-        const tokenStorage = localStorage.getItem('token');
-        if (tokenStorage) {
+        const tokenStorage = getAccessToken();
+        if (tokenStorage && !token) {
             setToken(tokenStorage);
         }
         if (token) {
@@ -29,14 +30,11 @@ const LoginScreen = (props: Props) => {
         const password = formData.get('password') as string;
 
         try {
-            const token = await authRepository.login(username, password);
-            if (token) {
-                localStorage.setItem('token', token);
-                if (setToken) {
-                    setToken(token);
-                    navigate('/admin/Home');
-
-                }
+            const tokens = await authRepository.login(username, password);
+            if (tokens) {
+                setTokens(tokens);
+                setToken(tokens.accessToken);
+                navigate('/admin/Home');
             }
         } catch (error) {
             if (error && typeof error === 'object' && 'response' in error && error.response && typeof error.response === 'object' && 'data' in error.response) {

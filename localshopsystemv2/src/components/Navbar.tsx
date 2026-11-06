@@ -13,6 +13,8 @@ import {
   Wallet,
 } from 'lucide-react';
 import { MainContext } from './MainContextProvider';
+import AuthRepository from '../repositories/AuthRepository';
+import { clearTokens, getRefreshToken } from '../utils/authStorage';
 
 const GROUPS = [
   {
@@ -46,11 +48,9 @@ const Navbar: React.FC = () => {
   const close = () => setOpen(false);
 
   const logout = () => {
-    try {
-      localStorage.removeItem('token');
-    } catch {
-      /* sin almacenamiento disponible */
-    }
+    // Revoca el refresh token en el servidor; la sesión local se cierra aunque falle.
+    new AuthRepository().logout(getRefreshToken()).catch(() => undefined);
+    clearTokens();
     setToken(null);
     close();
     navigate('/admin/login');

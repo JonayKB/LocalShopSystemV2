@@ -7,6 +7,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
@@ -15,7 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import org.springframework.stereotype.Controller;
+import org.springframework.stereotype.Service;
 
 import es.jonay.kb.shopsystem.api.config.TicketPrinterConfigurationProperties;
 import es.jonay.kb.shopsystem.api.dto.DailyReportDto;
@@ -26,7 +27,7 @@ import es.jonay.kb.shopsystem.api.dto.TradeLineDto;
 import es.jonay.kb.shopsystem.verifactu.VerifactuProperties;
 import es.jonay.kb.shopsystem.verifactu.VerifactuQr;
 
-@Controller
+@Service
 public class TicketPrinterService {
     Logger logger = Logger.getLogger(TicketPrinterService.class.getName());
 
@@ -34,8 +35,8 @@ public class TicketPrinterService {
     private String nif;
     private String businessName;
     private int qrModuleSize = 6;
-    private Socket socket;
-    private OutputStream outputStream;
+    /** Timeout de conexión y escritura: si no hay impresora, la venta no se queda esperando. */
+    static final int TIMEOUT_MS = 2000;
     private static final int TOTAL_WIDTH = 48; // Ancho total del ticket en caracteres
     private static final byte[] INITIALIZE = new byte[] { 0x1B, 0x40 };
     private static final byte[] HEADER = new byte[] {
@@ -74,33 +75,22 @@ public class TicketPrinterService {
         buffer.write(("\n" + VerifactuQr.TEXTO_DEBAJO + "\n\n").getBytes("CP437"));
     }
 
-    public void connect(String ip, int port) throws IOException {
-        if (socket == null || !socket.isConnected()) {
-            try {
-                // Timeout corto: si no hay impresora, la venta no debe quedarse esperando.
-                Socket s = new Socket();
-                s.connect(new java.net.InetSocketAddress(ip, port), 2000);
-                socket = s;
-                outputStream = socket.getOutputStream();
-                logger.info("Connected to printer at " + ip + ":" + port);
-            } catch (UnknownHostException e) {
-                socket = null;
-                outputStream = null;
-                throw new IOException("Impresora no encontrada en " + ip + ":" + port, e);
-            } catch (IOException e) {
-                socket = null;
-                outputStream = null;
-                throw new IOException("No se pudo conectar con la impresora en " + ip + ":" + port, e);
-            }
-        }
-    }
-
-    public void close() throws IOException {
-        if (socket != null && socket.isConnected()) {
-            socket.close();
-            outputStream = null;
-            socket = null;
-            logger.info("Printer connection closed.");
+    /**
+     * Envía los bytes a la impresora abriendo una conexión propia para este ticket.
+     * No hay sockets compartidos: dos cajas imprimiendo a la vez no mezclan tickets
+     * ni imprimen en la impresora de la otra.
+     */
+    void send(String ip, int port, byte[] data) throws IOException {
+        try (Socket socket = new Socket()) {
+            socket.connect(new InetSocketAddress(ip, port), TIMEOUT_MS);
+            socket.setSoTimeout(TIMEOUT_MS);
+            OutputStream out = socket.getOutputStream();
+            out.write(data);
+            out.flush();
+        } catch (UnknownHostException e) {
+            throw new IOException("Impresora no encontrada en " + ip + ":" + port, e);
+        } catch (IOException e) {
+            throw new IOException("No se pudo imprimir en " + ip + ":" + port + ": " + e.getMessage(), e);
         }
     }
 
@@ -109,8 +99,6 @@ public class TicketPrinterService {
     }
 
     public void print(TradeDto tradeDto, String ip, int port, boolean openDrawer) throws Exception {
-        connect(ip, port);
-
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 
         // Inicializar impresora
@@ -216,11 +204,7 @@ public class TicketPrinterService {
             buffer.write(OPEN_DRAWER);
         }
 
-        // Enviar a la impresora
-        outputStream.write(buffer.toByteArray());
-        outputStream.flush();
-
-        close();
+        send(ip, port, buffer.toByteArray());
     }
 
     /**
@@ -270,10 +254,7 @@ public class TicketPrinterService {
         buffer.write("\n\n\n\n".getBytes("CP437"));
         buffer.write(CUT);
 
-        connect(ip, port);
-        outputStream.write(buffer.toByteArray());
-        outputStream.flush();
-        close();
+        send(ip, port, buffer.toByteArray());
     }
 
     /** Línea "etiqueta ............ importe" con el importe alineado a la derecha. */
@@ -294,19 +275,13 @@ public class TicketPrinterService {
     }
 
     public void openCashDrawer(String ip, int port) throws Exception {
-        connect(ip, port);
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 
         // Inicializar impresora
         buffer.write(INITIALIZE);
         buffer.write(OPEN_DRAWER);
 
-        // Enviar a la impresora
-        outputStream.write(buffer.toByteArray());
-        outputStream.flush();
-
-        close();
-
+        send(ip, port, buffer.toByteArray());
     }
 
 }
