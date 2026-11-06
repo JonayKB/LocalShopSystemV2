@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.SortedMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,6 +33,7 @@ import es.jonay.kb.shopsystem.model.entities.Category;
 import es.jonay.kb.shopsystem.model.entities.InvoiceCounter;
 import es.jonay.kb.shopsystem.model.entities.Item;
 import es.jonay.kb.shopsystem.model.entities.PaymentMethod;
+import es.jonay.kb.shopsystem.model.entities.StockMovementType;
 import es.jonay.kb.shopsystem.model.entities.Trade;
 import es.jonay.kb.shopsystem.model.entities.TradeLine;
 import es.jonay.kb.shopsystem.model.entities.TradeStatus;
@@ -53,7 +53,7 @@ public class TradeController {
     private ITradeRepository tradeRepository;
     private ICategoryRepository categoryRepository;
     private IInvoiceCounterRepository counterRepository;
-    private ItemController itemController;
+    private InventoryController inventory;
     private IItemRepository itemRepository;
     private TradeMapper tradeMapper;
     private BillingRecordService billingRecordService;
@@ -115,8 +115,8 @@ public class TradeController {
     }
 
     @Autowired
-    public void setItemController(ItemController itemController) {
-        this.itemController = itemController;
+    public void setInventory(InventoryController inventory) {
+        this.inventory = inventory;
     }
 
     @Autowired
@@ -166,27 +166,31 @@ public class TradeController {
         // Agrupa por producto manteniendo el orden de entrada.
         Map<Long, Integer> quantities = new LinkedHashMap<>();
         for (ItemDto itemDto : items) {
+            if (itemDto == null || itemDto.getId() == null) {
+                throw new IllegalArgumentException("Hay un producto sin código en la venta");
+            }
             quantities.merge(itemDto.getId(), 1, Integer::sum);
         }
 
-        InvoiceCounter counter = counterRepository.findBySeriesForUpdate(invoiceSeries)
-                .orElseGet(() -> {
-                    counterRepository.saveAndFlush(new InvoiceCounter(invoiceSeries));
-                    return counterRepository.findBySeriesForUpdate(invoiceSeries).orElseThrow();
-                });
+        counterRepository.lockOrCreate(invoiceSeries);
+        InvoiceCounter counter = counterRepository.findBySeriesForUpdate(invoiceSeries).orElseThrow();
+
+        // Bloquea los productos en orden de id (evita bloqueos cruzados con otras operaciones).
+        Map<Long, Item> locked = new java.util.TreeMap<>();
+        for (Long id : new java.util.TreeSet<>(quantities.keySet())) {
+            locked.put(id, inventory.lock(id));
+        }
 
         Trade trade = new Trade();
-        List<Item> itemList = new ArrayList<>();
         BigDecimal totalBase = BigDecimal.ZERO;
         BigDecimal totalTax = BigDecimal.ZERO;
         BigDecimal total = BigDecimal.ZERO;
 
         for (Map.Entry<Long, Integer> entry : quantities.entrySet()) {
-            Item item = itemRepository.findById(entry.getKey())
-                    .orElseThrow(() -> new NoSuchElementException("Producto no encontrado: " + entry.getKey()));
+            Item item = locked.get(entry.getKey());
             int quantity = entry.getValue();
 
-            BigDecimal unitPrice = latestPrice(item);
+            BigDecimal unitPrice = currentPrice(item);
             BigDecimal rate = igicRateOf(item.getCategory());
 
             BigDecimal lineTotal = unitPrice.multiply(BigDecimal.valueOf(quantity)).setScale(2, RoundingMode.HALF_UP);
@@ -203,19 +207,18 @@ public class TradeController {
             line.setTaxBase(base);
             line.setTaxAmount(tax);
             line.setLineTotal(lineTotal);
+            line.setUnitCost(item.getCost() != null && item.getCost().signum() > 0 ? item.getCost() : null);
+            if (item.getCategory() != null) {
+                line.setCategoryId(item.getCategory().getId());
+                line.setCategoryName(item.getCategory().getName());
+            }
             trade.addLine(line);
 
             totalBase = totalBase.add(base);
             totalTax = totalTax.add(tax);
             total = total.add(lineTotal);
-
-            for (int i = 0; i < quantity; i++) {
-                itemList.add(item);
-                itemController.removeStock(item.getId(), 1);
-            }
         }
 
-        trade.setItems(itemList);
         trade.setDate(new Date());
         trade.setSeries(invoiceSeries);
         trade.setNumber(counter.next());
@@ -227,6 +230,11 @@ public class TradeController {
 
         counterRepository.save(counter);
         Trade saved = tradeRepository.save(trade);
+        String ref = "Venta " + BillingRecordService.invoiceNumber(saved.getSeries(), saved.getNumber());
+        for (TradeLine line : saved.getLines()) {
+            inventory.apply(locked.get(line.getItemId()), StockMovementType.SALE, -line.getQuantity(),
+                    line.getUnitCost(), saved.getId(), ref);
+        }
         // Registro de alta VERI*FACTU en la MISMA transacción: si falla, la venta no se emite
         // y no se consume número. (No hace nada si verifactu.enabled=false.)
         billingRecordService.createAlta(saved);
@@ -252,8 +260,28 @@ public class TradeController {
         trade.setStatus(TradeStatus.CANCELLED);
         trade.setCancelledAt(new Date());
         trade.setCancellationReason(reason == null || reason.isBlank() ? null : reason.trim());
-        for (Item item : trade.getItems()) {
-            itemController.addStock(item.getId(), 1);
+        // Devuelve el stock según las líneas (ventas antiguas sin líneas: según sus productos).
+        Map<Long, Integer> toReturn = new java.util.TreeMap<>();
+        if (trade.getLines() != null && !trade.getLines().isEmpty()) {
+            for (TradeLine l : trade.getLines()) {
+                if (l.getItemId() != null) {
+                    toReturn.merge(l.getItemId(), l.getQuantity(), Integer::sum);
+                }
+            }
+        } else {
+            for (Item item : trade.getItems()) {
+                toReturn.merge(item.getId(), 1, Integer::sum);
+            }
+        }
+        String ref = "Anulación de la venta " + (trade.getSeries() != null && trade.getNumber() != null
+                ? BillingRecordService.invoiceNumber(trade.getSeries(), trade.getNumber())
+                : String.valueOf(trade.getId()));
+        for (Map.Entry<Long, Integer> e : toReturn.entrySet()) {
+            if (!itemRepository.existsById(e.getKey())) {
+                continue; // producto borrado después de la venta: no hay stock que devolver
+            }
+            inventory.apply(inventory.lock(e.getKey()), StockMovementType.SALE_CANCEL, e.getValue(), null,
+                    trade.getId(), ref);
         }
         Trade saved = tradeRepository.save(trade);
         billingRecordService.createAnulacion(saved);
@@ -300,25 +328,22 @@ public class TradeController {
         LocalDate d = day != null ? day : LocalDate.now();
         List<Trade> trades = tradeRepository.findAllTradesInRange(d.atStartOfDay(), d.plusDays(1).atStartOfDay());
 
-        // clave = id de producto; guarda nombre, unidades, importe y categoría
-        Map<Long, Object[]> byItem = new LinkedHashMap<>();
+        // clave = id de producto (o descripción si no tiene); guarda nombre, unidades, importe y categoría.
+        // Todo sale de las líneas congeladas: sin consultas extra por producto.
+        Map<String, Object[]> byItem = new LinkedHashMap<>();
         BigDecimal cashTotal = BigDecimal.ZERO;
         BigDecimal cardTotal = BigDecimal.ZERO;
         int cardCount = 0;
         for (Trade trade : trades) {
             BigDecimal tradeTotal = BigDecimal.ZERO;
-            if (trade.getLines() != null && !trade.getLines().isEmpty()) {
-                for (TradeLine l : trade.getLines()) {
-                    addToReport(byItem, l.getItemId(), l.getDescription(), l.getQuantity(), l.getLineTotal());
-                    tradeTotal = tradeTotal.add(l.getLineTotal());
-                }
-            } else {
-                // Venta anterior a las líneas congeladas: se cuenta por producto al precio actual.
-                for (Item item : trade.getItems()) {
-                    BigDecimal price = latestPrice(item);
-                    addToReport(byItem, item.getId(), item.getName(), 1, price);
-                    tradeTotal = tradeTotal.add(price);
-                }
+            for (TradeLine l : trade.getLines()) {
+                String key = l.getItemId() != null ? "id:" + l.getItemId() : "name:" + l.getDescription();
+                String category = l.getCategoryName() != null ? l.getCategoryName() : "Sin categoría";
+                Object[] acc = byItem.computeIfAbsent(key,
+                        k -> new Object[] { l.getDescription(), 0, BigDecimal.ZERO, category });
+                acc[1] = (Integer) acc[1] + l.getQuantity();
+                acc[2] = ((BigDecimal) acc[2]).add(l.getLineTotal());
+                tradeTotal = tradeTotal.add(l.getLineTotal());
             }
             if (trade.getPaymentMethod() == PaymentMethod.CARD) {
                 cardTotal = cardTotal.add(tradeTotal);
@@ -328,24 +353,14 @@ public class TradeController {
             }
         }
 
-        Map<Long, String> categoryOf = new HashMap<>();
         List<DailyReportDto.Row> products = new ArrayList<>();
         Map<String, List<DailyReportDto.Row>> byCategory = new java.util.TreeMap<>(String.CASE_INSENSITIVE_ORDER);
         BigDecimal total = BigDecimal.ZERO;
-        for (Map.Entry<Long, Object[]> e : byItem.entrySet()) {
-            Object[] v = e.getValue();
+        for (Object[] v : byItem.values()) {
             DailyReportDto.Row row = new DailyReportDto.Row((String) v[0], (Integer) v[1], (BigDecimal) v[2]);
             products.add(row);
             total = total.add(row.getTotal());
-            String cat = categoryOf.computeIfAbsent(e.getKey() == null ? -1L : e.getKey(), id -> {
-                if (id < 0) {
-                    return "Sin categoría";
-                }
-                return itemRepository.findById(id)
-                        .map(i -> i.getCategory() != null ? i.getCategory().getName() : "Sin categoría")
-                        .orElse("Sin categoría");
-            });
-            byCategory.computeIfAbsent(cat, k -> new ArrayList<>()).add(row);
+            byCategory.computeIfAbsent((String) v[3], k -> new ArrayList<>()).add(row);
         }
         products.sort((a, b) -> a.getName().compareToIgnoreCase(b.getName()));
 
@@ -363,13 +378,6 @@ public class TradeController {
             report.getCategories().add(new DailyReportDto.CategoryBlock(e.getKey(), e.getValue()));
         }
         return report;
-    }
-
-    private static void addToReport(Map<Long, Object[]> byItem, Long itemId, String name, int quantity,
-            BigDecimal total) {
-        Object[] acc = byItem.computeIfAbsent(itemId, k -> new Object[] { name, 0, BigDecimal.ZERO });
-        acc[1] = (Integer) acc[1] + quantity;
-        acc[2] = ((BigDecimal) acc[2]).add(total);
     }
 
     /**
@@ -405,12 +413,11 @@ public class TradeController {
         }
     }
 
-    private BigDecimal latestPrice(Item item) {
-        SortedMap<LocalDateTime, Double> history = item.getPriceHistory();
-        if (history == null || history.isEmpty()) {
-            throw new IllegalStateException("El producto " + item.getId() + " no tiene precio");
+    private static BigDecimal currentPrice(Item item) {
+        if (item.getPrice() == null || item.getPrice().signum() <= 0) {
+            throw new IllegalArgumentException("El producto \"" + item.getName() + "\" no tiene precio de venta");
         }
-        return BigDecimal.valueOf(history.get(history.lastKey())).setScale(2, RoundingMode.HALF_UP);
+        return item.getPrice().setScale(2, RoundingMode.HALF_UP);
     }
 
     private BigDecimal igicRateOf(Category category) {

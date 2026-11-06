@@ -1,189 +1,173 @@
 package es.jonay.kb.shopsystem.services;
 
-import org.apache.poi.ss.usermodel.*;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.TreeSet;
+
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import es.jonay.kb.shopsystem.api.dto.CategoryDto;
-import es.jonay.kb.shopsystem.api.dto.ItemDto;
-import es.jonay.kb.shopsystem.api.dto.TradeDto;
-import es.jonay.kb.shopsystem.controller.CategoryController;
-import es.jonay.kb.shopsystem.controller.TradeController;
+import es.jonay.kb.shopsystem.api.dto.analytics.SaleLineRow;
+import es.jonay.kb.shopsystem.model.repository.IGraphsRepository;
 import jakarta.servlet.http.HttpServletResponse;
 
-import java.io.IOException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.util.*;
-import java.time.format.DateTimeFormatter;
-
+/**
+ * Informe mensual en Excel: ventas por día y categoría (con IGIC incluido), más una hoja con
+ * el desglose de base, IGIC, coste y beneficio. Usa las líneas congeladas de cada venta, así
+ * que cambiar precios o categorías después no altera meses pasados.
+ */
 @RestController
 public class TradeReportService {
-    TradeController tradeController;
-    CategoryController categoryController;
-    private static final Logger logger = LoggerFactory.getLogger(TradeReportService.class);
 
-    public TradeController getTradeController() {
-        return this.tradeController;
-    }
+    private static final DateTimeFormatter DAY = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
-    @Autowired
-    public void setTradeController(TradeController tradeController) {
-        this.tradeController = tradeController;
-    }
+    private final IGraphsRepository graphs;
+    private final ZoneId zone;
 
-    public CategoryController getCategoryController() {
-        return this.categoryController;
-    }
-
-    @Autowired
-    public void setCategoryController(CategoryController categoryController) {
-        this.categoryController = categoryController;
+    public TradeReportService(IGraphsRepository graphs, @Value("${shop.timezone:Atlantic/Canary}") String zone) {
+        this.graphs = graphs;
+        this.zone = ZoneId.of(zone);
     }
 
     @GetMapping("/generate-report")
+    @Transactional(readOnly = true)
     public void generateExcelReport(HttpServletResponse response,
-            @RequestParam(value = "month", required = false) Integer month) throws IOException {
-        // Obtener datos de la API o de la base de datos
-        List<TradeDto> trades = fetchTradesFromDatabase(month);
+            @RequestParam(value = "month", required = false) Integer month,
+            @RequestParam(value = "year", required = false) Integer year) throws IOException {
+        LocalDate today = LocalDate.now(zone);
+        int m = month != null && month >= 1 && month <= 12 ? month : today.getMonthValue();
+        int y = year != null && year >= 2000 && year <= 2100 ? year : today.getYear();
+        LocalDate first = LocalDate.of(y, m, 1);
+        LocalDate next = first.plusMonths(1);
 
-        // Organizar datos por fecha (utilizando LocalDate en lugar de String para un
-        // orden correcto)
-        Map<LocalDate, Map<String, Double>> dataByDate = organizeDataByDate(trades);
+        List<SaleLineRow> lines = graphs.saleLines(Date.from(first.atStartOfDay(zone).toInstant()),
+                Date.from(next.atStartOfDay(zone).toInstant()));
 
-        // Crear archivo Excel
-        Workbook workbook = new XSSFWorkbook();
-        Sheet sheet = workbook.createSheet("Reporte de Trades");
-
-        // Crear fila de encabezados
-        Row headerRow = sheet.createRow(0);
-        headerRow.createCell(0).setCellValue("Fecha");
-        int columnIndex = 1;
-
-        // Crear columnas de encabezado de categoría dinámicamente
-        List<String> categoryNames = fetchCategoryNames();
-        for (String category : categoryNames) {
-            headerRow.createCell(columnIndex++).setCellValue(category.toUpperCase());
+        TreeSet<String> categories = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+        Map<LocalDate, Map<String, BigDecimal>> byDay = new TreeMap<>();
+        Map<LocalDate, BigDecimal[]> fiscal = new TreeMap<>(); // base, igic, total, coste, beneficio
+        for (LocalDate d = first; d.isBefore(next); d = d.plusDays(1)) {
+            byDay.put(d, new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
+            fiscal.put(d, zeros());
         }
-        headerRow.createCell(columnIndex).setCellValue("Total");
-
-        // Crear filas de datos
-        int rowIndex = 1;
-        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-
-        for (Map.Entry<LocalDate, Map<String, Double>> entry : dataByDate.entrySet()) {
-            Row row = sheet.createRow(rowIndex++);
-
-            // Convertir LocalDate a String usando un formato adecuado
-            String formattedDate = entry.getKey().format(dateFormatter);
-            row.createCell(0).setCellValue(formattedDate); // Fecha
-
-            Map<String, Double> categoryData = entry.getValue();
-            columnIndex = 1;
-            double total = 0.0;
-
-            for (String category : categoryNames) {
-                double amount = categoryData.getOrDefault(category, 0.0);
-                row.createCell(columnIndex++).setCellValue(amount);
-                total += amount;
-            }
-
-            row.createCell(columnIndex).setCellValue(total);
-        }
-
-        // Configurar respuesta HTTP para descargar el archivo
-        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-        response.setHeader("Content-Disposition", "attachment; filename=reporte_trades.xlsx");
-
-        // Escribir Excel en la respuesta HTTP
-        workbook.write(response.getOutputStream());
-        workbook.close();
-    }
-
-    private List<TradeDto> fetchTradesFromDatabase(Integer month) {
-        LocalDate selectedDay;
-        if (month == null) {
-            selectedDay = LocalDate.now();
-        } else if (month >= 1 && month <= 12) {
-            // Usar el mes proporcionado y el año actual
-            int currentYear = LocalDate.now().getYear();
-            selectedDay = LocalDate.of(currentYear, month, 1);
-        } else {
-            selectedDay = LocalDate.now();
-        }
-
-        // Obtener el primer día del mes actual
-        LocalDate firstDayOfMonth = selectedDay.withDayOfMonth(1);
-
-        // Obtener el último día del mes actual
-        LocalDate lastDayOfMonth = selectedDay.withDayOfMonth(selectedDay.lengthOfMonth());
-
-        // Definir la hora de inicio y fin del día
-        LocalTime startOfDay = LocalTime.MIN; // 00:00:00
-        LocalTime endOfDay = LocalTime.MAX; // 23:59:59.999999999
-
-        // Combinar LocalDate con LocalTime para el comienzo y final del mes
-        ZonedDateTime startOfMonthZoned = ZonedDateTime.of(firstDayOfMonth, startOfDay, ZoneId.systemDefault());
-        ZonedDateTime endOfMonthZoned = ZonedDateTime.of(lastDayOfMonth, endOfDay, ZoneId.systemDefault());
-
-        LocalDateTime startOfMonth = startOfMonthZoned.toLocalDateTime();
-        LocalDateTime endOfMonth = endOfMonthZoned.toLocalDateTime();
-
-        return tradeController.findTradesInRange(startOfMonth, endOfMonth);
-    }
-
-    // Esto está mal, pk sería obtenerlo desde la base de datos así, no
-    // transformarlo
-    @GetMapping("/total-income-by-category")
-    public Map<String, Double> getTotalIncomeByCategory(@RequestParam LocalDateTime startDate,
-            @RequestParam LocalDateTime endDate) {
-        List<TradeDto> trades = tradeController.findTradesInRange(startDate, endDate);
-        Map<String, Double> incomeByCategory = new HashMap<>();
-
-        for (TradeDto trade : trades) {
-            for (ItemDto item : trade.getItems()) {
-                String categoryName = fetchCategoryNames().get(Integer.parseInt(item.getCategoryId().toString()));
-                incomeByCategory.merge(categoryName, item.getPrice(), Double::sum);
+        for (SaleLineRow l : lines) {
+            LocalDate d = l.date().toInstant().atZone(zone).toLocalDate();
+            String cat = l.categoryName() != null ? l.categoryName() : "Sin categoría";
+            categories.add(cat);
+            byDay.get(d).merge(cat, l.lineTotal(), BigDecimal::add);
+            BigDecimal[] f = fiscal.get(d);
+            f[0] = f[0].add(l.taxBase());
+            f[1] = f[1].add(l.taxAmount());
+            f[2] = f[2].add(l.lineTotal());
+            if (l.unitCost() != null && l.unitCost().signum() > 0) {
+                BigDecimal cost = l.unitCost().multiply(BigDecimal.valueOf(l.quantity()));
+                f[3] = f[3].add(cost);
+                f[4] = f[4].add(l.taxBase().subtract(cost));
             }
         }
 
-        return incomeByCategory;
-    }
+        try (Workbook wb = new XSSFWorkbook()) {
+            CellStyle bold = wb.createCellStyle();
+            Font font = wb.createFont();
+            font.setBold(true);
+            bold.setFont(font);
+            CellStyle money = wb.createCellStyle();
+            money.setDataFormat(wb.createDataFormat().getFormat("#,##0.00"));
 
-    private Map<LocalDate, Map<String, Double>> organizeDataByDate(List<TradeDto> trades) {
-        Map<LocalDate, Map<String, Double>> dataByDate = new TreeMap<>(); // TreeMap para ordenar por fecha
-                                                                          // automáticamente
-
-        for (TradeDto trade : trades) {
-            // Convertir la fecha a LocalDate para asegurar el orden
-            LocalDate date = trade.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-
-            dataByDate.putIfAbsent(date, new HashMap<>());
-            Map<String, Double> categoryData = dataByDate.get(date);
-
-            for (ItemDto item : trade.getItems()) {
-                categoryData.merge(fetchCategoryNames().get(Integer.parseInt(item.getCategoryId().toString())),
-                        item.getPrice(), Double::sum);
+            // Hoja 1: ventas por categoría (lo que ya usaba el panel)
+            Sheet sheet = wb.createSheet("Ventas por categoría");
+            List<String> cats = new ArrayList<>(categories);
+            Row h = sheet.createRow(0);
+            h.createCell(0).setCellValue("Fecha");
+            for (int i = 0; i < cats.size(); i++) {
+                h.createCell(i + 1).setCellValue(cats.get(i).toUpperCase());
             }
-        }
+            h.createCell(cats.size() + 1).setCellValue("TOTAL");
+            h.forEach(c -> c.setCellStyle(bold));
+            int r = 1;
+            BigDecimal[] colTotals = new BigDecimal[cats.size() + 1];
+            java.util.Arrays.fill(colTotals, BigDecimal.ZERO);
+            for (Map.Entry<LocalDate, Map<String, BigDecimal>> e : byDay.entrySet()) {
+                Row row = sheet.createRow(r++);
+                row.createCell(0).setCellValue(e.getKey().format(DAY));
+                BigDecimal dayTotal = BigDecimal.ZERO;
+                for (int i = 0; i < cats.size(); i++) {
+                    BigDecimal v = e.getValue().getOrDefault(cats.get(i), BigDecimal.ZERO);
+                    cell(row, i + 1, v, money);
+                    dayTotal = dayTotal.add(v);
+                    colTotals[i] = colTotals[i].add(v);
+                }
+                cell(row, cats.size() + 1, dayTotal, money);
+                colTotals[cats.size()] = colTotals[cats.size()].add(dayTotal);
+            }
+            Row total = sheet.createRow(r);
+            total.createCell(0).setCellValue("TOTAL");
+            total.getCell(0).setCellStyle(bold);
+            for (int i = 0; i < colTotals.length; i++) {
+                cell(total, i + 1, colTotals[i], money);
+            }
+            for (int i = 0; i <= cats.size() + 1; i++) {
+                sheet.autoSizeColumn(i);
+            }
 
-        logger.info(dataByDate.toString());
-        return dataByDate;
+            // Hoja 2: desglose fiscal y beneficio
+            Sheet f = wb.createSheet("Base, IGIC y beneficio");
+            String[] titles = { "Fecha", "Base imponible", "IGIC", "Total", "Coste", "Beneficio bruto" };
+            Row fh = f.createRow(0);
+            for (int i = 0; i < titles.length; i++) {
+                fh.createCell(i).setCellValue(titles[i]);
+                fh.getCell(i).setCellStyle(bold);
+            }
+            BigDecimal[] sum = zeros();
+            int fr = 1;
+            for (Map.Entry<LocalDate, BigDecimal[]> e : fiscal.entrySet()) {
+                Row row = f.createRow(fr++);
+                row.createCell(0).setCellValue(e.getKey().format(DAY));
+                for (int i = 0; i < 5; i++) {
+                    cell(row, i + 1, e.getValue()[i], money);
+                    sum[i] = sum[i].add(e.getValue()[i]);
+                }
+            }
+            Row ft = f.createRow(fr);
+            ft.createCell(0).setCellValue("TOTAL");
+            ft.getCell(0).setCellStyle(bold);
+            for (int i = 0; i < 5; i++) {
+                cell(ft, i + 1, sum[i], money);
+            }
+            for (int i = 0; i < titles.length; i++) {
+                f.autoSizeColumn(i);
+            }
+
+            response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            response.setHeader("Content-Disposition",
+                    "attachment; filename=informe_" + y + "-" + String.format("%02d", m) + ".xlsx");
+            wb.write(response.getOutputStream());
+        }
     }
 
-    private List<String> fetchCategoryNames() {
-        List<String> categoryNames = new ArrayList<>();
-        for (CategoryDto categoryDto : categoryController.findAll()) {
-            categoryNames.add(categoryDto.getName());
-        }
-        return categoryNames; // Ejemplo de categorías
+    private static BigDecimal[] zeros() {
+        return new BigDecimal[] { BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO };
+    }
+
+    private static void cell(Row row, int col, BigDecimal value, CellStyle style) {
+        row.createCell(col).setCellValue(value.doubleValue());
+        row.getCell(col).setCellStyle(style);
     }
 }

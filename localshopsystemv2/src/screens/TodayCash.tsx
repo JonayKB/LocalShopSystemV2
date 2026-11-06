@@ -1,21 +1,22 @@
 import React, { useContext, useEffect, useState } from 'react'
 import { MainContext } from '../components/MainContextProvider';
 import { useNavigate } from 'react-router-dom';
-import ExportRepository from '../repositories/ExportRepository';
+import GraphRepository from '../repositories/GraphRepository';
+import { CategoryShare, Summary } from '../models/Analytics';
+import { today } from '../utils/dates';
 import TradeRepository from '../repositories/TradeRepository';
 import { Printer, LayoutList } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
-import { eur, isCancelled, tradeTotal } from '../utils/format';
-import Trade from '../models/Trade';
+import { eur } from '../utils/format';
 
 type Props = {}
 
 const TodayCash = (props: Props) => {
     const { token } = useContext(MainContext);
     const navitigation = useNavigate();
-    const [incomeByCategory, setIncomeByCategory] = useState<Record<string, number>>();
+    const [summary, setSummary] = useState<Summary>();
+    const [categories, setCategories] = useState<CategoryShare[]>();
     const [error, setError] = useState<string | null>(null);
-    const [byPayment, setByPayment] = useState<{ cash: number; card: number; cashCount: number; cardCount: number }>();
     const [printing, setPrinting] = useState<'products' | 'categories' | null>(null);
     const [printMsg, setPrintMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
@@ -38,28 +39,18 @@ const TodayCash = (props: Props) => {
             navitigation('/admin/login');
             return;
         }
-        new ExportRepository().getIncomeByCategory(token)
-            .then(setIncomeByCategory)
-            .catch(() => setError('No se pudo cargar la caja del día.'));
-        new TradeRepository().getTradesByDate(token)
-            .then((trades: Trade[] | undefined) => {
-                const acc = { cash: 0, card: 0, cashCount: 0, cardCount: 0 };
-                (trades ?? []).filter(t => !isCancelled(t)).forEach(t => {
-                    if (t.paymentMethod === 'CARD') {
-                        acc.card += tradeTotal(t);
-                        acc.cardCount++;
-                    } else {
-                        acc.cash += tradeTotal(t);
-                        acc.cashCount++;
-                    }
-                });
-                setByPayment(acc);
+        // Mismos cálculos que los informes: líneas congeladas de las ventas emitidas hoy.
+        const range = { from: today(), to: today() };
+        const graphs = new GraphRepository();
+        Promise.all([graphs.summary(range, token), graphs.byCategory(range, token)])
+            .then(([s, c]) => {
+                setSummary(s);
+                setCategories(c);
             })
-            .catch(() => setByPayment(undefined));
+            .catch(() => setError('No se pudo cargar la caja del día.'));
     }, [token, navitigation]);
 
-    const entries = incomeByCategory ? Object.entries(incomeByCategory) : [];
-    const total = entries.reduce((sum, [, v]) => sum + v, 0);
+    const t = summary?.current;
 
     return (
         <>
@@ -89,35 +80,41 @@ const TodayCash = (props: Props) => {
             )}
             {error ? (
                 <div className="cart-error" role="alert">{error}</div>
-            ) : !incomeByCategory ? (
+            ) : !t || !categories ? (
                 <div className="skeleton" style={{ height: 200 }} aria-busy="true" />
             ) : (
                 <div className="stat-grid">
                     <div className="stat is-total">
-                        <small>Total de hoy</small>
-                        <strong>{eur(total)}</strong>
+                        <small>Total de hoy · {t.trades} {t.trades === 1 ? 'venta' : 'ventas'}</small>
+                        <strong>{eur(t.revenue)}</strong>
                     </div>
-                    {byPayment && (
-                        <>
-                            <div className="stat">
-                                <small>Efectivo ({byPayment.cashCount} {byPayment.cashCount === 1 ? 'venta' : 'ventas'})</small>
-                                <strong>{eur(byPayment.cash)}</strong>
-                            </div>
-                            <div className="stat">
-                                <small>Tarjeta ({byPayment.cardCount} {byPayment.cardCount === 1 ? 'venta' : 'ventas'})</small>
-                                <strong>{eur(byPayment.card)}</strong>
-                            </div>
-                        </>
+                    <div className="stat">
+                        <small>Efectivo</small>
+                        <strong>{eur(t.cashRevenue)}</strong>
+                    </div>
+                    <div className="stat">
+                        <small>Tarjeta</small>
+                        <strong>{eur(t.cardRevenue)}</strong>
+                    </div>
+                    <div className="stat">
+                        <small>IGIC repercutido</small>
+                        <strong>{eur(t.tax)}</strong>
+                    </div>
+                    {t.cancelledTrades > 0 && (
+                        <div className="stat">
+                            <small>Anuladas ({t.cancelledTrades})</small>
+                            <strong>{eur(t.cancelledAmount)}</strong>
+                        </div>
                     )}
-                    {entries.length === 0 && (
+                    {categories.length === 0 && (
                         <div className="empty" style={{ gridColumn: '1 / -1' }}>
                             <strong>Todavía no hay ventas hoy</strong>
                         </div>
                     )}
-                    {entries.map(([name, value]) => (
-                        <div className="stat" key={name}>
-                            <small>{name}</small>
-                            <strong>{eur(value)}</strong>
+                    {categories.map(c => (
+                        <div className="stat" key={c.category}>
+                            <small>{c.category}</small>
+                            <strong>{eur(c.revenue)}</strong>
                         </div>
                     ))}
                 </div>

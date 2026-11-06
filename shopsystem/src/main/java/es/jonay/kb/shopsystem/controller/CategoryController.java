@@ -76,9 +76,7 @@ public class CategoryController {
                 category == null ? null : category.getImage(), image);
 
         if (category == null) {
-            category = new Category();
-            Long id = categoryDto.getId();
-            category.setId(id != null ? id : categoryRepository.findMaxId() + 1);
+            category = new Category(); // el id lo genera la base de datos (AUTO_INCREMENT)
         }
         category.setName(name);
         category.setImage(image);
@@ -86,7 +84,17 @@ public class CategoryController {
         return CategoryMapper.INSTANCE.toCategoryDto(categoryRepository.save(category));
     }
     
-    public void deleteById(Long id){
-        categoryRepository.deleteById(id);
+    @Transactional
+    public void deleteById(Long id) {
+        if (!categoryRepository.existsById(id)) {
+            throw new java.util.NoSuchElementException("Categoría no encontrada: " + id);
+        }
+        try {
+            categoryRepository.deleteById(id);
+            categoryRepository.flush();
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            throw new es.jonay.kb.shopsystem.api.exceptions.ConflictException(
+                    "No se puede borrar la categoría: tiene productos. Muévelos antes a otra categoría.");
+        }
     }
 }

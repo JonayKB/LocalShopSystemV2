@@ -27,6 +27,7 @@ import es.jonay.kb.shopsystem.model.repository.IRefreshTokenRepository;
 import es.jonay.kb.shopsystem.model.repository.IUserRepository;
 
 @SpringBootTest
+@org.springframework.context.annotation.Import(TestDatabase.class)
 @AutoConfigureMockMvc
 class SecurityIntegrationTest {
 

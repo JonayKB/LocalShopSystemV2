@@ -18,7 +18,8 @@ services:
       MYSQL_PASSWORD: ${DB_PASSWORD:?Falta DB_PASSWORD en .env}
     volumes:
       - db_data:/var/lib/mysql
-      - ./database.sql:/docker-entrypoint-initdb.d/database.sql
+      # El esquema lo crea Flyway al arrancar la app (no se monta database.sql en initdb:
+      # en una instalación nueva rompería la migración).
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
       interval: 10s

@@ -146,7 +146,34 @@ public class ImageController {
         }
     }
 
+    /** Formatos admitidos, detectados por el contenido del fichero (no por lo que diga el cliente). */
+    static String detectFormat(byte[] head) {
+        if (head.length >= 8 && (head[0] & 0xFF) == 0x89 && head[1] == 'P' && head[2] == 'N' && head[3] == 'G') {
+            return ".png";
+        }
+        if (head.length >= 3 && (head[0] & 0xFF) == 0xFF && (head[1] & 0xFF) == 0xD8 && (head[2] & 0xFF) == 0xFF) {
+            return ".jpg";
+        }
+        if (head.length >= 6 && head[0] == 'G' && head[1] == 'I' && head[2] == 'F' && head[3] == '8') {
+            return ".gif";
+        }
+        if (head.length >= 12 && head[0] == 'R' && head[1] == 'I' && head[2] == 'F' && head[3] == 'F'
+                && head[8] == 'W' && head[9] == 'E' && head[10] == 'B' && head[11] == 'P') {
+            return ".webp";
+        }
+        return null;
+    }
+
     public String save(MultipartFile file) {
+        String detected;
+        try (var in = file.getInputStream()) {
+            detected = detectFormat(in.readNBytes(12));
+        } catch (IOException e) {
+            throw new RuntimeException("Could not read the file");
+        }
+        if (detected == null) {
+            throw new IllegalArgumentException("Formato de imagen no admitido (usa PNG, JPG, GIF o WEBP)");
+        }
         try {
             Files.createDirectories(uploads);
         } catch (IOException e) {
@@ -157,7 +184,7 @@ public class ImageController {
             throw new RuntimeException("Filename is null");
         }
         // Solo el nombre del fichero: nunca rutas que vengan del cliente.
-        filename = uniqueName(Paths.get(filename).getFileName().toString());
+        filename = uniqueName(Paths.get(filename).getFileName().toString(), detected);
         Path filePath = this.uploads.resolve(filename);
         filePath = getFreePath(filename, filePath);
         try {
@@ -173,10 +200,9 @@ public class ImageController {
      * fichero y un nombre nunca se reutiliza, aunque se borre (las imágenes se cachean
      * en el navegador como inmutables).
      */
-    private static String uniqueName(String original) {
+    private static String uniqueName(String original, String ext) {
         int dot = original.lastIndexOf('.');
         String base = dot > 0 ? original.substring(0, dot) : original;
-        String ext = dot > 0 ? original.substring(dot).toLowerCase(Locale.ROOT) : "";
         base = base.replaceAll("[^A-Za-z0-9_-]", "_");
         if (base.length() > 60) {
             base = base.substring(0, 60);
@@ -184,7 +210,6 @@ public class ImageController {
         if (base.isEmpty()) {
             base = "img";
         }
-        ext = ext.replaceAll("[^a-z0-9.]", "");
         return base + "_" + UUID.randomUUID().toString().replace("-", "").substring(0, 12) + ext;
     }
 

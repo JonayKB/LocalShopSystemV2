@@ -170,7 +170,7 @@ public class TicketPrinterService {
             for (Map.Entry<ItemDto, Integer> entry : itemCountMap.entrySet()) {
                 ItemDto item = entry.getKey();
                 int cantidad = entry.getValue();
-                double precio = item.getPrice();
+                double precio = item.getPrice() == null ? 0 : item.getPrice().doubleValue();
                 double totalLinea = precio * cantidad;
                 subtotal += totalLinea;
 

@@ -1,5 +1,9 @@
 package es.jonay.kb.shopsystem.model.repository;
 
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.repository.query.Param;
+import jakarta.persistence.LockModeType;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -38,4 +42,15 @@ public interface IItemRepository extends JpaRepository<Item, Long> {
 
     @Query("SELECT i FROM Item i WHERE i.ignoreStock = false AND i.stock < i.bareMinimun AND i.bareMinimun > 0")
     List<Item> getUnderBareMinimun();
+
+    /**
+     * Bloquea la fila del producto hasta el final de la transacción (SELECT ... FOR UPDATE):
+     * dos cajas que venden el mismo producto a la vez no pierden descuentos de stock.
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT i FROM Item i WHERE i.id = :id")
+    Optional<Item> findByIdForUpdate(@Param("id") Long id);
+
+    @Query("SELECT i FROM Item i LEFT JOIN FETCH i.category")
+    List<Item> findAllWithCategory();
 }

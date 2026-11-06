@@ -56,6 +56,41 @@ public class TradeLine {
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal lineTotal;
 
+    /** Coste unitario (sin IGIC) en el momento de la venta, para calcular el beneficio. Null = desconocido. */
+    @Column(name = "unit_cost", precision = 12, scale = 2)
+    private BigDecimal unitCost;
+
+    /** Categoría del producto en el momento de la venta (informes por categoría estables). */
+    @Column(name = "category_id")
+    private Long categoryId;
+
+    @Column(name = "category_name")
+    private String categoryName;
+
+    public BigDecimal getUnitCost() {
+        return unitCost;
+    }
+
+    public void setUnitCost(BigDecimal unitCost) {
+        this.unitCost = unitCost;
+    }
+
+    public Long getCategoryId() {
+        return categoryId;
+    }
+
+    public void setCategoryId(Long categoryId) {
+        this.categoryId = categoryId;
+    }
+
+    public String getCategoryName() {
+        return categoryName;
+    }
+
+    public void setCategoryName(String categoryName) {
+        this.categoryName = categoryName;
+    }
+
     public TradeLine() {
     }
 

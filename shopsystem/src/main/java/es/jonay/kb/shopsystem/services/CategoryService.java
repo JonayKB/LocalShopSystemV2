@@ -44,23 +44,13 @@ public class CategoryService {
     }
 
     @PostMapping("/")
-    public ResponseEntity<?> save(@RequestBody CategoryDto entity) {
-        try {
-            return ResponseEntity.ok(categoryController.save(entity));
-        } catch (ImageInUseException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public CategoryDto save(@RequestBody CategoryDto entity) {
+        return categoryController.save(entity);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteById(@PathVariable(name = "id") final Long id) {
-        try {
-            categoryController.deleteById(id);
-            return ResponseEntity.noContent().build(); 
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+        categoryController.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 }

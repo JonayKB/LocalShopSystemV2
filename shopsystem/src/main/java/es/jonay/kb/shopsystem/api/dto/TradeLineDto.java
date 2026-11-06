@@ -78,4 +78,24 @@ public class TradeLineDto {
     public void setLineTotal(BigDecimal lineTotal) {
         this.lineTotal = lineTotal;
     }
+
+    /** Coste unitario en el momento de la venta (null = desconocido). */
+    private BigDecimal unitCost;
+    private String categoryName;
+
+    public BigDecimal getUnitCost() {
+        return unitCost;
+    }
+
+    public void setUnitCost(BigDecimal unitCost) {
+        this.unitCost = unitCost;
+    }
+
+    public String getCategoryName() {
+        return categoryName;
+    }
+
+    public void setCategoryName(String categoryName) {
+        this.categoryName = categoryName;
+    }
 }

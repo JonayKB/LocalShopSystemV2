@@ -2,6 +2,7 @@ import axios from "axios";
 import Page from "../models/Page";
 import {BaseInfoRepository} from "../utils/BaseInfoRepository";
 import Item from "../models/Item";
+import { Page as MovementPage, PriceChange, StockMovement } from "../models/Stock";
 
 class ItemRepository {
   async getItemsByCategory(
@@ -53,6 +54,23 @@ class ItemRepository {
           Accept: "*/*",
         },
       }
+    );
+    return response.data;
+  }
+
+  /** Historial de precios y costes, del más reciente al más antiguo. */
+  async getPriceHistory(itemId: number, token: string | null): Promise<PriceChange[]> {
+    const response = await axios.get<PriceChange[]>(`${BaseInfoRepository.BASE_URL}items/${itemId}/price-history`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  }
+
+  /** Movimientos de stock del producto, del más reciente al más antiguo. */
+  async getStockMovements(itemId: number, page: number, token: string | null): Promise<MovementPage<StockMovement>> {
+    const response = await axios.get<MovementPage<StockMovement>>(
+      `${BaseInfoRepository.BASE_URL}items/${itemId}/stock-movements`,
+      { headers: { Authorization: `Bearer ${token}` }, params: { page, size: 15 } }
     );
     return response.data;
   }

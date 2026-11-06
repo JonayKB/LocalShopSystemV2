@@ -1,5 +1,11 @@
 package es.jonay.kb.shopsystem.services;
 
+import org.springframework.web.bind.annotation.RequestParam;
+import es.jonay.kb.shopsystem.api.dto.PriceChangeDto;
+import es.jonay.kb.shopsystem.api.dto.StockMovementDto;
+import es.jonay.kb.shopsystem.controller.InventoryController;
+import es.jonay.kb.shopsystem.controller.PricingController;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -25,6 +31,10 @@ import es.jonay.kb.shopsystem.controller.ItemController;
 @RequestMapping("items")
 public class ItemService {
     ItemController iItemController;
+    @Autowired
+    PricingController pricing;
+    @Autowired
+    InventoryController inventory;
 
     public ItemController getIItemController() {
         return this.iItemController;
@@ -56,41 +66,32 @@ public class ItemService {
     }
 
     @PostMapping("/")
-    public ResponseEntity<?> save(@RequestBody ItemDto entity) {
-        try {
-            return ResponseEntity.ok(iItemController.save(entity));
-        } catch (ImageInUseException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
-        }
+    public ItemDto save(@RequestBody ItemDto entity) {
+        return iItemController.save(entity);
     }
 
     @PutMapping("/")
-    public ResponseEntity<?> update(@RequestBody ItemDto entity) {
-        try {
-            return ResponseEntity.ok(iItemController.update(entity));
-        } catch (ImageInUseException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
-        }
+    public ItemDto update(@RequestBody ItemDto entity) {
+        return iItemController.update(entity);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteById(@PathVariable(name = "id") final Long id) {
-        try {
-            iItemController.deleteById(id);
-            return ResponseEntity.noContent().build();
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+        iItemController.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{id}/stock")
-    public ItemDto addStock(@PathVariable(name = "id") final Long id, @RequestBody Integer amount) {
-        return ItemMapper.INSTANCE.toItemDto(iItemController.addStock(id, amount));
+    /** Historial de precios de venta y costes, del cambio más reciente al más antiguo. */
+    @GetMapping("/{id}/price-history")
+    public List<PriceChangeDto> priceHistory(@PathVariable(name = "id") final Long id) {
+        return pricing.historyOf(id);
     }
 
-    @DeleteMapping("/{id}/stock")
-    public ItemDto removeStock(@PathVariable(name = "id") final Long id, @RequestBody Integer amount) {
-        return ItemMapper.INSTANCE.toItemDto(iItemController.removeStock(id, amount));
+    /** Movimientos de stock del producto, del más reciente al más antiguo. */
+    @GetMapping("/{id}/stock-movements")
+    public Page<StockMovementDto> stockMovements(@PathVariable(name = "id") final Long id,
+            @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size) {
+        return inventory.forItem(id, page, size);
     }
 
     @GetMapping("/{page}/{size}")

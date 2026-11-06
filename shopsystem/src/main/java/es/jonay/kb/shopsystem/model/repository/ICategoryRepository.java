@@ -27,8 +27,7 @@ public interface ICategoryRepository extends JpaRepository<Category,Long> {
 
     boolean existsByNameIgnoreCase(String name);
 
-    @Query("SELECT COALESCE(MAX(c.id), -1) FROM Category c")
-    Long findMaxId();
+
 
 }
 
