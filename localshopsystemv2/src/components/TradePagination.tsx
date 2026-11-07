@@ -2,8 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { Receipt } from 'lucide-react';
 import Page from '../models/Page';
 import Trade from '../models/Trade';
-import axios from 'axios';
-import { BaseInfoRepository } from '../utils/BaseInfoRepository';
+import { api } from '../utils/api';
 import TradeComponnet from './TradeComponent';
 import TradeRepository from '../repositories/TradeRepository';
 import CancelTradeModal from './CancelTradeModal';
@@ -26,9 +25,7 @@ const TradePagination = (props: Props) => {
         setLoading(true);
         setError(null);
         try {
-            const res = await axios.get(BaseInfoRepository.BASE_URL + `trade/${page}/${pageSize}`, {
-                headers: { Authorization: `Bearer ${props.token}` },
-            });
+            const res = await api.get(`trade/${page}/${pageSize}`);
             setPageData(res.data);
         } catch {
             setError('No se pudieron cargar las ventas.');

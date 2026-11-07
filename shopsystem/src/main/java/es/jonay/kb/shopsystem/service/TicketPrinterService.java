@@ -1,0 +1,284 @@
+package es.jonay.kb.shopsystem.service;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.util.HashMap;
+import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import org.springframework.stereotype.Service;
+
+import es.jonay.kb.shopsystem.api.config.TicketPrinterConfigurationProperties;
+import es.jonay.kb.shopsystem.api.dto.DailyReportDto;
+import es.jonay.kb.shopsystem.api.dto.ItemDto;
+import es.jonay.kb.shopsystem.api.dto.TradeDto;
+import es.jonay.kb.shopsystem.model.entities.PaymentMethod;
+import es.jonay.kb.shopsystem.api.dto.TradeLineDto;
+import es.jonay.kb.shopsystem.verifactu.VerifactuProperties;
+import es.jonay.kb.shopsystem.verifactu.VerifactuQr;
+
+@Service
+public class TicketPrinterService {
+    private static final Logger logger = LoggerFactory.getLogger(TicketPrinterService.class);
+
+    private String street;
+    private String nif;
+    private String businessName;
+    private int qrModuleSize = 6;
+    /** Timeout de conexión y escritura: si no hay impresora, la venta no se queda esperando. */
+    static final int TIMEOUT_MS = 2000;
+    private static final int TOTAL_WIDTH = 48; // Ancho total del ticket en caracteres
+    private static final byte[] INITIALIZE = new byte[] { 0x1B, 0x40 };
+    private static final byte[] HEADER = new byte[] {
+            0x1B, 0x61, 0x01, // ESC a 1 → Centrado
+            0x1B, 0x45, 0x01 // ESC E 1 → Negrita (emphasized ON)
+    };
+    private static final byte[] OPEN_DRAWER = new byte[] { 0x1B, 0x70, 0x00, 0x19, (byte) 0xFA };
+    private static final byte[] CUT = new byte[] { 0x1D, 0x56, 0x00 }; // Full cut
+
+    public TicketPrinterService(TicketPrinterConfigurationProperties config, VerifactuProperties verifactu)
+            throws Exception {
+
+        this.street = config.getStreet();
+        this.businessName = config.getBusinessName();
+        this.nif = config.getNif();
+        this.qrModuleSize = Math.max(1, Math.min(16, verifactu.getQr().getModuleSize()));
+    }
+
+    /**
+     * QR tributario VERI*FACTU (ESC/POS, GS ( k): modelo 2, corrección de errores M, centrado, con el
+     * texto "QR tributario:" encima y la leyenda de verificable debajo. Debe medir entre 30 y 40 mm:
+     * ajusta verifactu.qr.module-size midiendo un ticket impreso.
+     */
+    private void writeQr(ByteArrayOutputStream buffer, String url) throws IOException {
+        byte[] data = url.getBytes(StandardCharsets.US_ASCII);
+        int len = data.length + 3;
+        buffer.write(new byte[] { 0x1B, 0x61, 0x01, 0x1B, 0x45, 0x00 }); // centrado, sin negrita
+        buffer.write((VerifactuQr.TEXTO_ENCIMA + "\n").getBytes("CP437"));
+        buffer.write(new byte[] { 0x1D, 0x28, 0x6B, 0x04, 0x00, 0x31, 0x41, 0x32, 0x00 }); // modelo 2
+        buffer.write(new byte[] { 0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x43, (byte) qrModuleSize }); // tamaño módulo
+        buffer.write(new byte[] { 0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x45, 0x31 }); // corrección nivel M
+        buffer.write(new byte[] { 0x1D, 0x28, 0x6B, (byte) (len & 0xFF), (byte) ((len >> 8) & 0xFF), 0x31, 0x50,
+                0x30 }); // guardar datos
+        buffer.write(data);
+        buffer.write(new byte[] { 0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x51, 0x30 }); // imprimir
+        buffer.write(("\n" + VerifactuQr.TEXTO_DEBAJO + "\n\n").getBytes("CP437"));
+    }
+
+    /**
+     * Envía los bytes a la impresora abriendo una conexión propia para este ticket.
+     * No hay sockets compartidos: dos cajas imprimiendo a la vez no mezclan tickets
+     * ni imprimen en la impresora de la otra.
+     */
+    void send(String ip, int port, byte[] data) throws IOException {
+        try (Socket socket = new Socket()) {
+            socket.connect(new InetSocketAddress(ip, port), TIMEOUT_MS);
+            socket.setSoTimeout(TIMEOUT_MS);
+            OutputStream out = socket.getOutputStream();
+            out.write(data);
+            out.flush();
+        } catch (UnknownHostException e) {
+            throw new IOException("Impresora no encontrada en " + ip + ":" + port, e);
+        } catch (IOException e) {
+            throw new IOException("No se pudo imprimir en " + ip + ":" + port + ": " + e.getMessage(), e);
+        }
+    }
+
+    public void print(TradeDto tradeDto, String ip, int port) throws Exception {
+        print(tradeDto, ip, port, true);
+    }
+
+    public void print(TradeDto tradeDto, String ip, int port, boolean openDrawer) throws Exception {
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+
+        // Inicializar impresora
+        buffer.write(INITIALIZE);
+
+        // El QR tributario va al principio de la factura, antes del resto del contenido.
+        if (tradeDto.getVerifactuQrUrl() != null) {
+            writeQr(buffer, tradeDto.getVerifactuQrUrl());
+        }
+
+        buffer.write(HEADER); // centrado + negrita
+
+        buffer.write((businessName + "\n").getBytes("CP437"));
+        buffer.write((street + "\n").getBytes("CP437"));
+        buffer.write(("NIF : " + nif + "\n").getBytes("CP437"));
+        buffer.write("FACTURA SIMPLIFICADA\n\n".getBytes("CP437"));
+
+        // Alineación izquierda
+        buffer.write(new byte[] { 0x1B, 0x61, 0x00, 0x1B, 0x45, 0x00 });
+
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+        String numero = tradeDto.getInvoiceNumber() != null ? tradeDto.getInvoiceNumber() : String.valueOf(tradeDto.getId());
+        buffer.write(("Nro : " + numero + "\n").getBytes("CP437"));
+        buffer.write(("Fecha : " + sdf.format(tradeDto.getDate()) + "\n\n").getBytes("CP437"));
+
+        buffer.write("------------------------------------------------\n".getBytes("CP437"));
+        buffer.write("DESCRIPCION                   PRECIO CANT  TOTAL\n".getBytes("CP437"));
+        buffer.write("------------------------------------------------\n".getBytes("CP437"));
+
+        // Productos: las ventas nuevas usan sus líneas congeladas (precio e IGIC al vender)
+        if (tradeDto.getLines() != null && !tradeDto.getLines().isEmpty()) {
+            for (TradeLineDto line : tradeDto.getLines()) {
+                String nombre = line.getDescription();
+                if (nombre.length() > 16)
+                    nombre = nombre.substring(0, 16);
+
+                String rightPart = String.format(java.util.Locale.US, "%6.2f x%-2d  %6.2f",
+                        line.getUnitPrice(), line.getQuantity(), line.getLineTotal());
+                int spaces = TOTAL_WIDTH - nombre.length() - rightPart.length();
+                if (spaces < 1)
+                    spaces = 1;
+                buffer.write((nombre.toUpperCase() + " ".repeat(spaces) + rightPart + "\n")
+                        .getBytes(StandardCharsets.US_ASCII));
+            }
+
+            // Desglose de IGIC por tipo
+            Map<java.math.BigDecimal, java.math.BigDecimal[]> byRate = new java.util.TreeMap<>();
+            for (TradeLineDto line : tradeDto.getLines()) {
+                java.math.BigDecimal[] acc = byRate.computeIfAbsent(line.getTaxRate(),
+                        k -> new java.math.BigDecimal[] { java.math.BigDecimal.ZERO, java.math.BigDecimal.ZERO });
+                acc[0] = acc[0].add(line.getTaxBase());
+                acc[1] = acc[1].add(line.getTaxAmount());
+            }
+            buffer.write("\n".getBytes("CP437"));
+            for (Map.Entry<java.math.BigDecimal, java.math.BigDecimal[]> e : byRate.entrySet()) {
+                buffer.write(String.format(java.util.Locale.US, "Base %5.2f%%: %9.2f   IGIC: %9.2f\n",
+                        e.getKey(), e.getValue()[0], e.getValue()[1]).getBytes(StandardCharsets.US_ASCII));
+            }
+            buffer.write("\n".getBytes("CP437"));
+            buffer.write(String.format(java.util.Locale.US, "TOTAL:        %33.2f\n", tradeDto.getTotal())
+                    .getBytes(StandardCharsets.US_ASCII));
+        } else {
+            // Venta anterior a Verifactu: se imprime como antes
+            Map<ItemDto, Integer> itemCountMap = new HashMap<>();
+            for (ItemDto item : tradeDto.getItems())
+                itemCountMap.put(item, itemCountMap.getOrDefault(item, 0) + 1);
+
+            double subtotal = 0.0;
+            for (Map.Entry<ItemDto, Integer> entry : itemCountMap.entrySet()) {
+                ItemDto item = entry.getKey();
+                int cantidad = entry.getValue();
+                double precio = item.getPrice() == null ? 0 : item.getPrice().doubleValue();
+                double totalLinea = precio * cantidad;
+                subtotal += totalLinea;
+
+                String nombre = item.getName();
+                if (nombre.length() > 16)
+                    nombre = nombre.substring(0, 16);
+
+                String rightPart = String.format("%6.2f x%-2d  %6.2f", precio, cantidad, totalLinea);
+                int spaces = TOTAL_WIDTH - nombre.length() - rightPart.length();
+                if (spaces < 1)
+                    spaces = 1;
+
+                buffer.write((nombre.toUpperCase() + " ".repeat(spaces) + rightPart + "\n")
+                        .getBytes(StandardCharsets.US_ASCII));
+            }
+
+            buffer.write("\n".getBytes("CP437"));
+            buffer.write(String.format("Subtotal:        %30.2f\n", subtotal).getBytes(StandardCharsets.US_ASCII));
+            buffer.write(String.format("TOTAL:        %33.2f\n", subtotal).getBytes(StandardCharsets.US_ASCII));
+        }
+
+        buffer.write(("Forma de pago: " + PaymentMethod.parse(tradeDto.getPaymentMethod()).label() + "\n")
+                .getBytes("CP437"));
+
+        buffer.write("\n\n".getBytes("CP437"));
+        buffer.write(HEADER);
+        buffer.write("Gracias por su compra!\n".getBytes("CP437"));
+        buffer.write("\n\n\n\n".getBytes("CP437"));
+        buffer.write(CUT);
+        if (openDrawer) {
+            buffer.write(OPEN_DRAWER);
+        }
+
+        send(ip, port, buffer.toByteArray());
+    }
+
+    /**
+     * Imprime el resumen del día. byCategory=false: lista de todos los productos vendidos;
+     * byCategory=true: los mismos agrupados por categoría con subtotal. No es una factura.
+     */
+    public void printDailyReport(DailyReportDto report, boolean byCategory, String ip, int port) throws Exception {
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        buffer.write(INITIALIZE);
+        buffer.write(HEADER);
+        buffer.write((businessName + "\n").getBytes("CP437"));
+        buffer.write((byCategory ? "VENTAS DEL DIA POR CATEGORIA\n" : "PRODUCTOS VENDIDOS DEL DIA\n")
+                .getBytes("CP437"));
+        buffer.write(("Fecha: " + report.getDate().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                + "\n").getBytes("CP437"));
+        buffer.write("DOCUMENTO NO FISCAL - NO ES UNA FACTURA\n\n".getBytes("CP437"));
+        buffer.write(new byte[] { 0x1B, 0x61, 0x00, 0x1B, 0x45, 0x00 }); // izquierda, sin negrita
+
+        if (report.getProducts().isEmpty()) {
+            buffer.write("No hay ventas en este dia.\n".getBytes("CP437"));
+        } else if (byCategory) {
+            for (DailyReportDto.CategoryBlock block : report.getCategories()) {
+                buffer.write(new byte[] { 0x1B, 0x45, 0x01 }); // negrita
+                buffer.write(reportLine(block.getName().toUpperCase(), block.getQuantity(), block.getTotal()));
+                buffer.write(new byte[] { 0x1B, 0x45, 0x00 });
+                for (DailyReportDto.Row row : block.getRows()) {
+                    buffer.write(reportLine("  " + row.getName(), row.getQuantity(), row.getTotal()));
+                }
+                buffer.write("\n".getBytes("CP437"));
+            }
+        } else {
+            buffer.write("------------------------------------------------\n".getBytes("CP437"));
+            for (DailyReportDto.Row row : report.getProducts()) {
+                buffer.write(reportLine(row.getName(), row.getQuantity(), row.getTotal()));
+            }
+        }
+
+        int units = report.getProducts().stream().mapToInt(DailyReportDto.Row::getQuantity).sum();
+        buffer.write("------------------------------------------------\n".getBytes("CP437"));
+        buffer.write(new byte[] { 0x1B, 0x45, 0x01 });
+        buffer.write(String.format(java.util.Locale.US, "Ventas: %d   Unidades: %d\n", report.getTradeCount(), units)
+                .getBytes("CP437"));
+        buffer.write(String.format(java.util.Locale.US, "TOTAL: %41.2f\n", report.getTotal()).getBytes("CP437"));
+        buffer.write(new byte[] { 0x1B, 0x45, 0x00 });
+        buffer.write(amountLine("Efectivo (" + report.getCashCount() + "):", report.getCashTotal()));
+        buffer.write(amountLine("Tarjeta (" + report.getCardCount() + "):", report.getCardTotal()));
+        buffer.write("\n\n\n\n".getBytes("CP437"));
+        buffer.write(CUT);
+
+        send(ip, port, buffer.toByteArray());
+    }
+
+    /** Línea "etiqueta ............ importe" con el importe alineado a la derecha. */
+    private byte[] amountLine(String label, java.math.BigDecimal amount) throws IOException {
+        String value = String.format(java.util.Locale.US, "%.2f",
+                amount != null ? amount : java.math.BigDecimal.ZERO);
+        int spaces = Math.max(1, TOTAL_WIDTH - label.length() - value.length());
+        return (label + " ".repeat(spaces) + value + "\n").getBytes("CP437");
+    }
+
+    /** Línea "nombre ............ xN  importe" ajustada al ancho del ticket. */
+    private byte[] reportLine(String name, int quantity, java.math.BigDecimal total) throws IOException {
+        String right = String.format(java.util.Locale.US, "x%-3d %9.2f", quantity, total);
+        int maxName = TOTAL_WIDTH - right.length() - 1;
+        String n = name.length() > maxName ? name.substring(0, maxName) : name;
+        String line = n + " ".repeat(TOTAL_WIDTH - n.length() - right.length()) + right + "\n";
+        return line.getBytes("CP437");
+    }
+
+    public void openCashDrawer(String ip, int port) throws Exception {
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+
+        // Inicializar impresora
+        buffer.write(INITIALIZE);
+        buffer.write(OPEN_DRAWER);
+
+        send(ip, port, buffer.toByteArray());
+    }
+
+}

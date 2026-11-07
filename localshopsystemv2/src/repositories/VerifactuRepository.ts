@@ -1,5 +1,4 @@
-import axios from "axios";
-import { BaseInfoRepository } from "../utils/BaseInfoRepository";
+import { api } from "../utils/api";
 
 export type VerifactuSummary = {
   enabled: boolean;
@@ -14,9 +13,7 @@ class VerifactuRepository {
     if (!token) {
       return;
     }
-    const response = await axios.get(BaseInfoRepository.BASE_URL + "verifactu/status", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const response = await api.get<VerifactuSummary>("verifactu/status");
     return response.data;
   }
 
@@ -25,9 +22,7 @@ class VerifactuRepository {
     if (!token) {
       return;
     }
-    const response = await axios.post(BaseInfoRepository.BASE_URL + "verifactu/send-now", null, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const response = await api.post("verifactu/send-now");
     return response.data;
   }
 }

@@ -1,23 +1,23 @@
 package es.jonay.kb.shopsystem.model.entities;
 
-import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
-import java.util.SortedMap;
 
-import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.MapKeyColumn;
 import jakarta.persistence.Table;
 
-@Entity()
-@Table(name = "Items")
+/**
+ * Producto. El id es el código de barras. El precio y el coste actuales viven aquí (DECIMAL);
+ * cada cambio queda registrado en {@link ItemPriceChange} y cada variación de stock en
+ * {@link StockMovement}. El stock solo debe cambiarse a través del servicio de inventario.
+ */
+@Entity
+@Table(name = "items")
 public class Item {
     @Id
     private Long id;
@@ -27,42 +27,36 @@ public class Item {
 
     private String image;
 
-    @Column(name = "stock", columnDefinition = "Integer default 0")
+    @Column(name = "stock", columnDefinition = "int default 0")
     private Integer stock = 0;
 
-    @Column(name = "bareMinimun", columnDefinition = "Integer default 0")
+    @Column(name = "bare_minimun", columnDefinition = "int default 0")
     private Integer bareMinimun = 0;
 
-    @Column(name = "ignoreStock", columnDefinition = "Boolean default false")
+    @Column(name = "ignore_stock", columnDefinition = "tinyint(1) default 0")
     private Boolean ignoreStock = false;
 
-    @ElementCollection
-    @MapKeyColumn(name = "date")
-    @Column(name = "price")
-    @CollectionTable(name = "price_history", joinColumns = @JoinColumn(name = "item_id"))
-    private SortedMap<LocalDateTime, Double> priceHistory;
+    /** Precio de venta actual, IGIC incluido. */
+    @Column(name = "sale_price", nullable = false, precision = 10, scale = 2)
+    private BigDecimal price = BigDecimal.ZERO;
 
-    @ElementCollection
-    @MapKeyColumn(name = "date")
-    @Column(name = "net")
-    @CollectionTable(name = "net_history", joinColumns = @JoinColumn(name = "item_id"))
-    private SortedMap<LocalDateTime, Double> netHistory;
+    /** Coste de compra actual (sin IGIC). 0 = desconocido. */
+    @Column(name = "cost_price", nullable = false, precision = 10, scale = 2)
+    private BigDecimal cost = BigDecimal.ZERO;
 
+    /** Solo ventas anteriores a las líneas de venta (tabla trades_items). */
     @ManyToMany(mappedBy = "items")
     private List<Trade> trades;
 
     public Item() {
     }
 
-    public Item(Long id, String name, Category category, Integer stock, Integer bareMinimun,
-            SortedMap<LocalDateTime, Double> netHistory,
-            Boolean ignoreStock) {
+    public Item(Long id, String name, Category category, Integer stock, Integer bareMinimun, Boolean ignoreStock) {
         this.id = id;
         this.name = name;
         this.category = category;
         this.stock = stock;
         this.bareMinimun = bareMinimun;
-        this.netHistory = netHistory;
         this.ignoreStock = ignoreStock;
     }
 
@@ -122,20 +116,20 @@ public class Item {
         this.ignoreStock = ignoreStock;
     }
 
-    public SortedMap<LocalDateTime, Double> getNetHistory() {
-        return this.netHistory;
+    public BigDecimal getPrice() {
+        return price;
     }
 
-    public void setNetHistory(SortedMap<LocalDateTime, Double> netHistory) {
-        this.netHistory = netHistory;
+    public void setPrice(BigDecimal price) {
+        this.price = price;
     }
 
-    public SortedMap<LocalDateTime, Double> getPriceHistory() {
-        return this.priceHistory;
+    public BigDecimal getCost() {
+        return cost;
     }
 
-    public void setPriceHistory(SortedMap<LocalDateTime, Double> priceHistory) {
-        this.priceHistory = priceHistory;
+    public void setCost(BigDecimal cost) {
+        this.cost = cost;
     }
 
     @Override
@@ -146,7 +140,7 @@ public class Item {
             return false;
         }
         Item item = (Item) o;
-        return id == item.id;
+        return Objects.equals(id, item.id);
     }
 
     @Override

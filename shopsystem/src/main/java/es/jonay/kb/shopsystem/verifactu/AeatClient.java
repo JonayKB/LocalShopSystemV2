@@ -14,7 +14,6 @@ import java.time.Duration;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -24,11 +23,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class AeatClient {
 
-    private VerifactuProperties props;
-    private volatile HttpClient client;
+    private final VerifactuProperties props;
 
-    @Autowired
-    public void setProps(VerifactuProperties props) { this.props = props; }
+    public AeatClient(VerifactuProperties props) {
+        this.props = props;
+    }
+    private volatile HttpClient client;
 
     /** Envía un sobre RegFactuSistemaFacturacion y devuelve la respuesta interpretada. */
     public AeatResponse send(String envelopeXml) throws Exception {
@@ -85,5 +85,6 @@ public class AeatClient {
     /** Fuerza recargar el certificado (p. ej. tras renovarlo). */
     public void reset() {
         client = null;
+
     }
 }

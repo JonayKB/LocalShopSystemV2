@@ -13,9 +13,10 @@ const Basket: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [busy, setBusy] = useState(false);
 
-    const entries = Array.from(basketItems.entries());
-    const count = entries.reduce((n, [, q]) => n + q, 0);
-    const total = entries.reduce((sum, [item, q]) => sum + item.price * q, 0);
+    const entries = Array.from(basketItems.values());
+    const count = entries.reduce((n, l) => n + l.quantity, 0);
+    // Orientativo: el importe exacto (con redondeos de IGIC) lo calcula el servidor.
+    const total = entries.reduce((sum, l) => sum + Math.round(l.item.price * 100) * l.quantity, 0) / 100;
 
     const playSound = (src: string) => {
         try {
@@ -29,7 +30,7 @@ const Basket: React.FC = () => {
         setError(null);
         setBusy(true);
         try {
-            const result = await tradeRepository.createTrade(basketItems, token, printTicket, paymentMethod);
+            const result = await tradeRepository.createTrade(entries, token, printTicket, paymentMethod);
             if (result) {
                 playSound('/success_sound.mp3');
                 setBasketItems(new Map());
@@ -78,7 +79,7 @@ const Basket: React.FC = () => {
                     </div>
                 ) : (
                     <ul className="cart-list">
-                        {entries.map(([item, quantity]) => (
+                        {entries.map(({ item, quantity }) => (
                             <li key={item.id} className="cart-line">
                                 <span className="cart-name">{item.name}</span>
                                 <span className="cart-sum">{eur(item.price * quantity)}</span>

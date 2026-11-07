@@ -4,8 +4,7 @@ import ItemComponent from './ItemComponent';
 import Pager from './Pager';
 import Item from '../models/Item';
 import Page from '../models/Page';
-import axios from 'axios';
-import {BaseInfoRepository} from '../utils/BaseInfoRepository';
+import { api } from '../utils/api';
 
 type Props = {
     categoryId?: number;
@@ -32,15 +31,12 @@ const ItemPagination = forwardRef((props: Props, ref) => {
         if (/^\d+$/.test(props.text ?? '')) {
             url = `items/${props.text}`;
         }
-        const res = await axios.get(BaseInfoRepository.BASE_URL + url, {
+        const res = await api.get(url, {
             params: {
                 sortBy: props.sortBy ?? 'name',
                 ascending: props.ascending ?? true,
                 name: props.text ?? '',
-            },
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
+            }
         });
         if (!res.data || typeof res.data !== 'object' || !('content' in res.data && 'totalPages' in res.data && 'number' in res.data)) {
             console.warn('Response is not of type Page<Item>', res.data);

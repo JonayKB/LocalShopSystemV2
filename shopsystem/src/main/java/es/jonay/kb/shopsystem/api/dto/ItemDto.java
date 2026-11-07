@@ -1,23 +1,34 @@
 package es.jonay.kb.shopsystem.api.dto;
 
+import java.math.BigDecimal;
 import java.util.Objects;
 
+/**
+ * Producto en la API. price = precio de venta (IGIC incluido); net = coste (sin IGIC).
+ * stockNote: motivo opcional cuando al editar la ficha se cambia el stock a mano.
+ */
 public class ItemDto {
     private Long id;
     private String name;
-    private double price;
+    private BigDecimal price = BigDecimal.ZERO;
     private Long categoryId;
     private String image;
     private Integer stock;
     private Integer bareMinimun;
-    private double net;
+    private BigDecimal net = BigDecimal.ZERO;
     private Boolean ignoreStock;
+    private String stockNote;
+    /**
+     * Stock que mostraba el formulario al abrirse. Si se envía, al editar solo se aplica la
+     * diferencia (stock - originalStock): una venta hecha mientras tanto no se "deshace".
+     */
+    private Integer originalStock;
 
     public ItemDto() {
     }
 
-    public ItemDto(Long id, String name, double price, Long categoryId, Integer stock, Integer bareMinimun,
-            Boolean ignoreStock, double net) {
+    public ItemDto(Long id, String name, BigDecimal price, Long categoryId, Integer stock, Integer bareMinimun,
+            Boolean ignoreStock, BigDecimal net) {
         this.id = id;
         this.name = name;
         this.price = price;
@@ -44,11 +55,11 @@ public class ItemDto {
         this.name = name;
     }
 
-    public double getPrice() {
+    public BigDecimal getPrice() {
         return this.price;
     }
 
-    public void setPrice(double price) {
+    public void setPrice(BigDecimal price) {
         this.price = price;
     }
 
@@ -90,16 +101,30 @@ public class ItemDto {
 
     public void setIgnoreStock(Boolean ignoreStock) {
         this.ignoreStock = ignoreStock;
-
     }
 
-    public double getNet() {
+    public BigDecimal getNet() {
         return this.net;
     }
 
-
-    public void setNet(double net) {
+    public void setNet(BigDecimal net) {
         this.net = net;
+    }
+
+    public String getStockNote() {
+        return stockNote;
+    }
+
+    public void setStockNote(String stockNote) {
+        this.stockNote = stockNote;
+    }
+
+    public Integer getOriginalStock() {
+        return originalStock;
+    }
+
+    public void setOriginalStock(Integer originalStock) {
+        this.originalStock = originalStock;
     }
 
     @Override

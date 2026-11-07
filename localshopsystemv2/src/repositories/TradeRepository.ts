@@ -1,50 +1,21 @@
-import axios from "axios";
-import Item from "../models/Item";
-import { PaymentMethod } from "../models/Trade";
-import { BaseInfoRepository } from "../utils/BaseInfoRepository";
-
-
+import { api } from "../utils/api";
+import Trade, { PaymentMethod } from "../models/Trade";
+import { BasketLine } from "../components/MainContextProvider";
 
 class TradeRepository {
-
-  async createTrade(itemMap: Map<Item, number>, token: string | null, print: boolean, paymentMethod: PaymentMethod = 'CASH') {
-    let items: Item[] = [];
-    if (!token) {
+  /** Cobra la venta: una línea por producto con su cantidad. */
+  async createTrade(lines: BasketLine[], token: string | null, print: boolean, paymentMethod: PaymentMethod = 'CASH') {
+    if (!token || lines.length === 0) {
       return;
     }
-    if (itemMap.size <= 0) {
-      return;
-    }
-    items = [];
-    itemMap.forEach((quantity, item) => {
-      for (let i = 0; i < quantity; i++) {
-        items.push({
-          id: item.id,
-          name: item.name,
-          price: item.price,
-          categoryId: item.categoryId,
-          image: item.image,
-          stock: item.stock,
-          bareMinimun: item.bareMinimun,
-          net: item.net,
-          ignoreStock: item.ignoreStock,
-        });
-      }
+    const response = await api.post<Trade>("trade/sale", {
+      lines: lines.map(l => ({ itemId: l.item.id, quantity: l.quantity })),
+      paymentMethod,
+      print,
     });
-
-    const response = await axios.post(
-      BaseInfoRepository.BASE_URL + "trade/newTrade",
-      items,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        params: { print, paymentMethod },
-      }
-    );
-
     return response.data;
   }
+
   /**
    * Anula una venta (no la borra): conserva el registro, la marca como
    * anulada y el servidor devuelve el stock.
@@ -53,18 +24,12 @@ class TradeRepository {
     if (!token || !tradeId) {
       return;
     }
-    const response = await axios.post(
-      BaseInfoRepository.BASE_URL + `trade/${tradeId}/cancel`,
-      null,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        params: reason.trim() ? { reason: reason.trim() } : undefined,
-      }
-    );
+    const response = await api.post<Trade>(`trade/${tradeId}/cancel`, null, {
+      params: reason.trim() ? { reason: reason.trim() } : undefined,
+    });
     return response.data;
   }
+
   /**
    * Imprime en la impresora de tickets el resumen de hoy: todos los productos
    * ('products') o agrupados por categoría ('categories').
@@ -73,33 +38,13 @@ class TradeRepository {
     if (!token) {
       return;
     }
-    await axios.post(BaseInfoRepository.BASE_URL + 'trade/print-daily', null, {
-      headers: { Authorization: `Bearer ${token}` },
-      params: { mode },
-    });
+    await api.post('trade/print-daily', null, { params: { mode } });
   }
 
-  async getTradesByDate(token: string | null, startDate?: Date, endDate?: Date) {
-    if (!token) {
-      return;
-    }
-
-    const today = new Date();
-    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0, 0);
-    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);
-
-    const response = await axios.get(
-      BaseInfoRepository.BASE_URL + `trade/range`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        params: { startDate: startDate?.toISOString() ?? startOfDay.toISOString(), endDate: endDate?.toISOString() ?? endOfDay.toISOString() },
-      }
-    );
+  async getPage(page: number, size: number) {
+    const response = await api.get(`trade/${page}/${size}`);
     return response.data;
   }
-
 }
 
 export default TradeRepository;

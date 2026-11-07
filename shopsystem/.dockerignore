@@ -1,0 +1,8 @@
+target/
+uploads/
+certs/
+*.p12
+*.pfx
+*.pem
+*.key
+.env
