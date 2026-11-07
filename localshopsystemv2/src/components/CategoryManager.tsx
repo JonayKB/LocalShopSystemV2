@@ -7,6 +7,7 @@ import ImageRespository from '../repositories/ImageRepository';
 import Category from '../models/Category';
 import getCroppedImg from '../utils/CropImage';
 import { PLACEHOLDER_IMG } from '../utils/placeholder';
+import ModalPortal from './ModalPortal';
 
 /** Mensaje de error del servidor (texto plano) o uno genérico. */
 const serverMessage = (e: any, fallback: string): string =>
@@ -146,6 +147,7 @@ const CategoryModal = ({ draft, token, onClose, onSaved }: ModalProps) => {
     };
 
     return (
+        <ModalPortal>
         <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label={isNew ? 'Nueva categoría' : 'Editar categoría'}>
             <div className="modal-card" style={{ maxWidth: 520 }}>
                 <button className="btn-icon modal-close" onClick={onClose} aria-label="Cerrar" type="button">
@@ -216,6 +218,7 @@ const CategoryModal = ({ draft, token, onClose, onSaved }: ModalProps) => {
                 </form>
             </div>
         </div>
+        </ModalPortal>
     );
 };
 

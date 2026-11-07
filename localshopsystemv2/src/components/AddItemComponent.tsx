@@ -8,6 +8,7 @@ import ImageRespository from '../repositories/ImageRepository';
 import Cropper, { Area } from 'react-easy-crop';
 import getCroppedImg from '../utils/CropImage';
 import ItemHistory from './ItemHistory';
+import ModalPortal from './ModalPortal';
 
 
 
@@ -117,6 +118,7 @@ const AddItemComponent = (props: Props) => {
     const lockedCode = !!item.id || item.id === 0;
 
     return (
+        <ModalPortal>
         <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label={isNew ? 'Nuevo producto' : 'Editar producto'}>
             <div className="modal-card" style={{ maxWidth: isNew ? 580 : 760 }}>
                 <button
@@ -197,7 +199,7 @@ const AddItemComponent = (props: Props) => {
                             <span className="field-hint">IGIC incluido</span>
                         </div>
                         <div className="field">
-                            <label htmlFor="net">Coste sin IGIC (€)</label>
+                            <label htmlFor="net">Precio de coste (€)</label>
                             <input
                                 className="input"
                                 type="number"
@@ -212,6 +214,7 @@ const AddItemComponent = (props: Props) => {
                                 id="net"
                                 required
                             />
+                            <span className="field-hint">Lo que te cuesta a ti, sin IGIC</span>
                         </div>
 
                         <div className="field">
@@ -347,6 +350,7 @@ const AddItemComponent = (props: Props) => {
                 </form>
             </div>
         </div>
+        </ModalPortal>
     )
 }
 

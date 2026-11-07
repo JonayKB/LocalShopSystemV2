@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import Trade from '../models/Trade';
 import { eur, formatDateTime, tradeLabel, tradeTotal } from '../utils/format';
+import ModalPortal from './ModalPortal';
 
 type Props = {
     trade: Trade;
@@ -28,7 +28,8 @@ const CancelTradeModal = ({ trade, onClose, onConfirm }: Props) => {
         }
     };
 
-    return createPortal(
+    return (
+        <ModalPortal>
         <div
             className="modal-backdrop"
             role="dialog"
@@ -112,8 +113,8 @@ const CancelTradeModal = ({ trade, onClose, onConfirm }: Props) => {
                     </button>
                 </div>
             </form>
-        </div>,
-        document.body
+        </div>
+        </ModalPortal>
     );
 };
 

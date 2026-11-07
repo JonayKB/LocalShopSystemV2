@@ -4,7 +4,8 @@
    y un único acento verde. Se aplica con .admin.theme-light
    ============================================================ */
 
-.admin {
+.admin,
+.modal-root {
   --ok: #1f5e46;
   --ok-bg: #e8f1ec;
   --warn: #8a5a00;
@@ -14,6 +15,12 @@
   --focus: 0 0 0 3px var(--accent-soft);
 
   color-scheme: light;
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.admin {
   display: flex;
   width: 100%;
   min-height: 100vh;
@@ -28,7 +35,10 @@
 .admin h2,
 .admin h3,
 .admin h4,
-.admin p {
+.admin p,
+.modal-root h2,
+.modal-root h3,
+.modal-root p {
   margin: 0;
 }
 
