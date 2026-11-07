@@ -997,6 +997,13 @@
   gap: 16px;
 }
 
+/* Caja del día: separa los totales (efectivo, tarjeta, IGIC) del desglose por categoría */
+.cash-categories {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+
 .stat {
   padding: 20px;
   background: var(--surface);

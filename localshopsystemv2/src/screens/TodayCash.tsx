@@ -83,6 +83,7 @@ const TodayCash = (props: Props) => {
             ) : !t || !categories ? (
                 <div className="skeleton" style={{ height: 200 }} aria-busy="true" />
             ) : (
+                <>
                 <div className="stat-grid">
                     <div className="stat is-total">
                         <small>Total de hoy · {t.trades} {t.trades === 1 ? 'venta' : 'ventas'}</small>
@@ -106,18 +107,25 @@ const TodayCash = (props: Props) => {
                             <strong>{eur(t.cancelledAmount)}</strong>
                         </div>
                     )}
-                    {categories.length === 0 && (
-                        <div className="empty" style={{ gridColumn: '1 / -1' }}>
+                </div>
+                <section className="cash-categories" aria-labelledby="cash-categories-title">
+                    <h2 className="section-title" id="cash-categories-title">Por categoría</h2>
+                    {categories.length === 0 ? (
+                        <div className="empty">
                             <strong>Todavía no hay ventas hoy</strong>
                         </div>
-                    )}
-                    {categories.map(c => (
-                        <div className="stat" key={c.category}>
-                            <small>{c.category}</small>
-                            <strong>{eur(c.revenue)}</strong>
+                    ) : (
+                        <div className="stat-grid">
+                            {categories.map(c => (
+                                <div className="stat" key={c.category}>
+                                    <small>{c.category}</small>
+                                    <strong>{eur(c.revenue)}</strong>
+                                </div>
+                            ))}
                         </div>
-                    ))}
-                </div>
+                    )}
+                </section>
+                </>
             )}
         </>
     );
