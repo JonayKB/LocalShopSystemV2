@@ -7,6 +7,7 @@ import ItemRepository from '../repositories/ItemRepository';
 import ImageRespository from '../repositories/ImageRepository';
 import Cropper, { Area } from 'react-easy-crop';
 import getCroppedImg from '../utils/CropImage';
+import ItemHistory from './ItemHistory';
 
 
 
@@ -23,11 +24,13 @@ const AddItemComponent = (props: Props) => {
     const [croppedImage, setCroppedImage] = useState<File | null>(null);
     const [crop, setCrop] = useState({ x: 0, y: 0 })
     const [zoom, setZoom] = useState(0.5)
+    const [stockNote, setStockNote] = useState('');
     const itemRepository = new ItemRepository();
     const imageRepository = new ImageRespository();
 
     useEffect(() => {
         setItem(openAddItemModal);
+        setStockNote('');
         setCroppingImage(null);
         setCroppedAreaPixels(undefined);
         setCrop({ x: 0, y: 0 });
@@ -71,6 +74,7 @@ const AddItemComponent = (props: Props) => {
             }
         }
 
+        const isNew = !openAddItemModal?.name;
         const newItem: Item = {
             id: Number(code),
             name: name,
@@ -81,8 +85,12 @@ const AddItemComponent = (props: Props) => {
             bareMinimun: item?.bareMinimun ?? 0,
             net: item?.net ?? 0,
             ignoreStock: item?.ignoreStock ?? false,
+            // Al editar se envía el stock con el que se abrió la ficha: si mientras tanto se
+            // vendió algo, solo se aplica la diferencia que haya escrito el usuario.
+            originalStock: isNew ? undefined : openAddItemModal?.stock ?? 0,
+            stockNote: stockNote.trim() || undefined,
         };
-        if (newItem.id < 0 || newItem.name === '' || newItem.price <= 0 || newItem.categoryId < 0) {
+        if (newItem.id < 0 || newItem.name === '' || !(newItem.price > 0) || newItem.categoryId < 0 || newItem.net < 0) {
             alert('Rellena los datos correctamente');
             return;
 
@@ -110,7 +118,7 @@ const AddItemComponent = (props: Props) => {
 
     return (
         <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label={isNew ? 'Nuevo producto' : 'Editar producto'}>
-            <div className="modal-card" style={{ maxWidth: 580 }}>
+            <div className="modal-card" style={{ maxWidth: isNew ? 580 : 760 }}>
                 <button
                     className="btn-icon modal-close"
                     onClick={() => { setOpenAddItemModal(null) }}
@@ -189,7 +197,7 @@ const AddItemComponent = (props: Props) => {
                             <span className="field-hint">IGIC incluido</span>
                         </div>
                         <div className="field">
-                            <label htmlFor="net">Precio neto / coste (€)</label>
+                            <label htmlFor="net">Coste sin IGIC (€)</label>
                             <input
                                 className="input"
                                 type="number"
@@ -207,7 +215,7 @@ const AddItemComponent = (props: Props) => {
                         </div>
 
                         <div className="field">
-                            <label htmlFor="stock">Stock actual</label>
+                            <label htmlFor="stock">{isNew ? 'Stock inicial' : 'Stock actual'}</label>
                             <input
                                 className="input"
                                 type="number"
@@ -225,6 +233,23 @@ const AddItemComponent = (props: Props) => {
                                 required
                             />
                         </div>
+                        {!isNew && item.stock !== (openAddItemModal?.stock ?? 0) && (
+                            <div className="field span-2">
+                                <label htmlFor="stockNote">Motivo del cambio de stock</label>
+                                <input
+                                    className="input"
+                                    id="stockNote"
+                                    maxLength={255}
+                                    placeholder="Recuento, rotura, regalo… (queda en el historial)"
+                                    value={stockNote}
+                                    onChange={(e) => setStockNote(e.target.value)}
+                                />
+                                <span className="field-hint">
+                                    Se registrará un ajuste de {(item.stock ?? 0) - (openAddItemModal?.stock ?? 0) > 0 ? '+' : ''}
+                                    {(item.stock ?? 0) - (openAddItemModal?.stock ?? 0)} uds. Para mercancía nueva usa mejor «Stock › Entrada».
+                                </span>
+                            </div>
+                        )}
                         <div className="field">
                             <label htmlFor="bareMinimun">Stock mínimo</label>
                             <input
@@ -308,6 +333,8 @@ const AddItemComponent = (props: Props) => {
                             )}
                         </div>
                     </div>
+
+                    {!isNew && <ItemHistory itemId={item.id} token={token} />}
 
                     <div className="modal-actions">
                         <button type="button" className="btn" onClick={() => setOpenAddItemModal(null)}>

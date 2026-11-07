@@ -7,9 +7,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -33,33 +33,27 @@ public class VerifactuSender {
     private static final int MAX_BATCH = 1000;
     private static final long MAX_BACKOFF_SECONDS = 3600;
 
-    private final Logger logger = Logger.getLogger(VerifactuSender.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(VerifactuSender.class);
 
-    private IBillingRecordRepository records;
-    private VerifactuProperties props;
-    private AeatClient client;
-    private BillingRecordService billing;
-    private TransactionTemplate tx;
+    private final IBillingRecordRepository records;
+    private final VerifactuProperties props;
+    private final AeatClient client;
+    private final BillingRecordService billing;
+    private final TransactionTemplate tx;
 
     /** No enviar antes de este instante (TiempoEsperaEnvio de la AEAT), salvo que haya 1000 pendientes. */
     private volatile Instant notBefore = Instant.EPOCH;
     private volatile String lastError;
     private volatile Date lastSuccess;
 
-    @Autowired
-    public void setRecords(IBillingRecordRepository records) { this.records = records; }
-
-    @Autowired
-    public void setProps(VerifactuProperties props) { this.props = props; }
-
-    @Autowired
-    public void setClient(AeatClient client) { this.client = client; }
-
-    @Autowired
-    public void setBilling(BillingRecordService billing) { this.billing = billing; }
-
-    @Autowired
-    public void setTransactionManager(PlatformTransactionManager tm) { this.tx = new TransactionTemplate(tm); }
+    public VerifactuSender(IBillingRecordRepository records, VerifactuProperties props, AeatClient client,
+            BillingRecordService billing, PlatformTransactionManager tm) {
+        this.records = records;
+        this.props = props;
+        this.client = client;
+        this.billing = billing;
+        this.tx = new TransactionTemplate(tm);
+    }
 
     public String getLastError() { return lastError; }
     public Date getLastSuccess() { return lastSuccess; }
@@ -73,7 +67,7 @@ public class VerifactuSender {
             sendPending();
         } catch (Exception e) {
             lastError = e.getClass().getSimpleName() + ": " + e.getMessage();
-            logger.severe("VERI*FACTU: error en el envío: " + lastError);
+            logger.error("VERI*FACTU: error en el envío: " + lastError);
         }
     }
 

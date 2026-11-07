@@ -1,108 +1,40 @@
 package es.jonay.kb.shopsystem.model.repository;
 
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import es.jonay.kb.shopsystem.api.dto.analytics.SaleLineRow;
 import es.jonay.kb.shopsystem.model.entities.Trade;
 
+/**
+ * Datos para informes y gráficas. Todo sale de las líneas de venta congeladas (precio,
+ * IGIC, coste y categoría del momento de la venta), nunca de los precios actuales.
+ */
 @Repository
 public interface IGraphsRepository extends JpaRepository<Trade, Long> {
 
-        // ================== VENTAS ==================
+    /** Líneas de ventas emitidas (no anuladas) en [from, to). */
+    @Query("""
+            SELECT new es.jonay.kb.shopsystem.api.dto.analytics.SaleLineRow(
+                t.id, t.date, t.paymentMethod, l.itemId, l.description, l.categoryName,
+                l.quantity, l.lineTotal, l.taxBase, l.taxAmount, l.unitCost)
+            FROM TradeLine l JOIN l.trade t
+            WHERE t.status = es.jonay.kb.shopsystem.model.entities.TradeStatus.ISSUED
+              AND t.date >= :from AND t.date < :to
+            """)
+    List<SaleLineRow> saleLines(@Param("from") Date from, @Param("to") Date to);
 
-        // Productos más vendidos
-        @Query("""
-                        SELECT i.name, COUNT(tr)
-                        FROM Trade tr
-                        JOIN tr.items i
-                        WHERE tr.status = es.jonay.kb.shopsystem.model.entities.TradeStatus.ISSUED
-                        GROUP BY i.name
-                        ORDER BY COUNT(tr) DESC
-                        """)
-        List<Object[]> topSoldItems();
-
-        // Evolución de trades en el tiempo
-        @Query("""
-                        SELECT DATE(tr.date), COUNT(tr)
-                        FROM Trade tr
-                        WHERE tr.status = es.jonay.kb.shopsystem.model.entities.TradeStatus.ISSUED
-                        GROUP BY DATE(tr.date)
-                        ORDER BY DATE(tr.date)
-                        """)
-        List<Object[]> countTradesByDay();
-
-        // Valor promedio de los trades
-        @Query("""
-                        SELECT AVG(ph)
-                        FROM Trade tr
-                        JOIN tr.items i
-                        JOIN i.priceHistory ph
-                        WHERE tr.status = es.jonay.kb.shopsystem.model.entities.TradeStatus.ISSUED
-                        AND KEY(ph) <= tr.date
-                        """)
-        Double averageTradeValue();
-
-        @Query("""
-                        SELECT c.name, SUM(ph)
-                        FROM Trade tr
-                        JOIN tr.items i
-                        JOIN i.category c
-                        JOIN i.priceHistory ph
-                        WHERE tr.status = es.jonay.kb.shopsystem.model.entities.TradeStatus.ISSUED
-                        AND KEY(ph) <= tr.date
-                        GROUP BY c.name
-                        """)
-        List<Object[]> incomeByCategory();
-
-        // ================== INVENTARIO ==================
-
-        // Distribución de stock por categoría
-        @Query("""
-                        SELECT c.name, SUM(i.stock)
-                        FROM Item i
-                        JOIN i.category c
-                        GROUP BY c.name
-                        """)
-        List<Object[]> stockByCategory();
-
-        // Productos que ignoran stock
-        @Query("""
-                        SELECT i.name
-                        FROM Item i
-                        WHERE i.ignoreStock = true
-                        """)
-        List<Object[]> itemsIgnoringStock();
-
-        // ================== FINANZAS ==================
-
-        // Productos con mayor margen de beneficio (neto acumulado)
-        @Query("""
-                        SELECT i.name, SUM(ph-nh)
-                        FROM Trade tr
-                        JOIN tr.items i
-                        JOIN i.netHistory nh
-                        JOIN i.priceHistory ph
-                        WHERE tr.status = es.jonay.kb.shopsystem.model.entities.TradeStatus.ISSUED
-                        AND KEY(nh) <= tr.date
-                        AND KEY(ph) <= tr.date
-                        AND nh <> 0
-                        GROUP BY i.name
-                        ORDER BY SUM(ph-nh) DESC
-                        """)
-        List<Object[]> topProfitItems();
-
-        // Evolución del beneficio acumulado en el tiempo
-        @Query("""
-                        SELECT DATE(KEY(nh)), SUM(nh)
-                        FROM Item i
-                        JOIN i.netHistory nh
-                        WHERE nh <> 0
-                        GROUP BY DATE(KEY(nh))
-                        ORDER BY DATE(KEY(nh))
-                        """)
-        List<Object[]> accumulatedProfitOverTime();
-
+    /** Ventas anuladas en [from, to) (por fecha de la venta): número e importe. */
+    @Query("""
+            SELECT COUNT(t), COALESCE(SUM(t.total), 0)
+            FROM Trade t
+            WHERE t.status = es.jonay.kb.shopsystem.model.entities.TradeStatus.CANCELLED
+              AND t.date >= :from AND t.date < :to
+            """)
+    List<Object[]> cancelledSummary(@Param("from") Date from, @Param("to") Date to);
 }

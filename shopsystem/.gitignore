@@ -31,3 +31,10 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Certificados y claves: nunca en el repositorio
+certs/
+*.p12
+*.pfx
+*.pem
+*.key

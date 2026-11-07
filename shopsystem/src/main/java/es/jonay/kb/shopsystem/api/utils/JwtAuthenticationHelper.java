@@ -4,7 +4,6 @@ import com.auth0.jwt.exceptions.JWTVerificationException;
 
 import es.jonay.kb.shopsystem.api.security.JwtService;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -17,10 +16,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 
 @Component
 public class JwtAuthenticationHelper {
@@ -92,20 +88,16 @@ public class JwtAuthenticationHelper {
     }
 
     /**
-     * Sets the authentication in the SecurityContext.
+     * Sets the authentication in the SecurityContext (does not continue the filter chain).
      */
-    public void setAuthentication(UserDetails userDetails, HttpServletRequest request,
-            FilterChain filterChain, HttpServletResponse response) throws IOException, ServletException {
+    public void authenticate(UserDetails userDetails, HttpServletRequest request) {
         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                 userDetails,
                 null,
                 userDetails.getAuthorities());
-        SecurityContextHolder.getContext().setAuthentication(authToken);
-
         if (request != null) {
             authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-            filterChain.doFilter(request, response);
-
         }
+        SecurityContextHolder.getContext().setAuthentication(authToken);
     }
 }

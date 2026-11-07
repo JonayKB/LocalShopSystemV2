@@ -1,143 +1,58 @@
-import axios from "axios";
-import {BaseInfoRepository} from "../utils/BaseInfoRepository";
-import GraphData from "../models/Graph";
+import { api } from "../utils/api";
+import {
+  Bucket,
+  CategoryShare,
+  Granularity,
+  Inventory,
+  ItemRank,
+  PaymentShare,
+  RankMetric,
+  Summary,
+  TimePoint,
+} from "../models/Analytics";
+
+/** Rango de fechas (yyyy-mm-dd, ambas incluidas). */
+export type DateRange = { from: string; to: string };
 
 class GraphRepository {
+  private static readonly PREFIX = "graphs/";
 
-    private static readonly GRAPH_PREFIX = "graphs/";
+  private async get<T>(path: string, _token: string | null, params: Record<string, unknown> = {}): Promise<T> {
+    const response = await api.get<T>(GraphRepository.PREFIX + path, { params });
+    return response.data;
+  }
 
-    // VENTAS
-    async getTradeCountByDay(token: string | null) {
-        const response = await axios.get(
-            BaseInfoRepository.BASE_URL + GraphRepository.GRAPH_PREFIX + "trades-count-by-day",
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            }
-        );
-        const graphData = {
-            labels: response.data.map((item: any) => item.labels),
-            data: response.data.map((item: any) => item.data),
-        };
-        return graphData as GraphData;
-    }
+  summary(range: DateRange, token: string | null) {
+    return this.get<Summary>("summary", token, range);
+  }
 
-    async getTopSoldItems(token: string | null) {
-        const response = await axios.get(
-            BaseInfoRepository.BASE_URL + GraphRepository.GRAPH_PREFIX + "top-sold-items",
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            }
-        );
-        const graphData = {
-            labels: response.data.map((item: any) => item.labels),
-            data: response.data.map((item: any) => item.data),
-        };
-        return graphData as GraphData;
-    }
+  salesOverTime(range: DateRange, granularity: Granularity, token: string | null) {
+    return this.get<TimePoint[]>("sales-over-time", token, { ...range, granularity });
+  }
 
-    async getAverageTradeValue(token: string | null) {
-        const response = await axios.get(
-            BaseInfoRepository.BASE_URL + GraphRepository.GRAPH_PREFIX + "average-trade-value",
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            }
-        );
-        const graphData = {
-            labels: ["Media valor de compra"],
-            data: [response.data],
-        };
-        return graphData as GraphData;
-    }
+  topItems(range: DateRange, metric: RankMetric, limit: number, token: string | null) {
+    return this.get<ItemRank[]>("top-items", token, { ...range, metric, limit });
+  }
 
-    async getIncomeByCategory(token: string | null) {
-        const response = await axios.get(
-            BaseInfoRepository.BASE_URL + GraphRepository.GRAPH_PREFIX + "income-by-category",
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            }
-        );
-        const graphData = {
-            labels: response.data.map((item: any) => item.labels),
-            data: response.data.map((item: any) => item.data),
-        };
-        return graphData as GraphData;
-    }
+  byCategory(range: DateRange, token: string | null) {
+    return this.get<CategoryShare[]>("by-category", token, range);
+  }
 
-    // STOCK
-    async getStockByCategory(token: string | null) {
-        const response = await axios.get(
-            BaseInfoRepository.BASE_URL + GraphRepository.GRAPH_PREFIX + "stock-by-category",
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            }
-        );
-        const graphData = {
-            labels: response.data.map((item: any) => item.labels),
-            data: response.data.map((item: any) => item.data),
-        };
-        return graphData as GraphData;
-    }
-    async getItemsIgnoringStock(token: string | null) {
-        const response = await axios.get(
-            BaseInfoRepository.BASE_URL + GraphRepository.GRAPH_PREFIX + "items-ignored-stock",
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            }
-        );
-        const graphData = {
-            labels: response.data,
-            data: response.data.map(() => 1),
-        };
-        return graphData as GraphData;
-    }
+  byPaymentMethod(range: DateRange, token: string | null) {
+    return this.get<PaymentShare[]>("by-payment-method", token, range);
+  }
 
-    // ECONOMIA
+  byHour(range: DateRange, token: string | null) {
+    return this.get<Bucket[]>("by-hour", token, range);
+  }
 
-    async getTopProfitItems(token: string | null) {
-        const response = await axios.get(
-            BaseInfoRepository.BASE_URL + GraphRepository.GRAPH_PREFIX + "top-profit-items",
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            }
-        );
-        const graphData = {
-            labels: response.data.map((item: any) => item.labels),
-            data: response.data.map((item: any) => item.data),
-        };
-        return graphData as GraphData;
-    }
+  byWeekday(range: DateRange, token: string | null) {
+    return this.get<Bucket[]>("by-weekday", token, range);
+  }
 
-    async getAccumulatedProfitOvertime(token: string | null) {
-        const response = await axios.get(
-            BaseInfoRepository.BASE_URL + GraphRepository.GRAPH_PREFIX + "accumulated-profit-overtime",
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            }
-        );
-        const graphData = {
-            labels: response.data.map((item: any) => item.labels),
-            data: response.data.map((item: any) => item.data),
-        };
-        return graphData as GraphData;
-    }
-
+  inventory(token: string | null) {
+    return this.get<Inventory>("inventory", token);
+  }
 }
-
 
 export default GraphRepository;

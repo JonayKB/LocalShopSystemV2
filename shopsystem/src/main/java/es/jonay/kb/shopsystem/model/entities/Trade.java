@@ -33,10 +33,12 @@ public class Trade {
      * gráficas. Las ventas nuevas también rellenan {@link #lines}.
      */
     @ManyToMany()
-    private List<Item> items;
+    @org.hibernate.annotations.BatchSize(size = 50)
+    private List<Item> items = new ArrayList<>();
 
     /** Líneas inmutables de la venta (precio, IGIC y cantidad al vender). */
     @OneToMany(mappedBy = "trade", cascade = CascadeType.ALL)
+    @org.hibernate.annotations.BatchSize(size = 50)
     private List<TradeLine> lines = new ArrayList<>();
 
     /** Instante real de emisión. */

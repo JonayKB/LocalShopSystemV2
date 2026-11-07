@@ -18,6 +18,8 @@
 	<properties>
 		<java.version>17</java.version>
 		<org.mapstruct.version>1.5.5.Final</org.mapstruct.version>
+		<!-- 1.19 (la de Spring Boot 3.3) no habla con Docker 29 (API mínima 1.40) -->
+		<testcontainers.version>1.21.3</testcontainers.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -50,6 +52,41 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<!-- /actuator/health para el healthcheck de Docker (nada más expuesto) -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+		<!-- Migraciones de base de datos -->
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-mysql</artifactId>
+		</dependency>
+		<!-- Tests de integración contra un MySQL 8 real (Docker) -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-testcontainers</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>mysql</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>

@@ -1,37 +1,27 @@
 package es.jonay.kb.shopsystem.api.mappers;
 
-import java.time.LocalDateTime;
-import java.util.SortedMap;
-
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Named;
-import org.mapstruct.factory.Mappers;
 import es.jonay.kb.shopsystem.api.dto.ItemDto;
 import es.jonay.kb.shopsystem.model.entities.Item;
 
-@Mapper(componentModel = "spring")
+/** Conversión Item -> ItemDto (price = precio de venta, net = coste). */
 public interface ItemMapper {
-    ItemMapper INSTANCE = Mappers.getMapper(ItemMapper.class);
+    ItemMapper INSTANCE = new ItemMapper() {
+    };
 
-    @Mapping(source = "category.id", target = "categoryId")
-    @Mapping(source = "item.priceHistory", target = "price", qualifiedByName = "getLatestPrice")
-    @Mapping(source = "item.netHistory", target = "net", qualifiedByName = "getLatestNet")
-    public ItemDto toItemDto(Item item);
-
-    public Item toItem(ItemDto itemDto);
-
-    @Named("getLatestPrice")
-    public default Double getLatestPrice(SortedMap<LocalDateTime, Double> priceHistory) {
-        if (priceHistory != null && !priceHistory.isEmpty())
-            return priceHistory.get(priceHistory.lastKey());
-        return 0.0;
-    }
-
-    @Named("getLatestNet")
-    public default Double getLatestNet(SortedMap<LocalDateTime, Double> netHistory) {
-        if (netHistory != null && !netHistory.isEmpty())
-            return netHistory.get(netHistory.lastKey());
-        return 0.0;
+    default ItemDto toItemDto(Item item) {
+        if (item == null) {
+            return null;
+        }
+        ItemDto dto = new ItemDto();
+        dto.setId(item.getId());
+        dto.setName(item.getName());
+        dto.setCategoryId(item.getCategory() != null ? item.getCategory().getId() : null);
+        dto.setImage(item.getImage());
+        dto.setStock(item.getStock());
+        dto.setBareMinimun(item.getBareMinimun());
+        dto.setIgnoreStock(item.getIgnoreStock());
+        dto.setPrice(item.getPrice());
+        dto.setNet(item.getCost());
+        return dto;
     }
 }
