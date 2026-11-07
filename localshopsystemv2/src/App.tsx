@@ -16,15 +16,15 @@ const StockScreen = lazy(() => import('./screens/StockScreen'));
 const GraphScreen = lazy(() => import('./screens/GraphScreen'));
 const TodayCash = lazy(() => import('./screens/TodayCash'));
 
-const Loading = () => <div className="skeleton" style={{ height: 240, margin: 24 }} aria-busy="true" />;
-
 function App() {
   return (
     <BrowserRouter>
       <MainContextProvider>
         <div className="app-container">
           <div className="main-content">
-            <Suspense fallback={<Loading />}>
+            {/* Solo cubre la descarga del propio AdminWrapper: sin fallback visible para no pintar
+                un fondo oscuro fuera del tema claro. Las pantallas tienen su Suspense dentro del marco. */}
+            <Suspense fallback={null}>
               <Routes>
                 <Route path="/" element={<HomeScreen />} />
                 <Route path="admin" element={<AdminWrapper />}>
